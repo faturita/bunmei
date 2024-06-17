@@ -4,7 +4,7 @@ CC = g++
 CFLAGS = -std=c++17 -w -g -Wall $(ODEF) -I/usr/include -I/usr/include/GL -I/System/Library/Frameworks/OpenGL.framework/Headers -I../stk/include  -fpermissive
 PROG = bunmei
 
-SCS = src/lodepng.cpp src/openglutils.cpp src/imageloader.cpp src/commandline.cpp src/profiling.cpp src/camera.cpp src/math/yamathutil.cpp src/math/vec3f.cpp src/font/DrawFonts.cpp src/bunmei.cpp
+SCS = src/lodepng.cpp src/openglutils.cpp src/imageloader.cpp src/commandline.cpp src/profiling.cpp src/camera.cpp src/math/yamathutil.cpp src/math/vec3f.cpp src/font/DrawFonts.cpp src/hud.cpp src/map.cpp src/usercontrols.cpp src/map.cpp src/bunmei.cpp
 
 SSRC = $(SCS)
 OBJS = $(SSRC:.cpp=.o)

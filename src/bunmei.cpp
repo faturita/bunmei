@@ -31,11 +31,13 @@
 #include <stdarg.h>
 #include <math.h>
 
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#elif __linux
+#include <cassert>
+#ifdef __linux
 #include <GL/glut.h>
 #include <algorithm>
+#elif __APPLE__
+#define GL_SILENCE_DEPRECATION
+#include <GLUT/glut.h>
 #endif
 
 #include <vector>
@@ -49,14 +51,15 @@
 #include "font/DrawFonts.h"
 #include "camera.h"
 #include "openglutils.h"
-
 #include "lodepng.h"
+#include "usercontrols.h"
+#include "map.h"
+#include "hud.h"
 
 Camera Camera;
+extern Controller controller;
 
 float horizon = 10000;
-
-
 
 
 void disclaimer()
@@ -80,210 +83,6 @@ void initSound()
 
 }
 
-// 1200 x 800
-// 1920 x 1080
-int width = 1200;
-int height = 800;
-int mapzoom=1;
-
-float cx,cy;
-
-std::unordered_map<std::string, GLuint> maptextures;
-
-
-void placeMark(int x, int y, int size, const char* modelName)
-{
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
-        //Image* image = loadBMP(modelName);
-        //_texture = loadTexture(image);
-        //delete image;
-
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-        //delete image;
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, _texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-    glColor4f(1.0f, 1.0f, 1.0f,1.0f);
-
-
-    glBegin(GL_QUADS);
-    //Front face
-    glNormal3f(0.0, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-size / 2 + x, -size / 2 + y, 0);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(size / 2 + x, -size / 2 + y, 0);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(size / 2 + x, size / 2 + y, 0);
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-size / 2 + x, size / 2 + y, 0);
-
-    glEnd();
-
-    // @NOTE: This is very important.
-    glDisable(GL_TEXTURE_2D);
-}
-
-float X(float x)
-{
-    return (600-(x/1));
-}
-
-float Y(float y)
-{
-    return 0+(y/1);
-}
-
-void placeMarkLatLong(int lat, int longi, int iconsize, const char* modelName)
-{
-    placeMark(X(lat),Y(longi),iconsize,modelName);
-}
-
-void drawMap()
-{
-    // This will make things dark.
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-
-    int xsize = width/mapzoom;
-    int ysize = height/mapzoom;
-
-    if (mapzoom==1)
-    {
-        cx = width/2;
-        cy = height/2;
-    }
-
-
-    glOrtho(cx-xsize/2, cx+xsize/2, cy+ysize/2, cy-ysize/2, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glColor4f(1.0f, 1.0f, 1.0f, 1);
-    glDisable(GL_DEPTH_TEST);
-    glRotatef(180.0f,0,0,1);
-    glRotatef(180.0f,0,1,0);
-
-
-
-    glClearColor(0.0f,0.0f,0.0f,1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    char str[256];
-    sprintf (str, "Kepler IV Sea");
-    // width, height, 0 0 upper left
-    drawString(0,-30,1,str,0.2f,1.0f,1.0f,1.0f);
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix(); {
-        glTranslatef(0, -400, 1);
-
-        // Let's draw the typical grid of naval cartmaking.  It is 12x8. Each square is 100 kmf squared.
-        // (+,0,0),(0,0,+) is upwards-right.  The screen is (+,0),(0,+) downward-right.
-        for(int i=0;i<10;i++)
-        {
-            glLineWidth(2.5);
-            glColor3f(0.0, 1.0, 0.0);
-            glBegin(GL_LINES);
-            glVertex3f(   1, -500+i*100, 0.0);
-            glVertex3f(1200, -500+i*100, 0.0);
-            glEnd();
-        }
-
-        for(int i=0;i<12;i++)
-        {
-            glLineWidth(2.5);
-            glColor3f(0.0, 1.0, 0.0);
-            glBegin(GL_LINES);
-            glVertex3f(   1+i*100,  500, 0.0);
-            glVertex3f(   1+i*100, -500, 0.0);
-            glEnd();
-        }
-
-        glLineWidth(2.5);
-        glColor3f(0.0, 1.0, 0.0);
-        glBegin(GL_LINES);
-        glVertex3f(   1200,  500, 0.0);
-        glVertex3f(   1200, -500, 0.0);
-        glEnd();
-
-        glDepthMask(GL_FALSE);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-
-        for(int x=0;x<120;x++)
-            for(int y=-50;y<50;y++)
-            {
-                //placeMark(x*10+5,y*10+5,10,"assets/assets/terrain/ocean.png");
-
-            }
-
-
-        //placeMark(30,90,10,"assets/assets/terrain/land.png");
-        //placeMark(0,0,30,"assets/assets/units/trireme.png");
-        //placeMark(600+5,0+5,10,"assets/assets/terrain/mountains_n.png");
-
-        for(int x=-60;x<60;x++)
-            for(int y=-50;y<50;y++)
-            {
-                placeMarkLatLong(x*10+5,y*10+5,10,"assets/assets/terrain/ocean.png");
-
-            }
-
-        placeMarkLatLong(0+5,0+5,10,"assets/assets/terrain/mountains_n.png");
-
-        glDisable(GL_BLEND);
-
-    } glPopMatrix();
-
-    glEnable(GL_DEPTH_TEST);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-}
-
-void handleKeypress(unsigned char key, int x, int y) {
-    if (key == 27) exit(0);
-}
 
 void drawScene()
 {
@@ -306,10 +105,30 @@ void drawScene()
 
     drawMap();
 
+    drawHUD();
+
     glDisable(GL_TEXTURE_2D);
 
     glutSwapBuffers();
 }
+
+
+
+
+void worldStep(int value)
+{
+    // Derive the control to the correct object
+    if (controller.isInterrupted())
+    {
+        exit(0);
+    }
+
+    glutPostRedisplay();
+    // @NOTE: update time should be adapted to real FPS (lower is faster).
+    glutTimerFunc(20, worldStep, 0);
+
+}
+
 
 
 int main(int argc, char** argv) {
@@ -365,13 +184,13 @@ int main(int argc, char** argv) {
     //glutReshapeFunc(handleResize);
 
     //adding here the mouse processing callbacks
-    //glutMouseFunc(processMouse);
-    //glutMotionFunc(processMouseActiveMotion);
-    //glutPassiveMotionFunc(processMousePassiveMotion);
-    //glutEntryFunc(processMouseEntry);
+    glutMouseFunc(processMouse);
+    glutMotionFunc(processMouseActiveMotion);
+    glutPassiveMotionFunc(processMousePassiveMotion);
+    glutEntryFunc(processMouseEntry);
 
     // this is the first time to call to update.
-    //glutTimerFunc(25, worldStep, 0);
+    glutTimerFunc(25, worldStep, 0);
 
     // main loop, hang here.
     glutMainLoop();
