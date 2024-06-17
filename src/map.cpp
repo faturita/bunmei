@@ -500,7 +500,7 @@ void drawMap()
 
         placeCity(-2,-2);
 
-
+        int X=0,Y=0;
         static int count=0;
         if (count++ % 100 < 50)
             placeThisUnit(Y,X,16,"assets/assets/units/settlers.png");
