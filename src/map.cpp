@@ -2,8 +2,11 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <vector>
 #include "openglutils.h"
 #include "lodepng.h"
+#include "usercontrols.h"
+#include "math/yamathutil.h"
 #include "map.h"
 
 
@@ -16,6 +19,117 @@ int mapzoom=1;
 float cx,cy;
 
 std::unordered_map<std::string, GLuint> maptextures;
+extern Controller controller;
+
+struct mapcell
+{
+    mapcell(int code)
+    {
+        this->code = code;
+        this->visible = false;
+    }
+
+    int code;
+    bool visible;
+};
+
+struct coordinate
+{
+    coordinate(int lat,int lon)
+    {
+        this->lat = lat;
+        this->lon = lon;
+    }
+    int lat;
+    int lon;
+};
+
+std::vector<std::vector<mapcell>> map;
+std::unordered_map<int, std::string> tiles;
+
+void initMap()
+{
+    tiles[0] = "assets/assets/terrain/ocean.png";
+    tiles[1] = "assets/assets/terrain/land.png";
+
+    tiles[2] = "assets/assets/terrain/artic.png";
+    tiles[3] = "assets/assets/terrain/desert.png";
+    tiles[4] = "assets/assets/terrain/forest.png";
+    tiles[5] = "assets/assets/terrain/grassland.png";
+    tiles[6] = "assets/assets/terrain/hills.png";
+    tiles[7] = "assets/assets/terrain/jungle.png";
+    tiles[8] = "assets/assets/terrain/mountains.png";
+    tiles[9] = "assets/assets/terrain/plains.png";
+    tiles[10] = "assets/assets/terrain/river.png";
+    tiles[11] = "assets/assets/terrain/swamp.png";
+    tiles[12] = "assets/assets/terrain/tundra.png";
+
+
+    int no_of_cols = 80;
+    int no_of_rows = 60;
+    int initial_value = 0;
+
+    map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
+
+    // Read from matrix.
+    mapcell value = map[1][2];
+
+    for(int lat=0;lat<60;lat++)
+        for (int lon=0;lon<80;lon++)
+        {
+            map[lat][lon] = mapcell(0);
+        }
+
+    int r=getRandomInteger(2,5);
+
+    for(int i=0;i<r;i++)
+    {
+        int lat = getRandomInteger(0,59);
+        int lon = getRandomInteger(0,79);
+
+        while (getRandomInteger(0,100)>2)
+        {
+            map[lat][lon] = mapcell(1);
+            int dir=getRandomInteger(0,3);
+            if (dir==0) lat+=1;
+            if (dir==1) lat-=1;
+            if (dir==2) lon+=1;
+            if (dir==4) lon-=1;
+
+            lat = clipped(lat,0,59);
+            lon = clipped(lon,0,79);
+
+        }
+    }
+
+    int energy = 100000;
+    for(int rep=0;rep<5;rep++)
+    for(int lat=0;lat<60;lat++)
+        for (int lon=0;lon<80;lon++)
+        {
+            int llat=lat,llon=lon;
+            int north,south,east,west;
+            llat = clipped(lat+1,0,59);
+            north = map[llat][llon].code;
+            llat = clipped(lat-1,0,59);
+            south = map[llat][llon].code;
+            llon = clipped(lon+1,0,79);
+            east = map[llat][llon].code;
+            llon = clipped(lon-1,0,79);
+            west = map[llat][llon].code;
+
+            if (energy>0) if ((south+north+east+west)>=1)
+            {
+                map[llat][llon] = mapcell(1);
+                energy--;
+            }
+        }
+
+
+
+
+}
+
 
 void zoommapin()
 {
@@ -451,6 +565,88 @@ void drawMap()
         {
             for(int y=-40;y<40;y++)
             {
+                if (map[x+30][y+40].visible) place(y,x,16,tiles[map[x+30][y+40].code].c_str());
+            }
+        }
+
+        for(int lat=0;lat<60;lat++)
+            for(int lon=0;lon<80;lon++)
+            {
+                int llon=lon,llat=lat;
+                int oceancod = map[lat][lon].code;
+                llat = clipped(llat-1, 0,59);
+                int next = map[llat][lon].code;
+
+                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                {
+                    int y = lon-40;
+                    int x = llat - 30;
+                    placeMark(600+16*y-4, 0+16*x+8,    8,"assets/assets/terrain/coast_s2.png");
+                    placeMark(600+16*y+4, 0+16*x+8,    8,"assets/assets/terrain/coast_s2.png");
+                }
+
+            }
+
+        for(int lat=0;lat<60;lat++)
+            for(int lon=0;lon<80;lon++)
+            {
+                int llon=lon,llat=lat;
+                int oceancod = map[lat][lon].code;
+                llat = clipped(llat+1, 0,59);
+                int next = map[llat][lon].code;
+
+                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                {
+                    int y = lon-40;
+                    int x = llat - 30;
+                    placeMark(600+16*y-4, 0+16*x-8,    8,"assets/assets/terrain/coast_n2.png");
+                    placeMark(600+16*y+4, 0+16*x-8,    8,"assets/assets/terrain/coast_n2.png");
+                }
+
+            }
+
+        for(int lat=0;lat<60;lat++)
+            for(int lon=0;lon<80;lon++)
+            {
+                int llon=lon,llat=lat;
+                int oceancod = map[lat][lon].code;
+                llon = clipped(llon+1, 0,79);
+                int next = map[lat][llon].code;
+
+                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                {
+                    int y = llon-40;
+                    int x = lat - 30;
+                    placeMark(600+16*y-8, 0+16*x-4,    8,"assets/assets/terrain/coast_e2.png");
+                    placeMark(600+16*y-8, 0+16*x+4,    8,"assets/assets/terrain/coast_e2.png");
+                }
+
+            }
+
+        for(int lat=0;lat<60;lat++)
+            for(int lon=0;lon<80;lon++)
+            {
+                int llon=lon,llat=lat;
+                int oceancod = map[lat][lon].code;
+                llon = clipped(llon-1, 0,79);
+                int next = map[lat][llon].code;
+
+                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                {
+                    int y = llon-40;
+                    int x = lat - 30;
+                    placeMark(600+16*y+8, 0+16*x-4,    8,"assets/assets/terrain/coast_w2.png");
+                    placeMark(600+16*y+8, 0+16*x+4,    8,"assets/assets/terrain/coast_w2.png");
+                }
+
+            }
+
+
+        /**
+        for(int x=-30;x<30;x++)
+        {
+            for(int y=-40;y<40;y++)
+            {
                 place(y,x,16,"assets/assets/terrain/ocean.png");
             }
         }
@@ -500,10 +696,50 @@ void drawMap()
 
         placeCity(-2,-2);
 
-        int X=0,Y=0;
         static int count=0;
         if (count++ % 100 < 50)
-            placeThisUnit(Y,X,16,"assets/assets/units/settlers.png");
+            placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/settlers.png");
+
+        **/
+
+        static int count=0;
+
+        std::vector<coordinate> list;
+        if (count==0)
+        {
+            for(int lat=0;lat<60;lat++)
+                for(int lon=0;lon<80;lon++)
+                {
+                    if (map[lat][lon].code==1)
+                    {
+                        list.push_back(coordinate(lat,lon));
+                    }
+                }
+
+           int r = getRandomInteger(0,list.size());
+           coordinate c = list[r];
+           controller.registers.pitch = c.lat-30;
+           controller.registers.roll = c.lon-40;
+
+           printf("Lat lon %d,%d\n", c.lat, c.lon);
+
+        }
+
+        coordinate c = coordinate(controller.registers.pitch+30,controller.registers.roll+40);
+        for(int llat=-1;llat<=1;llat++)
+            for (int llon=-1;llon<=1;llon++)
+            {
+                int lllat=c.lat+llat,lllon=c.lon+llon;
+                lllat = clipped(lllat,0,59);
+                lllon = clipped(lllon,0,79);
+                map[lllat][lllon].visible = true;
+            }
+
+
+        if (count++ % 100 < 50)
+            placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/settlers.png");
+
+        //placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/trireme.png");
 
 
         glDisable(GL_BLEND);

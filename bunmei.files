@@ -14,6 +14,10 @@ src/lodepng.cpp
 src/lodepng.h
 src/map.cpp
 src/map.h
+src/math/vec3f.cpp
+src/math/vec3f.h
+src/math/yamathutil.cpp
+src/math/yamathutil.h
 src/openglutils.cpp
 src/openglutils.h
 src/usercontrols.cpp

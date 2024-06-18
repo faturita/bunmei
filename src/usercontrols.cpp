@@ -20,7 +20,9 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 27: //Escape key
             controller.interrupt();
         case 'a':controller.registers.roll-=1.0f;break;
-        case 'w':controller.registers.roll+=1.0f;break;
+        case 'd':controller.registers.roll+=1.0f;break;
+        case 'w':controller.registers.pitch+=1.0;break;
+        case 's':controller.registers.pitch-=1.0;break;
     default:break;
     }
 }

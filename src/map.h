@@ -8,5 +8,6 @@ void zoommapout();
 void centermap(int ccx, int ccy);
 
 void drawMap();
+void initMap();
 
 #endif // MAP_H
