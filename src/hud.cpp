@@ -1,7 +1,92 @@
 #include "openglutils.h"
 #include "font/DrawFonts.h"
+#include "lodepng.h"
 #include "hud.h"
 
+extern std::unordered_map<std::string, GLuint> maptextures;
+
+
+void placeMark4(float x, float y, int size, const char* modelName)
+{
+    GLuint _texture;
+
+    if (maptextures.find(std::string(modelName)) == maptextures.end())
+    {
+        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
+        //Image* image = loadBMP(modelName);
+        //_texture = loadTexture(image);
+        //delete image;
+
+        unsigned char *img;
+
+        unsigned w,h;
+
+        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+
+        Image image((char *)img, w, h);
+
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     w,h,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     img);
+        //delete image;
+
+
+        maptextures[std::string(modelName)]=_texture;
+
+    } else {
+        _texture = maptextures[std::string(modelName)];
+    }
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, _texture);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 0);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+
+
+
+    glColor4f(1.0f, 1.0f, 1.0f,1.0f);
+
+    //glColor3f(1.0,0,0);
+    glBegin(GL_QUADS);
+    //Front face
+    glNormal3f(0.0, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 1.0f);
+    glVertex3f(-size / 2 + x, -size / 2 + y, 0);
+    glTexCoord2f(1.0f, 1.0f);
+    glVertex3f(size / 2 + x, -size / 2 + y, 0);
+    glTexCoord2f(1.0f, 0.0f);
+    glVertex3f(size / 2 + x, size / 2 + y, 0);
+    glTexCoord2f(0.0f, 0.0f);
+    glVertex3f(-size / 2 + x, size / 2 + y, 0);
+
+    glEnd();
+
+    // @NOTE: This is very important.
+    glDisable(GL_TEXTURE_2D);
+}
 
 void drawHUD()
 {
@@ -30,9 +115,17 @@ void drawHUD()
     // width, height, 0 0 upper left
     drawString(0,-30,1,str,0.2f);
 
+    int year=4000;
+    int pop=6533;
 
-    sprintf (str, "Population: %d", 3432);
+    sprintf (str, "Year: %4d BC",year);
     drawString(0,-60,1,str,0.2f);
+
+
+    sprintf (str, "Population:%d",pop);
+    drawString(0,-90,1,str,0.2f);
+
+    placeMark4(10,-110,7*3,"assets/assets/city/bulb.png");
 
 
 

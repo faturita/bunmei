@@ -71,6 +71,9 @@ void processMouse(int button, int state, int x, int y) {
             CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
                 if (specialKey == GLUT_ACTIVE_SHIFT)
                 {
+                    centermap(x,y);
+
+                    zoommapin();
                 } else
                 if (specialKey == GLUT_ACTIVE_SHIFT)
                 {
@@ -79,8 +82,6 @@ void processMouse(int button, int state, int x, int y) {
 
                 } else {
                     centermap(x,y);
-
-                    zoommapin();
                 }
             }
         }

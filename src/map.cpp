@@ -126,8 +126,6 @@ void initMap()
         }
 
 
-
-
 }
 
 
@@ -734,6 +732,43 @@ void drawMap()
                 lllon = clipped(lllon,0,79);
                 map[lllat][lllon].visible = true;
             }
+
+        for(int lat=0;lat<60;lat++)
+            for(int lon=0;lon<80;lon++)
+            {
+                if (map[lat][lon].visible)
+                {
+                    int llat=lat,llon=lon;int x,y;
+                    llat = clipped(lat-1,0,59);llon=clipped(lon,0,79);
+
+                    x = lat-30;
+                    y = lon - 40;
+                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_s.png");
+
+                    llat = clipped(lat+1,0,59);llon=clipped(lon,0,79);
+
+                    x = lat-30;
+                    y = lon - 40;
+                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_n.png");
+
+
+                    llat = clipped(lat,0,59);llon=clipped(lon-1,0,79);
+
+                    x = lat-30;
+                    y = lon - 40;
+                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_w.png");
+
+                    llat = clipped(lat,0,59);llon=clipped(lon+1,0,79);
+
+                    x = lat-30;
+                    y = lon - 40;
+                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_e.png");
+
+
+                }
+            }
+
+
 
 
         if (count++ % 100 < 50)
