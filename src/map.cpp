@@ -19,6 +19,7 @@ int mapzoom=1;
 float cx,cy;
 
 std::unordered_map<std::string, GLuint> maptextures;
+std::unordered_map<int, std::string> tiles;
 extern Controller controller;
 
 struct mapcell
@@ -26,11 +27,13 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = false;
+        this->visible = true;
+        this->bioma = 1;
     }
 
     int code;
     bool visible;
+    int bioma;
 };
 
 struct coordinate
@@ -116,8 +119,6 @@ class Map
 
 Map map;
 
-std::unordered_map<int, std::string> tiles;
-
 
 GLuint preloadTexture(const char* modelName)
 {
@@ -170,7 +171,7 @@ void initMap()
     tiles[0] = "assets/assets/terrain/ocean.png";
     tiles[1] = "assets/assets/terrain/land.png";
 
-    tiles[2] = "assets/assets/terrain/artic.png";
+    tiles[2] = "assets/assets/terrain/arctic.png";
     tiles[3] = "assets/assets/terrain/desert.png";
     tiles[4] = "assets/assets/terrain/forest.png";
     tiles[5] = "assets/assets/terrain/grassland.png";
@@ -190,7 +191,7 @@ void initMap()
             map(lat,lon) = mapcell(0);
         }
 
-    int r=getRandomInteger(2,5);
+    int r=getRandomInteger(2,15);
 
     for(int i=0;i<r;i++)
     {
@@ -204,13 +205,13 @@ void initMap()
             if (dir==0) lat+=1;
             if (dir==1) lat-=1;
             if (dir==2) lon+=1;
-            if (dir==4) lon-=1;
+            if (dir==3) lon-=1;
 
         }
     }
 
     int energy = 100000;
-    for(int rep=0;rep<3000;rep++)
+    for(int rep=0;rep<5000;rep++)
     {
         int lat = getRandomInteger(-30,29);
         int lon = getRandomInteger(-40,39);
@@ -243,6 +244,28 @@ void initMap()
             }
         }
 
+
+    for(int i=0;i<100;i++)
+    {
+        int lat = getRandomInteger(-30,29);
+        int lon = getRandomInteger(-40,39);
+
+        int bioma = getRandomInteger(2,12);
+
+        while (getRandomInteger(0,100)>2)
+        {
+            if (map(lat,lon).code==1)
+            {
+                map(lat,lon).bioma = bioma;
+                int dir=getRandomInteger(0,3);
+                if (dir==0) lat+=1;
+                if (dir==1) lat-=1;
+                if (dir==2) lon+=1;
+                if (dir==3) lon-=1;
+            }
+
+        }
+    }
 
 }
 
@@ -466,6 +489,14 @@ void drawMap()
             for(int lon=-40;lon<40;lon++)
             {
                 if (map(lat,lon).visible) place(lon,lat,16,tiles[map(lat,lon).code].c_str());
+            }
+        }
+
+        for(int lat=-30;lat<30;lat++)
+        {
+            for(int lon=-40;lon<40;lon++)
+            {
+                if (map(lat,lon).visible &&map(lat,lon).code==1) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
