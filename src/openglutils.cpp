@@ -19,6 +19,7 @@
 
 #include "profiling.h"
 #include "math/yamathutil.h"
+#include "lodepng.h"
 
 std::unordered_map<std::string, GLuint> textures;
 
@@ -46,47 +47,8 @@ GLuint loadTexture(Image* image) {
 	return textureId;
 }
 
-void placeMark(float x, float y, int size, const char* modelName)
+void placeMark(float x, float y, int sizex, int sizey, GLuint _texture)
 {
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
-        //Image* image = loadBMP(modelName);
-        //_texture = loadTexture(image);
-        //delete image;
-
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-        //delete image;
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, _texture);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //GL_LINEAR
@@ -105,8 +67,6 @@ void placeMark(float x, float y, int size, const char* modelName)
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 
-
-
     glColor4f(1.0f, 1.0f, 1.0f,1.0f);
 
     //glColor3f(1.0,0,0);
@@ -114,13 +74,13 @@ void placeMark(float x, float y, int size, const char* modelName)
     //Front face
     glNormal3f(0.0, 0.0f, 1.0f);
     glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-size / 2 + x, -size / 2 + y, 0);
+    glVertex3f(-sizex / 2 + x, -sizey / 2 + y, 0);
     glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(size / 2 + x, -size / 2 + y, 0);
+    glVertex3f(sizex / 2 + x, -sizey / 2 + y, 0);
     glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(size / 2 + x, size / 2 + y, 0);
+    glVertex3f(sizex / 2 + x, sizey / 2 + y, 0);
     glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-size / 2 + x, size / 2 + y, 0);
+    glVertex3f(-sizex / 2 + x, sizey / 2 + y, 0);
 
     glEnd();
 

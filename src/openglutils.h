@@ -21,6 +21,7 @@
 #include "math/vec3f.h"
 #include "imageloader.h"
 
+void placeMark(float x, float y, int sizex, int sizey, GLuint _texture);
 void CheckGLError();
 GLuint loadTexture(Image* image) ;
 void drawLine(float x, float y, float z, float red, float green, float blue);
