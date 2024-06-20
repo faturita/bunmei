@@ -496,7 +496,7 @@ void drawMap()
         {
             for(int lon=-40;lon<40;lon++)
             {
-                if (map(lat,lon).visible &&map(lat,lon).code==1) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
+                if (map(lat,lon).visible && map(lat,lon).code==1) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
