@@ -141,10 +141,10 @@ int main(int argc, char** argv) {
     CLog::SetLevel(CLog::None);
 #endif
 
-    if (isPresentCommandLineParameter(argc,argv,"-random"))
-        srand (time(NULL));
+    if (isPresentCommandLineParameter(argc,argv,"-seed"))
+        srand( getDefaultedIntCommandLineParameter(argc,argv,"-seed",0) );
     else
-        srand (0);
+        srand (time(NULL));
 
     // Switch up OpenGL version (at the time of writing compatible with 2.1)
     if (true)

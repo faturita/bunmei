@@ -44,7 +44,78 @@ struct coordinate
     int lon;
 };
 
-std::vector<std::vector<mapcell>> map;
+class Map
+{
+    private:
+        std::vector<std::vector<mapcell>> map;
+
+    public:
+        void init()
+        {
+            int no_of_cols = 80;
+            int no_of_rows = 60;
+            int initial_value = 0;
+
+            map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
+        }
+
+        mapcell &operator()(int lat, int lon)
+        {
+            int x=lat+30,y=lon+40;
+            x = clipped(x,0,59);
+            y = clipped(y,0,79);
+            return map[x][y];
+        }
+
+        mapcell &operator()(coordinate c)
+        {
+            return operator()(c.lat,c.lon);
+        }
+
+        mapcell &south(int lat, int lon)
+        {
+            return operator()(lat-1,lon);
+        }
+
+        mapcell &north(int lat, int lon)
+        {
+            return operator()(lat+1,lon);
+        }
+
+        mapcell &west(int lat, int lon)
+        {
+            return operator()(lat,lon-1);
+        }
+
+        mapcell &east(int lat, int lon)
+        {
+            return operator()(lat,lon+1);
+        }
+
+        coordinate isouth(int lat, int lon)
+        {
+            return coordinate(lat-1,lon);
+        }
+
+        coordinate inorth(int lat, int lon)
+        {
+            return coordinate(lat+1,lon);
+        }
+
+        coordinate iwest(int lat, int lon)
+        {
+            return coordinate(lat,lon-1);
+        }
+
+        coordinate ieast(int lat, int lon)
+        {
+            return coordinate(lat,lon+1);
+        }
+
+};
+
+Map map;
+
 std::unordered_map<int, std::string> tiles;
 
 
@@ -111,64 +182,64 @@ void initMap()
     tiles[11] = "assets/assets/terrain/swamp.png";
     tiles[12] = "assets/assets/terrain/tundra.png";
 
+    map.init();
 
-    int no_of_cols = 80;
-    int no_of_rows = 60;
-    int initial_value = 0;
-
-    map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
-
-    // Read from matrix.
-    mapcell value = map[1][2];
-
-    for(int lat=0;lat<60;lat++)
-        for (int lon=0;lon<80;lon++)
+    for(int lat=-30;lat<30;lat++)
+        for (int lon=-40;lon<40;lon++)
         {
-            map[lat][lon] = mapcell(0);
+            map(lat,lon) = mapcell(0);
         }
 
     int r=getRandomInteger(2,5);
 
     for(int i=0;i<r;i++)
     {
-        int lat = getRandomInteger(0,59);
-        int lon = getRandomInteger(0,79);
+        int lat = getRandomInteger(-30,29);
+        int lon = getRandomInteger(-40,39);
 
         while (getRandomInteger(0,100)>2)
         {
-            map[lat][lon] = mapcell(1);
+            map(lat,lon) = mapcell(1);
             int dir=getRandomInteger(0,3);
             if (dir==0) lat+=1;
             if (dir==1) lat-=1;
             if (dir==2) lon+=1;
             if (dir==4) lon-=1;
 
-            lat = clipped(lat,0,59);
-            lon = clipped(lon,0,79);
-
         }
     }
 
     int energy = 100000;
-    for(int rep=0;rep<5;rep++)
-    for(int lat=0;lat<60;lat++)
-        for (int lon=0;lon<80;lon++)
-        {
-            int llat=lat,llon=lon;
-            int north,south,east,west;
-            llat = clipped(lat+1,0,59);
-            north = map[llat][llon].code;
-            llat = clipped(lat-1,0,59);
-            south = map[llat][llon].code;
-            llon = clipped(lon+1,0,79);
-            east = map[llat][llon].code;
-            llon = clipped(lon-1,0,79);
-            west = map[llat][llon].code;
+    for(int rep=0;rep<3000;rep++)
+    {
+        int lat = getRandomInteger(-30,29);
+        int lon = getRandomInteger(-40,39);
 
-            if (energy>0) if ((south+north+east+west)>=1)
+        int north,south,east,west;
+        north = map(lat+1,lon).code;
+        south = map(lat-1,lon).code;
+        east  = map(lat,lon+1).code;
+        west  = map(lat,lon-1).code;
+
+        if (energy>0) if ((south+north+east+west)>=1)
+        {
+            map(lat,lon) = mapcell(1);
+            energy--;
+        }
+    }
+
+    for(int lat=-30;lat<30;lat++)
+        for (int lon=-40;lon<40;lon++)
+        {
+            int north,south,east,west;
+            north = map(lat+1,lon).code;
+            south = map(lat-1,lon).code;
+            east  = map(lat,lon+1).code;
+            west  = map(lat,lon-1).code;
+
+            if (energy>0) if ((south+north+east+west)>=3)
             {
-                map[llat][llon] = mapcell(1);
-                energy--;
+                map(lat,lon) = mapcell(1);
             }
         }
 
@@ -331,6 +402,7 @@ void placeCity(float y, float x)
     placeCity(600+16*y,0+16*x,16,"assets/assets/map/city.png");
 }
 
+
 void placeMark(float x, float y, int size, const char* modelName)
 {
     GLuint _texture = preloadTexture(modelName);
@@ -389,82 +461,53 @@ void drawMap()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for(int x=-30;x<30;x++)
+        for(int lat=-30;lat<30;lat++)
         {
-            for(int y=-40;y<40;y++)
+            for(int lon=-40;lon<40;lon++)
             {
-                if (map[x+30][y+40].visible) place(y,x,16,tiles[map[x+30][y+40].code].c_str());
+                if (map(lat,lon).visible) place(lon,lat,16,tiles[map(lat,lon).code].c_str());
             }
         }
 
-        for(int lat=0;lat<60;lat++)
-            for(int lon=0;lon<80;lon++)
+        for(int lat=-30;lat<30;lat++)
+            for(int lon=-40;lon<40;lon++)
             {
-                int llon=lon,llat=lat;
-                int oceancod = map[lat][lon].code;
-                llat = clipped(llat-1, 0,59);
-                int next = map[llat][lon].code;
+                int land = map(lat,lon).code;
+                mapcell next = map.south(lat,lon);
+                coordinate c = map.isouth(lat,lon);
 
-                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
                 {
-                    int y = lon-40;
-                    int x = llat - 30;
-                    placeMark(600+16*y-4, 0+16*x+8,    8,"assets/assets/terrain/coast_s2.png");
-                    placeMark(600+16*y+4, 0+16*x+8,    8,"assets/assets/terrain/coast_s2.png");
+                    placeMark(600+16*c.lon-4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
+                    placeMark(600+16*c.lon+4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
                 }
 
-            }
 
-        for(int lat=0;lat<60;lat++)
-            for(int lon=0;lon<80;lon++)
-            {
-                int llon=lon,llat=lat;
-                int oceancod = map[lat][lon].code;
-                llat = clipped(llat+1, 0,59);
-                int next = map[llat][lon].code;
+                next = map.north(lat,lon);
+                c = map.inorth(lat,lon);
 
-                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
                 {
-                    int y = lon-40;
-                    int x = llat - 30;
-                    placeMark(600+16*y-4, 0+16*x-8,    8,"assets/assets/terrain/coast_n2.png");
-                    placeMark(600+16*y+4, 0+16*x-8,    8,"assets/assets/terrain/coast_n2.png");
+                    placeMark(600+16*c.lon-4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
+                    placeMark(600+16*c.lon+4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
                 }
 
-            }
+                next = map.east(lat,lon);
+                c = map.ieast(lat,lon);
 
-        for(int lat=0;lat<60;lat++)
-            for(int lon=0;lon<80;lon++)
-            {
-                int llon=lon,llat=lat;
-                int oceancod = map[lat][lon].code;
-                llon = clipped(llon+1, 0,79);
-                int next = map[lat][llon].code;
-
-                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
                 {
-                    int y = llon-40;
-                    int x = lat - 30;
-                    placeMark(600+16*y-8, 0+16*x-4,    8,"assets/assets/terrain/coast_e2.png");
-                    placeMark(600+16*y-8, 0+16*x+4,    8,"assets/assets/terrain/coast_e2.png");
+                    placeMark(600+16*c.lon-8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_e2.png");
+                    placeMark(600+16*c.lon-8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_e2.png");
                 }
 
-            }
+                next = map.west(lat,lon);
+                c = map.iwest(lat,lon);
 
-        for(int lat=0;lat<60;lat++)
-            for(int lon=0;lon<80;lon++)
-            {
-                int llon=lon,llat=lat;
-                int oceancod = map[lat][lon].code;
-                llon = clipped(llon-1, 0,79);
-                int next = map[lat][llon].code;
-
-                if (map[lat][lon].visible) if (oceancod == 1 && next == 0)
+                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
                 {
-                    int y = llon-40;
-                    int x = lat - 30;
-                    placeMark(600+16*y+8, 0+16*x-4,    8,"assets/assets/terrain/coast_w2.png");
-                    placeMark(600+16*y+8, 0+16*x+4,    8,"assets/assets/terrain/coast_w2.png");
+                    placeMark(600+16*c.lon+8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_w2.png");
+                    placeMark(600+16*c.lon+8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_w2.png");
                 }
 
             }
@@ -535,65 +578,43 @@ void drawMap()
         std::vector<coordinate> list;
         if (count==0)
         {
-            for(int lat=0;lat<60;lat++)
-                for(int lon=0;lon<80;lon++)
+            for(int lat=-30;lat<30;lat++)
+                for(int lon=-40;lon<40;lon++)
                 {
-                    if (map[lat][lon].code==1)
+                    if (map(lat,lon).code==1)
                     {
                         list.push_back(coordinate(lat,lon));
                     }
                 }
 
-           int r = getRandomInteger(0,list.size());
-           coordinate c = list[r];
-           controller.registers.pitch = c.lat-30;
-           controller.registers.roll = c.lon-40;
-
-           printf("Lat lon %d,%d\n", c.lat, c.lon);
+            coordinate c(0,0);
+            if (list.size()>0)
+            {
+                int r = getRandomInteger(0,list.size());
+                c = list[r];
+            }
+            controller.registers.pitch = c.lat;
+            controller.registers.roll = c.lon;
 
         }
 
-        coordinate c = coordinate(controller.registers.pitch+30,controller.registers.roll+40);
+        coordinate c = coordinate(controller.registers.pitch,controller.registers.roll);
         for(int llat=-1;llat<=1;llat++)
             for (int llon=-1;llon<=1;llon++)
             {
                 int lllat=c.lat+llat,lllon=c.lon+llon;
-                lllat = clipped(lllat,0,59);
-                lllon = clipped(lllon,0,79);
-                map[lllat][lllon].visible = true;
+                map(lllat,lllon).visible = true;
             }
 
-        for(int lat=0;lat<60;lat++)
-            for(int lon=0;lon<80;lon++)
+        for(int lat=-30;lat<30;lat++)
+            for(int lon=-40;lon<40;lon++)
             {
-                if (map[lat][lon].visible)
+                if (map(lat,lon).visible)
                 {
-                    int llat=lat,llon=lon;int x,y;
-                    llat = clipped(lat-1,0,59);llon=clipped(lon,0,79);
-
-                    x = lat-30;
-                    y = lon - 40;
-                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_s.png");
-
-                    llat = clipped(lat+1,0,59);llon=clipped(lon,0,79);
-
-                    x = lat-30;
-                    y = lon - 40;
-                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_n.png");
-
-
-                    llat = clipped(lat,0,59);llon=clipped(lon-1,0,79);
-
-                    x = lat-30;
-                    y = lon - 40;
-                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_w.png");
-
-                    llat = clipped(lat,0,59);llon=clipped(lon+1,0,79);
-
-                    x = lat-30;
-                    y = lon - 40;
-                    if (!(map[llat][llon].visible)) place(y,x,16,"assets/assets/map/fog_e.png");
-
+                    if (!(map.south(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_s.png");
+                    if (!(map.north(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_n.png");
+                    if (!(map.west(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_w.png");
+                    if (!(map.east(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_e.png");
 
                 }
             }
