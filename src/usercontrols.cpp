@@ -23,6 +23,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch+=1.0;break;
         case 's':controller.registers.pitch-=1.0;break;
+        case 'f':controller.registers.yaw+=1.0;break;
+        case 'g':controller.registers.yaw-=1.0;break;
     default:break;
     }
 }
@@ -38,9 +40,8 @@ void processMouseEntry(int state) {
 }
 
 
-void processMouse(int button, int state, int x, int y) {
-
-
+void processMouse(int button, int state, int x, int y) 
+{
     int specialKey = glutGetModifiers();
     // if both a mouse button, and the ALT key, are pressed  then
 
@@ -55,8 +56,8 @@ void processMouse(int button, int state, int x, int y) {
     }
 
 
-    if ((state == GLUT_DOWN)) {
-
+    if ((state == GLUT_DOWN)) 
+    {
         _xoffset = _yoffset = 0;
 
         // @NOTE: On linux the right button on the touchpad sometimes do not work.
@@ -66,33 +67,28 @@ void processMouse(int button, int state, int x, int y) {
             zoommapout();
         }
         // set the color to pure red for the left button
-        if (button == GLUT_LEFT_BUTTON) {
+        if (button == GLUT_LEFT_BUTTON) 
+        {
             //buttonState = 1;
             CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
-                if (specialKey == GLUT_ACTIVE_SHIFT)
-                {
-                    centermap(x,y);
+            centermap(x,y);
 
-                    zoommapin();
-                } else
-                if (specialKey == GLUT_ACTIVE_SHIFT)
-                {
-
-
-
-                } else {
-                    centermap(x,y);
-                }
-            }
+            if (specialKey == GLUT_ACTIVE_SHIFT)
+            {
+                zoommapin();
+            } 
         }
+    }
         // set the color to pure green for the middle button
-        else if (button == GLUT_MIDDLE_BUTTON) {
+    else if (button == GLUT_MIDDLE_BUTTON) 
+    {
 
-        }
-        // set the color to pure blue for the right button
-        else {
+    }
+    // set the color to pure blue for the right button
+    else 
+    {
 
-        }
+    }
 
 }
 

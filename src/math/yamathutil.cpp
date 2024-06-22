@@ -180,6 +180,15 @@ float clipped(float val, float minval, float maxval)
         return val;
 }
 
+float rotclipped(float val, float minval, float maxval)
+{
+    int z = maxval - minval + 1;
+    int v = ((int)val) % z;
+    if (v<0) v = z + v;
+    return minval + v;
+}
+
+
 float sgn(float val)
 {
     if (val>=0)
@@ -207,7 +216,7 @@ Vec3f getRandomCircularSpot(Vec3f origin, float radius)
 int getRandomInteger(int min, int max)
 {
     int range = abs(max - min);
-    int val = ((arc4random() % (range+1)));
+    int val = ((rand() % (range+1)));   //arc4random() % (range+1);
     val = val + min;
     return val;
 }

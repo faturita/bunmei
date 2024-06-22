@@ -32,6 +32,7 @@ float getDeclination(Vec3f aim);
 float clipmin(float val, float defval);
 float clipmax(float val, float defval);
 float clipped(float val, float min, float max);
+float rotclipped(float val, float min, float max);
 float sgn(float val);
 float _acos(float val);
 

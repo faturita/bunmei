@@ -142,9 +142,16 @@ int main(int argc, char** argv) {
 #endif
 
     if (isPresentCommandLineParameter(argc,argv,"-seed"))
-        srand( getDefaultedIntCommandLineParameter(argc,argv,"-seed",0) );
+    {
+        int seed = getDefaultedIntCommandLineParameter(argc,argv,"-seed",0);
+        srand( seed );
+        srand48(seed);
+    }
     else
+    {
         srand (time(NULL));
+        srand48(time(NULL));
+    }
 
     // Switch up OpenGL version (at the time of writing compatible with 2.1)
     if (true)

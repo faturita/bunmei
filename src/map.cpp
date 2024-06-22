@@ -28,7 +28,7 @@ struct mapcell
     {
         this->code = code;
         this->visible = true;
-        this->bioma = 1;
+        this->bioma = 1;// By default, land
     }
 
     int code;
@@ -52,21 +52,44 @@ class Map
     private:
         std::vector<std::vector<mapcell>> map;
 
+
     public:
+        int centerx, centery;
+        int minlat = -20;
+        int maxlat = 20;
+        int minlon = -35;
+        int maxlon = 35;
+
         void init()
         {
-            int no_of_cols = 80;
-            int no_of_rows = 60;
+            centerx = 0;
+            centery = 0;
+            int no_of_cols = maxlon-minlon;
+            int no_of_rows = maxlat-minlat;
             int initial_value = 0;
 
             map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
         }
 
+        void setCenter(int x, int y)
+        {
+            centerx = x;
+            centery = y;
+        }
+
         mapcell &operator()(int lat, int lon)
         {
-            int x=lat+30,y=lon+40;
-            x = clipped(x,0,59);
-            y = clipped(y,0,79);
+            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
+            x = rotclipped(x,0,maxlat-minlat-1);
+            y = rotclipped(y,0,maxlon-minlon-1);
+            return map[x][y];
+        }
+
+        mapcell &set(int lat, int lon)
+        {
+            int x=lat+abs(minlat),y=lon+abs(minlon);
+            x = clipped(x,0,maxlat-minlat-1);
+            y = clipped(y,0,maxlon-minlon-1);
             return map[x][y];
         }
 
@@ -113,6 +136,14 @@ class Map
         coordinate ieast(int lat, int lon)
         {
             return coordinate(lat,lon+1);
+        }
+
+        coordinate i(int lat, int lon)
+        {
+            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
+            x = rotclipped(x,0,maxlat-minlat-1);
+            y = rotclipped(y,0,maxlon-minlon-1);
+            return coordinate(x,y);
         }
 
 };
@@ -171,36 +202,258 @@ void initMap()
     tiles[0] = "assets/assets/terrain/ocean.png";
     tiles[1] = "assets/assets/terrain/land.png";
 
-    tiles[2] = "assets/assets/terrain/arctic.png";
-    tiles[3] = "assets/assets/terrain/desert.png";
-    tiles[4] = "assets/assets/terrain/forest.png";
-    tiles[5] = "assets/assets/terrain/grassland.png";
-    tiles[6] = "assets/assets/terrain/hills.png";
-    tiles[7] = "assets/assets/terrain/jungle.png";
-    tiles[8] = "assets/assets/terrain/mountains.png";
-    tiles[9] = "assets/assets/terrain/plains.png";
-    tiles[10] = "assets/assets/terrain/river.png";
-    tiles[11] = "assets/assets/terrain/swamp.png";
-    tiles[12] = "assets/assets/terrain/tundra.png";
+    tiles[2] = "assets/assets/terrain/river_mouth_w.png";
+    tiles[3] = "assets/assets/terrain/river_mouth_s.png";
+    tiles[4] = "assets/assets/terrain/river_mouth_e.png";
+    tiles[5] = "assets/assets/terrain/river_mouth_n.png";
+
+    tiles[0x20] = "assets/assets/terrain/arctic.png";
+    tiles[0x30] = "assets/assets/terrain/desert.png";
+    tiles[0x40] = "assets/assets/terrain/forest.png";
+    tiles[0x50] = "assets/assets/terrain/grassland.png";
+    tiles[0x60] = "assets/assets/terrain/hills.png";
+    tiles[0x70] = "assets/assets/terrain/jungle.png";
+    tiles[0x80] = "assets/assets/terrain/mountains.png";
+    tiles[0x90] = "assets/assets/terrain/plains.png";
+    tiles[0xa0] = "assets/assets/terrain/river.png";
+    tiles[0xb0] = "assets/assets/terrain/swamp.png";
+    tiles[0xc0] = "assets/assets/terrain/tundra.png";
+
+    tiles[0x20] = "assets/assets/terrain/arctic.png";
+    tiles[0x21] = "assets/assets/terrain/arctic_w.png";
+    tiles[0x22] = "assets/assets/terrain/arctic_s.png";
+    tiles[0x23] = "assets/assets/terrain/arctic_sw.png";
+    tiles[0x24] = "assets/assets/terrain/arctic_e.png";
+    tiles[0x25] = "assets/assets/terrain/arctic_ew.png";
+    tiles[0x26] = "assets/assets/terrain/arctic_es.png";
+    tiles[0x27] = "assets/assets/terrain/arctic_esw.png";
+    tiles[0x28] = "assets/assets/terrain/arctic_n.png";
+    tiles[0x29] = "assets/assets/terrain/arctic_nes.png";
+    tiles[0x2a] = "assets/assets/terrain/arctic_ns.png";
+    tiles[0x2b] = "assets/assets/terrain/arctic_nsw.png";
+    tiles[0x2c] = "assets/assets/terrain/arctic_ne.png";
+    tiles[0x2d] = "assets/assets/terrain/arctic_new.png";
+    tiles[0x2e] = "assets/assets/terrain/arctic_nes.png";
+    tiles[0x2f] = "assets/assets/terrain/arctic_nesw.png";
+
+    tiles[0x30] = "assets/assets/terrain/desert.png";
+    tiles[0x31] = "assets/assets/terrain/desert_w.png";
+    tiles[0x32] = "assets/assets/terrain/desert_s.png";
+    tiles[0x33] = "assets/assets/terrain/desert_sw.png";
+    tiles[0x34] = "assets/assets/terrain/desert_e.png";
+    tiles[0x35] = "assets/assets/terrain/desert_ew.png";
+    tiles[0x36] = "assets/assets/terrain/desert_es.png";
+    tiles[0x37] = "assets/assets/terrain/desert_esw.png";
+    tiles[0x38] = "assets/assets/terrain/desert_n.png";
+    tiles[0x39] = "assets/assets/terrain/desert_nes.png";
+    tiles[0x3a] = "assets/assets/terrain/desert_ns.png";
+    tiles[0x3b] = "assets/assets/terrain/desert_nsw.png";
+    tiles[0x3c] = "assets/assets/terrain/desert_ne.png";
+    tiles[0x3d] = "assets/assets/terrain/desert_new.png";
+    tiles[0x3e] = "assets/assets/terrain/desert_nes.png";
+    tiles[0x3f] = "assets/assets/terrain/desert_nesw.png";
+
+    tiles[0x40] = "assets/assets/terrain/forest.png";
+    tiles[0x41] = "assets/assets/terrain/forest_w.png";
+    tiles[0x42] = "assets/assets/terrain/forest_s.png";
+    tiles[0x43] = "assets/assets/terrain/forest_sw.png";
+    tiles[0x44] = "assets/assets/terrain/forest_e.png";
+    tiles[0x45] = "assets/assets/terrain/forest_ew.png";
+    tiles[0x46] = "assets/assets/terrain/forest_es.png";
+    tiles[0x47] = "assets/assets/terrain/forest_esw.png";
+    tiles[0x48] = "assets/assets/terrain/forest_n.png";
+    tiles[0x49] = "assets/assets/terrain/forest_nes.png";
+    tiles[0x4a] = "assets/assets/terrain/forest_ns.png";
+    tiles[0x4b] = "assets/assets/terrain/forest_nsw.png";
+    tiles[0x4c] = "assets/assets/terrain/forest_ne.png";
+    tiles[0x4d] = "assets/assets/terrain/forest_new.png";
+    tiles[0x4e] = "assets/assets/terrain/forest_nes.png";
+    tiles[0x4f] = "assets/assets/terrain/forest_nesw.png";
+
+    tiles[0x50] = "assets/assets/terrain/grassland.png";
+    tiles[0x51] = "assets/assets/terrain/grassland_w.png";
+    tiles[0x52] = "assets/assets/terrain/grassland_s.png";
+    tiles[0x53] = "assets/assets/terrain/grassland_sw.png";
+    tiles[0x54] = "assets/assets/terrain/grassland_e.png";
+    tiles[0x55] = "assets/assets/terrain/grassland_ew.png";
+    tiles[0x56] = "assets/assets/terrain/grassland_es.png";
+    tiles[0x57] = "assets/assets/terrain/grassland_esw.png";
+    tiles[0x58] = "assets/assets/terrain/grassland_n.png";
+    tiles[0x59] = "assets/assets/terrain/grassland_nes.png";
+    tiles[0x5a] = "assets/assets/terrain/grassland_ns.png";
+    tiles[0x5b] = "assets/assets/terrain/grassland_nsw.png";
+    tiles[0x5c] = "assets/assets/terrain/grassland_ne.png";
+    tiles[0x5d] = "assets/assets/terrain/grassland_new.png";
+    tiles[0x5e] = "assets/assets/terrain/grassland_nes.png";
+    tiles[0x5f] = "assets/assets/terrain/grassland_nesw.png";
+    
+    tiles[0x60] = "assets/assets/terrain/hills.png";
+    tiles[0x61] = "assets/assets/terrain/hills_w.png";
+    tiles[0x62] = "assets/assets/terrain/hills_s.png";
+    tiles[0x63] = "assets/assets/terrain/hills_sw.png";
+    tiles[0x64] = "assets/assets/terrain/hills_e.png";
+    tiles[0x65] = "assets/assets/terrain/hills_ew.png";
+    tiles[0x66] = "assets/assets/terrain/hills_es.png";
+    tiles[0x67] = "assets/assets/terrain/hills_esw.png";
+    tiles[0x68] = "assets/assets/terrain/hills_n.png";
+    tiles[0x69] = "assets/assets/terrain/hills_nes.png";
+    tiles[0x6a] = "assets/assets/terrain/hills_ns.png";
+    tiles[0x6b] = "assets/assets/terrain/hills_nsw.png";
+    tiles[0x6c] = "assets/assets/terrain/hills_ne.png";
+    tiles[0x6d] = "assets/assets/terrain/hills_new.png";
+    tiles[0x6e] = "assets/assets/terrain/hills_nes.png";
+    tiles[0x6f] = "assets/assets/terrain/hills_nesw.png";
+
+    tiles[0x70] = "assets/assets/terrain/jungle.png";
+    tiles[0x71] = "assets/assets/terrain/jungle_w.png";
+    tiles[0x72] = "assets/assets/terrain/jungle_s.png";
+    tiles[0x73] = "assets/assets/terrain/jungle_sw.png";
+    tiles[0x74] = "assets/assets/terrain/jungle_e.png";
+    tiles[0x75] = "assets/assets/terrain/jungle_ew.png";
+    tiles[0x76] = "assets/assets/terrain/jungle_es.png";
+    tiles[0x77] = "assets/assets/terrain/jungle_esw.png";
+    tiles[0x78] = "assets/assets/terrain/jungle_n.png";
+    tiles[0x79] = "assets/assets/terrain/jungle_nes.png";
+    tiles[0x7a] = "assets/assets/terrain/jungle_ns.png";
+    tiles[0x7b] = "assets/assets/terrain/jungle_nsw.png";
+    tiles[0x7c] = "assets/assets/terrain/jungle_ne.png";
+    tiles[0x7d] = "assets/assets/terrain/jungle_new.png";
+    tiles[0x7e] = "assets/assets/terrain/jungle_nes.png";
+    tiles[0x7f] = "assets/assets/terrain/jungle_nesw.png";
+
+    tiles[0x80] = "assets/assets/terrain/mountains.png";
+    tiles[0x81] = "assets/assets/terrain/mountains_w.png";
+    tiles[0x82] = "assets/assets/terrain/mountains_s.png";
+    tiles[0x83] = "assets/assets/terrain/mountains_sw.png";
+    tiles[0x84] = "assets/assets/terrain/mountains_e.png";
+    tiles[0x85] = "assets/assets/terrain/mountains_ew.png";
+    tiles[0x86] = "assets/assets/terrain/mountains_es.png";
+    tiles[0x87] = "assets/assets/terrain/mountains_esw.png";
+    tiles[0x88] = "assets/assets/terrain/mountains_n.png";
+    tiles[0x89] = "assets/assets/terrain/mountains_nes.png";
+    tiles[0x8a] = "assets/assets/terrain/mountains_ns.png";
+    tiles[0x8b] = "assets/assets/terrain/mountains_nsw.png";
+    tiles[0x8c] = "assets/assets/terrain/mountains_ne.png";
+    tiles[0x8d] = "assets/assets/terrain/mountains_new.png";
+    tiles[0x8e] = "assets/assets/terrain/mountains_nes.png";
+    tiles[0x8f] = "assets/assets/terrain/mountains_nesw.png";
+
+    tiles[0x90] = "assets/assets/terrain/plains.png";
+    tiles[0x91] = "assets/assets/terrain/plains_w.png";
+    tiles[0x92] = "assets/assets/terrain/plains_s.png";
+    tiles[0x93] = "assets/assets/terrain/plains_sw.png";
+    tiles[0x94] = "assets/assets/terrain/plains_e.png";
+    tiles[0x95] = "assets/assets/terrain/plains_ew.png";
+    tiles[0x96] = "assets/assets/terrain/plains_es.png";
+    tiles[0x97] = "assets/assets/terrain/plains_esw.png";
+    tiles[0x98] = "assets/assets/terrain/plains_n.png";
+    tiles[0x99] = "assets/assets/terrain/plains_nes.png";
+    tiles[0x9a] = "assets/assets/terrain/plains_ns.png";
+    tiles[0x9b] = "assets/assets/terrain/plains_nsw.png";
+    tiles[0x9c] = "assets/assets/terrain/plains_ne.png";
+    tiles[0x9d] = "assets/assets/terrain/plains_new.png";
+    tiles[0x9e] = "assets/assets/terrain/plains_nes.png";
+    tiles[0x9f] = "assets/assets/terrain/plains_nesw.png";
+
+    tiles[0xa0] = "assets/assets/terrain/river.png";
+    tiles[0xa1] = "assets/assets/terrain/river_w.png";
+    tiles[0xa2] = "assets/assets/terrain/river_s.png";
+    tiles[0xa3] = "assets/assets/terrain/river_sw.png";
+    tiles[0xa4] = "assets/assets/terrain/river_e.png";
+    tiles[0xa5] = "assets/assets/terrain/river_ew.png";
+    tiles[0xa6] = "assets/assets/terrain/river_es.png";
+    tiles[0xa7] = "assets/assets/terrain/river_esw.png";
+    tiles[0xa8] = "assets/assets/terrain/river_n.png";
+    tiles[0xa9] = "assets/assets/terrain/river_nes.png";
+    tiles[0xaa] = "assets/assets/terrain/river_ns.png";
+    tiles[0xab] = "assets/assets/terrain/river_nsw.png";
+    tiles[0xac] = "assets/assets/terrain/river_ne.png";
+    tiles[0xad] = "assets/assets/terrain/river_new.png";
+    tiles[0xae] = "assets/assets/terrain/river_nes.png";
+    tiles[0xaf] = "assets/assets/terrain/river_nesw.png";
+
+    tiles[0xb0] = "assets/assets/terrain/swamp.png";
+    tiles[0xb1] = "assets/assets/terrain/swamp_w.png";
+    tiles[0xb2] = "assets/assets/terrain/swamp_s.png";
+    tiles[0xb3] = "assets/assets/terrain/swamp_sw.png";
+    tiles[0xb4] = "assets/assets/terrain/swamp_e.png";
+    tiles[0xb5] = "assets/assets/terrain/swamp_ew.png";
+    tiles[0xb6] = "assets/assets/terrain/swamp_es.png";
+    tiles[0xb7] = "assets/assets/terrain/swamp_esw.png";
+    tiles[0xb8] = "assets/assets/terrain/swamp_n.png";
+    tiles[0xb9] = "assets/assets/terrain/swamp_nes.png";
+    tiles[0xba] = "assets/assets/terrain/swamp_ns.png";
+    tiles[0xbb] = "assets/assets/terrain/swamp_nsw.png";
+    tiles[0xbc] = "assets/assets/terrain/swamp_ne.png";
+    tiles[0xbd] = "assets/assets/terrain/swamp_new.png";
+    tiles[0xbe] = "assets/assets/terrain/swamp_nes.png";
+    tiles[0xbf] = "assets/assets/terrain/swamp_nesw.png";
+
+    tiles[0xc0] = "assets/assets/terrain/tundra.png";
+    tiles[0xc1] = "assets/assets/terrain/tundra_w.png";
+    tiles[0xc2] = "assets/assets/terrain/tundra_s.png";
+    tiles[0xc3] = "assets/assets/terrain/tundra_sw.png";
+    tiles[0xc4] = "assets/assets/terrain/tundra_e.png"; 
+    tiles[0xc5] = "assets/assets/terrain/tundra_ew.png";
+    tiles[0xc6] = "assets/assets/terrain/tundra_es.png";
+    tiles[0xc7] = "assets/assets/terrain/tundra_esw.png";
+    tiles[0xc8] = "assets/assets/terrain/tundra_n.png";
+    tiles[0xc9] = "assets/assets/terrain/tundra_nes.png";
+    tiles[0xca] = "assets/assets/terrain/tundra_ns.png";
+    tiles[0xcb] = "assets/assets/terrain/tundra_nsw.png";
+    tiles[0xcc] = "assets/assets/terrain/tundra_ne.png";
+    tiles[0xcd] = "assets/assets/terrain/tundra_new.png";
+    tiles[0xce] = "assets/assets/terrain/tundra_nes.png";
+    tiles[0xcf] = "assets/assets/terrain/tundra_nesw.png";
 
     map.init();
 
-    for(int lat=-30;lat<30;lat++)
-        for (int lon=-40;lon<40;lon++)
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            map(lat,lon) = mapcell(0);
+            map.set(lat,lon) = mapcell(0);
         }
+
+    // for(int lat=-3;lat<=3;lat++)
+    //     for (int lon=-3;lon<=3;lon++)
+    //     {
+    //         map.set(lat,lon) = mapcell(1);
+    //     }
+
+    // map.set(0,-4).bioma = 0xa0;
+    // map.set(0,-3).bioma = 0xa0;
+    // map.set(0,-2).bioma = 0xa0;
+    // map.set(0,-1).bioma = 0xa0;
+
+    // map.set(0,4).bioma = 0xa0;
+    // map.set(0,3).bioma = 0xa0;
+    // map.set(0,2).bioma = 0xa0;
+    // map.set(0,1).bioma = 0xa0;
+
+    // map.set(-4,0).bioma = 0xa0;
+    // map.set(-3,0).bioma = 0xa0;
+    // map.set(-2,0).bioma = 0xa0;
+    // map.set(-1,0).bioma = 0xa0;
+
+
+    // map.set(4,0).bioma = 0xa0;
+    // map.set(3,0).bioma = 0xa0;
+    // map.set(2,0).bioma = 0xa0;
+    // map.set(1,0).bioma = 0xa0;
+
+    // map.set(0,0).bioma = 0xa0;
+
 
     int r=getRandomInteger(2,15);
 
     for(int i=0;i<r;i++)
     {
-        int lat = getRandomInteger(-30,29);
-        int lon = getRandomInteger(-40,39);
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
         while (getRandomInteger(0,100)>2)
         {
-            map(lat,lon) = mapcell(1);
+            map.set(lat,lon) = mapcell(1);
             int dir=getRandomInteger(0,3);
             if (dir==0) lat+=1;
             if (dir==1) lat-=1;
@@ -213,8 +466,8 @@ void initMap()
     int energy = 100000;
     for(int rep=0;rep<5000;rep++)
     {
-        int lat = getRandomInteger(-30,29);
-        int lon = getRandomInteger(-40,39);
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
         int north,south,east,west;
         north = map(lat+1,lon).code;
@@ -224,13 +477,13 @@ void initMap()
 
         if (energy>0) if ((south+north+east+west)>=1)
         {
-            map(lat,lon) = mapcell(1);
+            map.set(lat,lon) = mapcell(1);
             energy--;
         }
     }
 
-    for(int lat=-30;lat<30;lat++)
-        for (int lon=-40;lon<40;lon++)
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
             int north,south,east,west;
             north = map(lat+1,lon).code;
@@ -240,23 +493,23 @@ void initMap()
 
             if (energy>0) if ((south+north+east+west)>=3)
             {
-                map(lat,lon) = mapcell(1);
+                map.set(lat,lon) = mapcell(1);
             }
         }
 
 
     for(int i=0;i<100;i++)
     {
-        int lat = getRandomInteger(-30,29);
-        int lon = getRandomInteger(-40,39);
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        int bioma = getRandomInteger(2,12);
+        int bioma = getRandomInteger(2,12)*16;
 
         while (getRandomInteger(0,100)>2)
         {
             if (map(lat,lon).code==1)
             {
-                map(lat,lon).bioma = bioma;
+                map.set(lat,lon).bioma = bioma;
                 int dir=getRandomInteger(0,3);
                 if (dir==0) lat+=1;
                 if (dir==1) lat-=1;
@@ -266,6 +519,31 @@ void initMap()
 
         }
     }
+
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map(lat,lon).code==1 && map(lat,lon).bioma>1)
+            {
+                int bioma = map(lat,lon).bioma;
+
+                int biom = bioma & 0xf0;
+
+                int b1 = (map.west(lat,lon).bioma & 0xf0 ^ biom)>0;b1=b1?0:1;
+                int b2 = (map.south(lat,lon).bioma & 0xf0 ^ biom)>0;b2=b2?0:1;
+                int b3 = (map.east(lat,lon).bioma & 0xf0 ^ biom)>0;b3=b3?0:1;
+                int b4 = (map.north(lat,lon).bioma & 0xf0 ^ biom)>0;b4=b4?0:1;
+
+                //printf(" %x %x %x %x: %x\n",b4,b3,b2,b1, b4<<3 | b3<<2 | b2<<1 | b1);
+
+                bioma += (b4<<3 | b3<<2 | b2<<1 | b1);
+
+                //printf("Lat %d Lon %d Bioma: %x\n",lat,lon,bioma);
+
+                map.set(lat,lon).bioma = bioma;
+
+            }
+        }
 
 }
 
@@ -284,9 +562,17 @@ void zoommapout()
 
 void centermap(int ccx, int ccy)
 {
-    // @FIXME: Parametrize all the resolution values.
-    int xsize = 1200/mapzoom;
-    int ysize = 800/mapzoom;
+    //1728,1117
+
+    float fccx = ccx/1728.0*1200.0;
+    float fccy = ccy/1117.0*800.0;
+
+    ccx = fccx;
+    ccy = fccy;
+
+    // @FIXME: Parametrize all the resolution values.  This depends on the screen resolution, and the amount of clickable space
+    int xsize = 1200/mapzoom;   //1200
+    int ysize = 800/mapzoom;    //800
 
     // Screen width and height come from OpenGL.
     cx = (int)(ccx*(xsize)/(float)width)+cx-xsize/2; // 1440
@@ -484,30 +770,30 @@ void drawMap()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        for(int lat=-30;lat<30;lat++)
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
         {
-            for(int lon=-40;lon<40;lon++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
                 if (map(lat,lon).visible) place(lon,lat,16,tiles[map(lat,lon).code].c_str());
             }
         }
 
-        for(int lat=-30;lat<30;lat++)
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
         {
-            for(int lon=-40;lon<40;lon++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
                 if (map(lat,lon).visible && map(lat,lon).code==1) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
-        for(int lat=-30;lat<30;lat++)
-            for(int lon=-40;lon<40;lon++)
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
                 int land = map(lat,lon).code;
                 mapcell next = map.south(lat,lon);
                 coordinate c = map.isouth(lat,lon);
 
-                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf2) != 0xa2) if (land == 1 && next.code == 0)
                 {
                     placeMark(600+16*c.lon-4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
                     placeMark(600+16*c.lon+4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
@@ -517,7 +803,7 @@ void drawMap()
                 next = map.north(lat,lon);
                 c = map.inorth(lat,lon);
 
-                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf8) != 0xa8) if (land == 1 && next.code == 0)
                 {
                     placeMark(600+16*c.lon-4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
                     placeMark(600+16*c.lon+4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
@@ -526,7 +812,7 @@ void drawMap()
                 next = map.east(lat,lon);
                 c = map.ieast(lat,lon);
 
-                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf4) != 0xa4) if (land == 1 && next.code == 0)
                 {
                     placeMark(600+16*c.lon-8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_e2.png");
                     placeMark(600+16*c.lon-8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_e2.png");
@@ -535,12 +821,49 @@ void drawMap()
                 next = map.west(lat,lon);
                 c = map.iwest(lat,lon);
 
-                if (map(lat,lon).visible) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf1) != 0xa1) if (land == 1 && next.code == 0)
                 {
                     placeMark(600+16*c.lon+8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_w2.png");
                     placeMark(600+16*c.lon+8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_w2.png");
                 }
+            }
 
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                int land = map(lat,lon).code;
+                mapcell next = map.south(lat,lon);
+                coordinate c = map.isouth(lat,lon);
+
+                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf2) == 0xa2) if (land == 1 && next.code == 0)
+                {
+                    place(c.lon,c.lat,16,tiles[5].c_str());
+                }
+
+
+                next = map.north(lat,lon);
+                c = map.inorth(lat,lon);
+
+                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf8) == 0xa8) if (land == 1 && next.code == 0)
+                {
+                    place(c.lon,c.lat,16,tiles[3].c_str());
+                }
+
+                next = map.east(lat,lon);
+                c = map.ieast(lat,lon);
+
+                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf4) == 0xa4) if (land == 1 && next.code == 0)
+                {
+                    place(c.lon,c.lat,16,tiles[2].c_str());
+                }
+
+                next = map.west(lat,lon);
+                c = map.iwest(lat,lon);
+
+                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf1) == 0xa1) if (land == 1 && next.code == 0)
+                {
+                    place(c.lon,c.lat,16,tiles[4].c_str());
+                }
             }
 
 
@@ -609,8 +932,8 @@ void drawMap()
         std::vector<coordinate> list;
         if (count==0)
         {
-            for(int lat=-30;lat<30;lat++)
-                for(int lon=-40;lon<40;lon++)
+            for(int lat=map.minlat;lat<map.maxlat;lat++)
+                for(int lon=map.minlon;lon<map.maxlon;lon++)
                 {
                     if (map(lat,lon).code==1)
                     {
@@ -637,8 +960,8 @@ void drawMap()
                 map(lllat,lllon).visible = true;
             }
 
-        for(int lat=-30;lat<30;lat++)
-            for(int lon=-40;lon<40;lon++)
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
                 if (map(lat,lon).visible)
                 {
@@ -651,10 +974,22 @@ void drawMap()
             }
 
 
-
-
         if (count++ % 100 < 50)
-            placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/settlers.png");
+        {
+            int lat = ((int)controller.registers.pitch) + abs(map.minlat) - map.centerx;
+            lat = lat % (map.maxlat-map.minlat);
+            if (lat<0) lat = (map.maxlat-map.minlat) + lat;
+            lat = lat - abs(map.minlat);
+            int lon = ((int)controller.registers.roll) + abs(map.minlon) - map.centery;
+            lon = lon % (map.maxlon-map.minlon);
+            if (lon<0) lon = (map.maxlon-map.minlon) + lon;
+            lon = lon - abs(map.minlon);
+
+            placeThisUnit(lon,lat,16,"assets/assets/units/settlers.png");
+        }
+
+        map.setCenter(0,controller.registers.yaw);
+            
 
         //placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/trireme.png");
 
