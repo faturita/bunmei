@@ -28,7 +28,7 @@ struct mapcell
     {
         this->code = code;
         this->visible = true;
-        this->bioma = 1;// By default, land
+        this->bioma = 0;// By default, nothing
     }
 
     int code;
@@ -444,6 +444,7 @@ void initMap()
     // map.set(0,0).bioma = 0xa0;
 
 
+    // Pick a random number of land masses seeds.
     int r=getRandomInteger(2,15);
 
     for(int i=0;i<r;i++)
@@ -454,6 +455,7 @@ void initMap()
         while (getRandomInteger(0,100)>2)
         {
             map.set(lat,lon) = mapcell(1);
+            map.set(lat,lon).bioma = 1;
             int dir=getRandomInteger(0,3);
             if (dir==0) lat+=1;
             if (dir==1) lat-=1;
@@ -463,6 +465,7 @@ void initMap()
         }
     }
 
+    // Fill in randomly the land masses with land.
     int energy = 100000;
     for(int rep=0;rep<5000;rep++)
     {
@@ -482,6 +485,7 @@ void initMap()
         }
     }
 
+    // Now go through all the spots and fill in with more land to fill the gaps.
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
@@ -498,12 +502,15 @@ void initMap()
         }
 
 
+    // Pick the biomas.
     for(int i=0;i<100;i++)
     {
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        int bioma = getRandomInteger(2,12)*16;
+        int biomalist[] = {0x20,0x30,0x40,0x50,0x60,0x70,0x80,0x90,0xb0,0xc0};
+
+        int bioma = biomalist[getRandomInteger(0,9)];
 
         while (getRandomInteger(0,100)>2)
         {
@@ -520,10 +527,57 @@ void initMap()
         }
     }
 
+
+    // Put the rivers
+    for(int i=0;i<100;i++)
+    {
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
+
+        int bioma = 0xa0;
+
+        int dir=0;
+
+        while (map(lat,lon).code==1)
+        {
+            map.set(lat,lon).bioma = bioma;
+
+            if (map.north(lat,lon).code==0)
+            {
+                dir=0;
+            } else if (map.south(lat,lon).code==0)
+            {
+                dir=1;
+            } else if (map.east(lat,lon).code==0)
+            {
+                dir=2;
+            } else if (map.west(lat,lon).code==0)
+            {
+                dir=3;
+            } else {
+                dir=getRandomInteger(0,3);
+            }
+            if (dir==0) lat+=1;
+            if (dir==1) lat-=1;
+            if (dir==2) lon+=1;
+            if (dir==3) lon-=1;
+
+            if (map(lat,lon).code==0) 
+            {
+                map.set(lat,lon).bioma = 0xa0;
+            }
+        }
+    }
+
+
+    //map.set(-8,-4).code = 0;
+    //map.set(-8,-4).bioma = 0xa0;
+
+
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map(lat,lon).code==1 && map(lat,lon).bioma>1)
+            if (map(lat,lon).code==1 && map(lat,lon).bioma>5)       // Skip all the first biomas which are river mouths
             {
                 int bioma = map(lat,lon).bioma;
 
@@ -541,6 +595,33 @@ void initMap()
                 //printf("Lat %d Lon %d Bioma: %x\n",lat,lon,bioma);
 
                 map.set(lat,lon).bioma = bioma;
+
+            }
+        }
+
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map(lat,lon).code==0 && map(lat,lon).bioma==0xa0)
+            {
+                int biom = 0xa0;
+                int b1 = (map.west(lat,lon).bioma & 0xf0 ^ biom)>0;b1=b1?0:1;
+                int b2 = (map.south(lat,lon).bioma & 0xf0 ^ biom)>0;b2=b2?0:1;
+                int b3 = (map.east(lat,lon).bioma & 0xf0 ^ biom)>0;b3=b3?0:1;
+                int b4 = (map.north(lat,lon).bioma & 0xf0 ^ biom)>0;b4=b4?0:1;
+
+                printf(" %x %x %x %x: %x\n",b4,b3,b2,b1, b4<<3 | b3<<2 | b2<<1 | b1);
+
+                int val = (b4<<3 | b3<<2 | b2<<1 | b1);
+
+                switch (val)
+                {
+                    case 1:map.set(lat,lon).bioma = 2;break;
+                    case 2:map.set(lat,lon).bioma = 3;break;
+                    case 4:map.set(lat,lon).bioma = 4;break;
+                    case 8:map.set(lat,lon).bioma = 5;break;
+                }
+
 
             }
         }
@@ -782,7 +863,7 @@ void drawMap()
         {
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                if (map(lat,lon).visible && map(lat,lon).code==1) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
+                if (map(lat,lon).visible && map(lat,lon).bioma!=0) place(lon,lat,16,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
@@ -828,7 +909,7 @@ void drawMap()
                 }
             }
 
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
+        /**for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
                 int land = map(lat,lon).code;
@@ -864,7 +945,7 @@ void drawMap()
                 {
                     place(c.lon,c.lat,16,tiles[4].c_str());
                 }
-            }
+            }**/
 
 
         /**
@@ -989,10 +1070,6 @@ void drawMap()
         }
 
         map.setCenter(0,controller.registers.yaw);
-            
-
-        //placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/trireme.png");
-
 
         glDisable(GL_BLEND);
 
