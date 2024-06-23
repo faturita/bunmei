@@ -228,7 +228,7 @@ void initMap()
     tiles[0x26] = "assets/assets/terrain/arctic_es.png";
     tiles[0x27] = "assets/assets/terrain/arctic_esw.png";
     tiles[0x28] = "assets/assets/terrain/arctic_n.png";
-    tiles[0x29] = "assets/assets/terrain/arctic_nes.png";
+    tiles[0x29] = "assets/assets/terrain/arctic_nw.png";
     tiles[0x2a] = "assets/assets/terrain/arctic_ns.png";
     tiles[0x2b] = "assets/assets/terrain/arctic_nsw.png";
     tiles[0x2c] = "assets/assets/terrain/arctic_ne.png";
@@ -245,7 +245,7 @@ void initMap()
     tiles[0x36] = "assets/assets/terrain/desert_es.png";
     tiles[0x37] = "assets/assets/terrain/desert_esw.png";
     tiles[0x38] = "assets/assets/terrain/desert_n.png";
-    tiles[0x39] = "assets/assets/terrain/desert_nes.png";
+    tiles[0x39] = "assets/assets/terrain/desert_nw.png";
     tiles[0x3a] = "assets/assets/terrain/desert_ns.png";
     tiles[0x3b] = "assets/assets/terrain/desert_nsw.png";
     tiles[0x3c] = "assets/assets/terrain/desert_ne.png";
@@ -262,7 +262,7 @@ void initMap()
     tiles[0x46] = "assets/assets/terrain/forest_es.png";
     tiles[0x47] = "assets/assets/terrain/forest_esw.png";
     tiles[0x48] = "assets/assets/terrain/forest_n.png";
-    tiles[0x49] = "assets/assets/terrain/forest_nes.png";
+    tiles[0x49] = "assets/assets/terrain/forest_nw.png";
     tiles[0x4a] = "assets/assets/terrain/forest_ns.png";
     tiles[0x4b] = "assets/assets/terrain/forest_nsw.png";
     tiles[0x4c] = "assets/assets/terrain/forest_ne.png";
@@ -279,7 +279,7 @@ void initMap()
     tiles[0x56] = "assets/assets/terrain/grassland_es.png";
     tiles[0x57] = "assets/assets/terrain/grassland_esw.png";
     tiles[0x58] = "assets/assets/terrain/grassland_n.png";
-    tiles[0x59] = "assets/assets/terrain/grassland_nes.png";
+    tiles[0x59] = "assets/assets/terrain/grassland_nw.png";
     tiles[0x5a] = "assets/assets/terrain/grassland_ns.png";
     tiles[0x5b] = "assets/assets/terrain/grassland_nsw.png";
     tiles[0x5c] = "assets/assets/terrain/grassland_ne.png";
@@ -296,7 +296,7 @@ void initMap()
     tiles[0x66] = "assets/assets/terrain/hills_es.png";
     tiles[0x67] = "assets/assets/terrain/hills_esw.png";
     tiles[0x68] = "assets/assets/terrain/hills_n.png";
-    tiles[0x69] = "assets/assets/terrain/hills_nes.png";
+    tiles[0x69] = "assets/assets/terrain/hills_nw.png";
     tiles[0x6a] = "assets/assets/terrain/hills_ns.png";
     tiles[0x6b] = "assets/assets/terrain/hills_nsw.png";
     tiles[0x6c] = "assets/assets/terrain/hills_ne.png";
@@ -313,7 +313,7 @@ void initMap()
     tiles[0x76] = "assets/assets/terrain/jungle_es.png";
     tiles[0x77] = "assets/assets/terrain/jungle_esw.png";
     tiles[0x78] = "assets/assets/terrain/jungle_n.png";
-    tiles[0x79] = "assets/assets/terrain/jungle_nes.png";
+    tiles[0x79] = "assets/assets/terrain/jungle_nw.png";
     tiles[0x7a] = "assets/assets/terrain/jungle_ns.png";
     tiles[0x7b] = "assets/assets/terrain/jungle_nsw.png";
     tiles[0x7c] = "assets/assets/terrain/jungle_ne.png";
@@ -330,7 +330,7 @@ void initMap()
     tiles[0x86] = "assets/assets/terrain/mountains_es.png";
     tiles[0x87] = "assets/assets/terrain/mountains_esw.png";
     tiles[0x88] = "assets/assets/terrain/mountains_n.png";
-    tiles[0x89] = "assets/assets/terrain/mountains_nes.png";
+    tiles[0x89] = "assets/assets/terrain/mountains_nw.png";
     tiles[0x8a] = "assets/assets/terrain/mountains_ns.png";
     tiles[0x8b] = "assets/assets/terrain/mountains_nsw.png";
     tiles[0x8c] = "assets/assets/terrain/mountains_ne.png";
@@ -347,7 +347,7 @@ void initMap()
     tiles[0x96] = "assets/assets/terrain/plains_es.png";
     tiles[0x97] = "assets/assets/terrain/plains_esw.png";
     tiles[0x98] = "assets/assets/terrain/plains_n.png";
-    tiles[0x99] = "assets/assets/terrain/plains_nes.png";
+    tiles[0x99] = "assets/assets/terrain/plains_nw.png";
     tiles[0x9a] = "assets/assets/terrain/plains_ns.png";
     tiles[0x9b] = "assets/assets/terrain/plains_nsw.png";
     tiles[0x9c] = "assets/assets/terrain/plains_ne.png";
@@ -364,7 +364,7 @@ void initMap()
     tiles[0xa6] = "assets/assets/terrain/river_es.png";
     tiles[0xa7] = "assets/assets/terrain/river_esw.png";
     tiles[0xa8] = "assets/assets/terrain/river_n.png";
-    tiles[0xa9] = "assets/assets/terrain/river_nes.png";
+    tiles[0xa9] = "assets/assets/terrain/river_nw.png";
     tiles[0xaa] = "assets/assets/terrain/river_ns.png";
     tiles[0xab] = "assets/assets/terrain/river_nsw.png";
     tiles[0xac] = "assets/assets/terrain/river_ne.png";
@@ -381,7 +381,7 @@ void initMap()
     tiles[0xb6] = "assets/assets/terrain/swamp_es.png";
     tiles[0xb7] = "assets/assets/terrain/swamp_esw.png";
     tiles[0xb8] = "assets/assets/terrain/swamp_n.png";
-    tiles[0xb9] = "assets/assets/terrain/swamp_nes.png";
+    tiles[0xb9] = "assets/assets/terrain/swamp_nw.png";
     tiles[0xba] = "assets/assets/terrain/swamp_ns.png";
     tiles[0xbb] = "assets/assets/terrain/swamp_nsw.png";
     tiles[0xbc] = "assets/assets/terrain/swamp_ne.png";
@@ -398,7 +398,7 @@ void initMap()
     tiles[0xc6] = "assets/assets/terrain/tundra_es.png";
     tiles[0xc7] = "assets/assets/terrain/tundra_esw.png";
     tiles[0xc8] = "assets/assets/terrain/tundra_n.png";
-    tiles[0xc9] = "assets/assets/terrain/tundra_nes.png";
+    tiles[0xc9] = "assets/assets/terrain/tundra_nw.png";
     tiles[0xca] = "assets/assets/terrain/tundra_ns.png";
     tiles[0xcb] = "assets/assets/terrain/tundra_nsw.png";
     tiles[0xcc] = "assets/assets/terrain/tundra_ne.png";
@@ -614,14 +614,10 @@ void initMap()
 
                 int val = (b4<<3 | b3<<2 | b2<<1 | b1);
 
-                switch (val)
-                {
-                    case 1:map.set(lat,lon).bioma = 2;break;
-                    case 2:map.set(lat,lon).bioma = 3;break;
-                    case 4:map.set(lat,lon).bioma = 4;break;
-                    case 8:map.set(lat,lon).bioma = 5;break;
-                }
-
+                if (b1) map.set(lat,lon).bioma = 2;
+                if (b2) map.set(lat,lon).bioma = 3;
+                if (b3) map.set(lat,lon).bioma = 4;
+                if (b4) map.set(lat,lon).bioma = 5;
 
             }
         }
