@@ -847,6 +847,7 @@ void drawMap()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        // Water or Land
         for(int lat=map.minlat;lat<map.maxlat;lat++)
         {
             for(int lon=map.minlon;lon<map.maxlon;lon++)
@@ -855,6 +856,7 @@ void drawMap()
             }
         }
 
+        // Biomas, including biomas on ocean (like river mouths)
         for(int lat=map.minlat;lat<map.maxlat;lat++)
         {
             for(int lon=map.minlon;lon<map.maxlon;lon++)
@@ -870,38 +872,70 @@ void drawMap()
                 mapcell next = map.south(lat,lon);
                 coordinate c = map.isouth(lat,lon);
 
-                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf2) != 0xa2) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
                 {
-                    placeMark(600+16*c.lon-4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
-                    placeMark(600+16*c.lon+4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
+                    if ((map(lat,lon).bioma & 0xf2) != 0xa2) 
+                    {
+                        placeMark(600+16*c.lon-4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
+                        placeMark(600+16*c.lon+4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_s2.png");
+                    }
+                    else
+                    {
+                        placeMark(600+16*c.lon-4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_sm1.png");
+                        placeMark(600+16*c.lon+4, 0+16*c.lat+8,    8,"assets/assets/terrain/coast_sm2.png");
+                    }
                 }
 
 
                 next = map.north(lat,lon);
                 c = map.inorth(lat,lon);
 
-                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf8) != 0xa8) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
                 {
-                    placeMark(600+16*c.lon-4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
-                    placeMark(600+16*c.lon+4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
+                    if ((map(lat,lon).bioma & 0xf8) != 0xa8)
+                    {
+                        placeMark(600+16*c.lon-4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
+                        placeMark(600+16*c.lon+4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_n2.png");
+                    }
+                    else
+                    {
+                        placeMark(600+16*c.lon-4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_nm2.png");
+                        placeMark(600+16*c.lon+4, 0+16*c.lat-8,    8,"assets/assets/terrain/coast_nm1.png");
+                    }
                 }
 
                 next = map.east(lat,lon);
                 c = map.ieast(lat,lon);
 
-                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf4) != 0xa4) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
                 {
-                    placeMark(600+16*c.lon-8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_e2.png");
-                    placeMark(600+16*c.lon-8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_e2.png");
+                    if ((map(lat,lon).bioma & 0xf4) != 0xa4)
+                    {
+                        placeMark(600+16*c.lon-8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_e5.png");
+                        placeMark(600+16*c.lon-8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_e5.png");
+                    }
+                    else
+                    {
+                        placeMark(600+16*c.lon-8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_em1.png");
+                        placeMark(600+16*c.lon-8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_em2.png");
+                    }
                 }
 
                 next = map.west(lat,lon);
                 c = map.iwest(lat,lon);
 
-                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf1) != 0xa1) if (land == 1 && next.code == 0)
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
                 {
-                    placeMark(600+16*c.lon+8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_w2.png");
-                    placeMark(600+16*c.lon+8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_w2.png");
+                    if ((map(lat,lon).bioma & 0xf1) != 0xa1) 
+                    {
+                        placeMark(600+16*c.lon+8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_w2.png");
+                        placeMark(600+16*c.lon+8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_w2.png");
+                    } 
+                    else 
+                    {
+                        placeMark(600+16*c.lon+8, 0+16*c.lat-4,    8,"assets/assets/terrain/coast_wm2.png");
+                        placeMark(600+16*c.lon+8, 0+16*c.lat+4,    8,"assets/assets/terrain/coast_wm1.png");
+                    }
                 }
             }
 
