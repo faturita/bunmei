@@ -43,6 +43,8 @@ public:
 
     int slider=0;
 
+    bool endofturn=false;
+
     void push(CommandOrder co)
     {
         corder = co;

@@ -23,8 +23,13 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch+=1.0;break;
         case 's':controller.registers.pitch-=1.0;break;
+        case 'q':controller.registers.pitch+=1.0;controller.registers.roll-=1.0f;break;
+        case 'e':controller.registers.pitch+=1.0;controller.registers.roll+=1.0f;break;
+        case 'z':controller.registers.pitch-=1.0;controller.registers.roll-=1.0f;break;
+        case 'c':controller.registers.pitch-=1.0;controller.registers.roll+=1.0f;break;
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
+        case ' ':controller.endofturn=true;break;
     default:break;
     }
 }

@@ -8,6 +8,7 @@
 #include "usercontrols.h"
 #include "math/yamathutil.h"
 #include "map.h"
+#include "units/Unit.h"
 
 
 // 1200 x 800
@@ -16,184 +17,15 @@ int width = 1200;
 int height = 800;
 int mapzoom=1;
 
-float cx,cy;
+float cx=0,cy=0;
 
 std::unordered_map<std::string, GLuint> maptextures;
 std::unordered_map<int, std::string> tiles;
 extern Controller controller;
-
-struct mapcell
-{
-    mapcell(int code)
-    {
-        this->code = code;
-        this->visible = true;
-        this->bioma = 0;// By default, nothing
-    }
-
-    int code;
-    bool visible;
-    int bioma;
-};
-
-struct coordinate
-{
-    coordinate(int lat,int lon)
-    {
-        this->lat = lat;
-        this->lon = lon;
-    }
-    int lat;
-    int lon;
-};
-
-class Map
-{
-    private:
-        std::vector<std::vector<mapcell>> map;
-
-
-    public:
-        int centerx, centery;
-        int minlat = -20;
-        int maxlat = 20;
-        int minlon = -35;
-        int maxlon = 35;
-
-        void init()
-        {
-            centerx = 0;
-            centery = 0;
-            int no_of_cols = maxlon-minlon;
-            int no_of_rows = maxlat-minlat;
-            int initial_value = 0;
-
-            map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
-        }
-
-        void setCenter(int x, int y)
-        {
-            centerx = x;
-            centery = y;
-        }
-
-        mapcell &operator()(int lat, int lon)
-        {
-            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
-            x = rotclipped(x,0,maxlat-minlat-1);
-            y = rotclipped(y,0,maxlon-minlon-1);
-            return map[x][y];
-        }
-
-        mapcell &set(int lat, int lon)
-        {
-            int x=lat+abs(minlat),y=lon+abs(minlon);
-            x = clipped(x,0,maxlat-minlat-1);
-            y = clipped(y,0,maxlon-minlon-1);
-            return map[x][y];
-        }
-
-        mapcell &operator()(coordinate c)
-        {
-            return operator()(c.lat,c.lon);
-        }
-
-        mapcell &south(int lat, int lon)
-        {
-            return operator()(lat-1,lon);
-        }
-
-        mapcell &north(int lat, int lon)
-        {
-            return operator()(lat+1,lon);
-        }
-
-        mapcell &west(int lat, int lon)
-        {
-            return operator()(lat,lon-1);
-        }
-
-        mapcell &east(int lat, int lon)
-        {
-            return operator()(lat,lon+1);
-        }
-
-        coordinate isouth(int lat, int lon)
-        {
-            return coordinate(lat-1,lon);
-        }
-
-        coordinate inorth(int lat, int lon)
-        {
-            return coordinate(lat+1,lon);
-        }
-
-        coordinate iwest(int lat, int lon)
-        {
-            return coordinate(lat,lon-1);
-        }
-
-        coordinate ieast(int lat, int lon)
-        {
-            return coordinate(lat,lon+1);
-        }
-
-        coordinate i(int lat, int lon)
-        {
-            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
-            x = rotclipped(x,0,maxlat-minlat-1);
-            y = rotclipped(y,0,maxlon-minlon-1);
-            return coordinate(x,y);
-        }
-
-};
-
+std::unordered_map<int, std::vector<int>> resources;
 Map map;
+extern std::vector<Unit*> units;
 
-
-GLuint preloadTexture(const char* modelName)
-{
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
-        //Image* image = loadBMP(modelName);
-        //_texture = loadTexture(image);
-        //delete image;
-
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-        //delete image;
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
-    return _texture;
-}
 
 
 
@@ -406,6 +238,36 @@ void initMap()
     tiles[0xce] = "assets/assets/terrain/tundra_nes.png";
     tiles[0xcf] = "assets/assets/terrain/tundra_nesw.png";
 
+
+    tiles[0x100] = "assets/assets/terrain/marble.png"; 
+    tiles[0x101] = "assets/assets/terrain/coal.png"; 
+    tiles[0x102] = "assets/assets/terrain/iron.png";
+    tiles[0x103] = "assets/assets/terrain/copper.png";
+    tiles[0x104] = "assets/assets/terrain/gold.png";
+    tiles[0x105] = "assets/assets/terrain/doe.png";
+    tiles[0x106] = "assets/assets/terrain/fish.png";
+    tiles[0x107] = "assets/assets/terrain/game.png";
+    tiles[0x108] = "assets/assets/terrain/gems.png";
+    tiles[0x109] = "assets/assets/terrain/horse.png";
+    tiles[0x10a] = "assets/assets/terrain/oasis.png";
+    tiles[0x10b] = "assets/assets/terrain/oil.png";
+    tiles[0x10c] = "assets/assets/terrain/seal.png";
+    tiles[0x10d] = "assets/assets/terrain/shield.png";
+
+    resources[0x20] = {0x100,0x108,0x10b,0x10c};
+    resources[0x30] = {0x10a,0x10b};
+    resources[0x40] = {0x107};
+    resources[0x50] = {0x100,0x101,0x102,0x103,0x104,0x105,0x107,0x109,0x10b,0x10d};
+    resources[0x60] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
+    resources[0x70] = {0x102,0x104,0x108,0x10b};
+    resources[0x80] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
+    resources[0x90] = {0x105,0x107,0x109,0x10b,0x10d};
+    resources[0xa0] = {0x106};
+    resources[0xb0] = {0x104,0x108,0x10b};
+    resources[0xc0] = {0x100,0x103,0x104,0x108,0x10b,0x10c};
+
+
+
     map.init();
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
@@ -528,15 +390,34 @@ void initMap()
     }
 
 
-    // Put the rivers
+    // First lets pick the river sources
+    std::vector<coordinate> riversources;
+
     for(int i=0;i<100;i++)
     {
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
+        if (map(lat,lon).code==1)
+        {
+            riversources.push_back(coordinate(lat,lon));
+            
+        }
+    }
+
+
+    // Put the rivers
+    for(auto &river:riversources)
+    {
+        int lat = river.lat;
+        int lon = river.lon;
+        //printf("River upstream %d,%d\n",lat,lon) ;
+
         int bioma = 0xa0;
 
         int dir=0;
+
+        int counter = 0;
 
         while (map(lat,lon).code==1)
         {
@@ -555,12 +436,38 @@ void initMap()
             {
                 dir=3;
             } else {
-                dir=getRandomInteger(0,3);
+                int north,south,east,west;
+                int c=100;
+                do 
+                {
+                    int llat = lat; int llon = lon;
+                    dir=getRandomInteger(0,3);
+                    if (dir==0) llat+=1;
+                    if (dir==1) llat-=1;
+                    if (dir==2) llon+=1;
+                    if (dir==3) llon-=1;
+                    
+                    int west = (map.west(llat,llon).bioma & 0xf0 ^ 0xa0)>0;west=west?0:1;
+                    int south = (map.south(llat,llon).bioma & 0xf0 ^ 0xa0)>0;south=south?0:1;
+                    int east = (map.east(llat,llon).bioma & 0xf0 ^ 0xa0)>0;east=east?0:1;
+                    int north = (map.north(llat,llon).bioma & 0xf0 ^ 0xa0)>0;north=north?0:1;
+
+                    //printf("Neighbours %d\n",north+south+east+west) ;
+
+                    if ((north+south+east+west)<=2 || c--==0)
+                    {
+                        break;
+                    }
+
+                } while (true);
+
             }
+            //if (!keepsearching) break;
             if (dir==0) lat+=1;
             if (dir==1) lat-=1;
             if (dir==2) lon+=1;
             if (dir==3) lon-=1;
+            //if (counter++==4) break;
 
             if (map(lat,lon).code==0) 
             {
@@ -569,11 +476,47 @@ void initMap()
         }
     }
 
+        // First lets pick the river sources
+    std::vector<coordinate> resourcelocations;
+
+    for(int i=0;i<300;i++)
+    {
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
+
+        if (map(lat,lon).code==1)
+        {
+            resourcelocations.push_back(coordinate(lat,lon));
+            
+        }
+    }
+
+    for(auto &resource:resourcelocations)
+        {
+            int lat = resource.lat;
+            int lon = resource.lon;
+            printf("Resources Location %d,%d\n",lat,lon) ;
+
+            std::vector<int> available_resources = resources[map(lat,lon).bioma];
+
+            if (available_resources.size()>0)
+            {
+                int res = available_resources[getRandomInteger(0,available_resources.size()-1)];
+
+                map.set(lat,lon).resource = res;
+            }
+        }
+
 
     //map.set(-8,-4).code = 0;
     //map.set(-8,-4).bioma = 0xa0;
 
 
+
+
+
+
+    // Takes all the biomas and calculate the bioma values according to their neighbours.
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
@@ -599,6 +542,8 @@ void initMap()
             }
         }
 
+
+    // Adjust the estuaries (oceans with rivers that flow into them)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
@@ -610,7 +555,7 @@ void initMap()
                 int b3 = (map.east(lat,lon).bioma & 0xf0 ^ biom)>0;b3=b3?0:1;
                 int b4 = (map.north(lat,lon).bioma & 0xf0 ^ biom)>0;b4=b4?0:1;
 
-                printf(" %x %x %x %x: %x\n",b4,b3,b2,b1, b4<<3 | b3<<2 | b2<<1 | b1);
+                //printf(" %x %x %x %x: %x\n",b4,b3,b2,b1, b4<<3 | b3<<2 | b2<<1 | b1);
 
                 int val = (b4<<3 | b3<<2 | b2<<1 | b1);
 
@@ -622,8 +567,19 @@ void initMap()
             }
         }
 
+
 }
 
+void unfog(int lat, int lon)
+{
+    coordinate c = coordinate(lat,lon);
+    for(int llat=-1;llat<=1;llat++)
+        for (int llon=-1;llon<=1;llon++)
+        {
+            int lllat=c.lat+llat,lllon=c.lon+llon;
+            map(lllat,lllon).visible = true;
+        }
+}
 
 void zoommapin()
 {
@@ -654,150 +610,6 @@ void centermap(int ccx, int ccy)
     // Screen width and height come from OpenGL.
     cx = (int)(ccx*(xsize)/(float)width)+cx-xsize/2; // 1440
     cy = (int)(ccy*(ysize)/(float)height)+cy-ysize/2;  // 900
-}
-
-
-void placeCity(float x, float y, int size, const char* modelName)
-{
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
-        //Image* image = loadBMP(modelName);
-        //_texture = loadTexture(image);
-        //delete image;
-
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
-
-        for(int i=0;i<w;i++)
-            for (int j=0;j<h;j++)
-            {
-                if (!(img[(i*h+j)*4+0]==0 && img[(i*h+j)*4+1]==0 && img[(i*h+j)*4+2] == 0))
-                {
-                    printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
-                    img[(i*h+j)*4+0] = 255;
-                    img[(i*h+j)*4+1] = 0;
-                    img[(i*h+j)*4+2] = 0;
-
-                    img[(i*h+j)*4+3] = 255;
-                }
-            }
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-        //delete image;
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
-    placeMark(x, y, size, size, _texture);
-}
-
-
-void placeUnit(float x, float y, int size, const char* modelName)
-{
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        // @FIXME: This means that the image is loaded every time this mark is rendered, which is wrong.
-        //Image* image = loadBMP(modelName);
-        //_texture = loadTexture(image);
-        //delete image;
-
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
-
-        for(int i=0;i<w;i++)
-            for (int j=0;j<h;j++)
-            {
-                if (img[(i*h+j)*4+0]==96 && img[(i*h+j)*4+1]==224 && img[(i*h+j)*4+2] == 100)
-                {
-                    //printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
-                    img[(i*h+j)*4+0] = 255;
-                    img[(i*h+j)*4+1] = 0;
-                    img[(i*h+j)*4+2] = 0;
-
-                    //img[(i*h+j)*4+3] = 255;
-                }
-            }
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-        //delete image;
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
-    placeMark(x, y, size, size, _texture);
-}
-
-void placeThisUnit(float y, float x, int size, const char* modelName)
-{
-    placeUnit(600+16*y,0+16*x,size,modelName);
-}
-
-void placeCity(float y, float x)
-{
-    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city.png");
-}
-
-
-void placeMark(float x, float y, int size, const char* modelName)
-{
-    GLuint _texture = preloadTexture(modelName);
-    placeMark(x,y,size,size,_texture);
-}
-
-void place(float y, float x, int size, const char* modelName)
-{
-    placeMark(600+16*y,0+16*x,size,modelName);
 }
 
 
@@ -865,6 +677,7 @@ void drawMap()
             }
         }
 
+        // Coasts
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
@@ -939,137 +752,20 @@ void drawMap()
                 }
             }
 
-        /**for(int lat=map.minlat;lat<map.maxlat;lat++)
+        // Add Resources
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+        {
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                int land = map(lat,lon).code;
-                mapcell next = map.south(lat,lon);
-                coordinate c = map.isouth(lat,lon);
-
-                if (map(lat,lon).visible && (map(lat,lon).bioma & 0xf2) == 0xa2) if (land == 1 && next.code == 0)
-                {
-                    place(c.lon,c.lat,16,tiles[5].c_str());
-                }
-
-
-                next = map.north(lat,lon);
-                c = map.inorth(lat,lon);
-
-                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf8) == 0xa8) if (land == 1 && next.code == 0)
-                {
-                    place(c.lon,c.lat,16,tiles[3].c_str());
-                }
-
-                next = map.east(lat,lon);
-                c = map.ieast(lat,lon);
-
-                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf4) == 0xa4) if (land == 1 && next.code == 0)
-                {
-                    place(c.lon,c.lat,16,tiles[2].c_str());
-                }
-
-                next = map.west(lat,lon);
-                c = map.iwest(lat,lon);
-
-                if (map(lat,lon).visible&& (map(lat,lon).bioma & 0xf1) == 0xa1) if (land == 1 && next.code == 0)
-                {
-                    place(c.lon,c.lat,16,tiles[4].c_str());
-                }
-            }**/
-
-
-        /**
-        for(int x=-30;x<30;x++)
-        {
-            for(int y=-40;y<40;y++)
-            {
-                place(y,x,16,"assets/assets/terrain/ocean.png");
+                int size = 15;
+                if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
+                if (map(lat,lon).visible && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) place(lon,lat,size,tiles[map(lat,lon).resource].c_str());
             }
         }
-
-        for(int x=-10;x<=10;x++)
-        {
-            for(int y=-2;y<=2;y++)
-            {
-                place(y,x,16,"assets/assets/terrain/land.png");
-            }
-        }
-
-        int y;
-        int x=10;
-        for (int y=-2;y<=2;y++)
-        {
-            placeMark(600+16*y-4, 0+16*x+8,    8,"assets/assets/terrain/coast_n2.png");
-            placeMark(600+16*y+4, 0+16*x+8,    8,"assets/assets/terrain/coast_n2.png");
-        }
-
-        x=-10;
-        for (int y=-2;y<=2;y++)
-        {
-            placeMark(600+16*y-4, 0+16*x-8,    8,"assets/assets/terrain/coast_s2.png");
-            placeMark(600+16*y+4, 0+16*x-8,    8,"assets/assets/terrain/coast_s2.png");
-        }
-
-        y=-2;
-        for (int x=-10;x<=10;x++)
-        {
-            placeMark(600+16*y-8, 0+16*x-4,    8,"assets/assets/terrain/coast_w2.png");
-            placeMark(600+16*y-8, 0+16*x+4,    8,"assets/assets/terrain/coast_w2.png");
-        }
-
-        y=2;
-        for (int x=-10;x<=10;x++)
-        {
-            placeMark(600+16*y+8, 0+16*x-4,    8,"assets/assets/terrain/coast_e2.png");
-            placeMark(600+16*y+8, 0+16*x+4,    8,"assets/assets/terrain/coast_e2.png");
-        }
-
-        place(0,0,16,"assets/assets/terrain/river_e.png");
-        place(1,0,16,"assets/assets/terrain/river_ew.png");
-        place(2,0,16,"assets/assets/terrain/river_ew.png");
-        place(3,0,16,"assets/assets/terrain/river_mouth_w.png");
-
-
-        placeCity(-2,-2);
-
-        static int count=0;
-        if (count++ % 100 < 50)
-            placeThisUnit(controller.registers.roll,controller.registers.pitch,16,"assets/assets/units/settlers.png");
-
-        **/
 
         static int count=0;
 
-        std::vector<coordinate> list;
-        if (count==0)
-        {
-            for(int lat=map.minlat;lat<map.maxlat;lat++)
-                for(int lon=map.minlon;lon<map.maxlon;lon++)
-                {
-                    if (map(lat,lon).code==1)
-                    {
-                        list.push_back(coordinate(lat,lon));
-                    }
-                }
 
-            coordinate c(0,0);
-            if (list.size()>0)
-            {
-                int r = getRandomInteger(0,list.size());
-                c = list[r];
-            }
-            controller.registers.pitch = c.lat;
-            controller.registers.roll = c.lon;
-
-        }
-
-        coordinate c = coordinate(controller.registers.pitch,controller.registers.roll);
-        for(int llat=-1;llat<=1;llat++)
-            for (int llon=-1;llon<=1;llon++)
-            {
-                int lllat=c.lat+llat,lllon=c.lon+llon;
-                map(lllat,lllon).visible = true;
-            }
 
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
@@ -1085,18 +781,114 @@ void drawMap()
             }
 
 
+
+        if (controller.registers.pitch!=0 || controller.registers.roll !=0)
+        {
+            int val = units[controller.controllingid]->latitude;
+            
+            val = ((int)val+controller.registers.pitch);
+            int lat = clipped(val,map.minlat,map.maxlat-1);
+
+            int lon = units[controller.controllingid]->longitude + controller.registers.roll;
+
+            if (val>=map.maxlat) {
+                lon=lon*(-1);
+                lat=map.maxlat-1;
+            }
+
+            if ((val-lat)<0) {
+                lon=lon*(-1);
+                lat=map.minlat;
+            }
+
+
+            lon = ((int)lon) + abs(map.minlon) - map.centery;
+            lon = lon % (map.maxlon-map.minlon);
+            if (lon<0) lon = (map.maxlon-map.minlon) + lon;
+            lon = lon - abs(map.minlon);  
+
+            if (units[controller.controllingid]->availablemoves>0)
+            {
+                if (map(lat,lon).code==1)
+                {
+                    // Confirm the change if it is moving into land.
+                    units[controller.controllingid]->latitude = lat;
+                    units[controller.controllingid]->longitude = lon;  
+
+                    units[controller.controllingid]->availablemoves--;
+                }
+            } 
+
+
+            if (units[controller.controllingid]->availablemoves==0)
+            {
+                if (units.size()>controller.controllingid+1)
+                    controller.controllingid++;  
+                else
+                    controller.endofturn = true; 
+            }
+
+
+            controller.registers.pitch= controller.registers.roll = 0;     
+
+            printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);   
+        }
+
+        /** 
         if (count++ % 100 < 50)
         {
-            int lat = ((int)controller.registers.pitch) + abs(map.minlat) - map.centerx;
-            lat = lat % (map.maxlat-map.minlat);
-            if (lat<0) lat = (map.maxlat-map.minlat) + lat;
-            lat = lat - abs(map.minlat);
+            //int lat = ((int)controller.registers.pitch) + abs(map.minlat) - map.centerx;
+            //lat = lat % (map.maxlat-map.minlat);
+            //if (lat<0) lat = (map.maxlat-map.minlat) + lat;
+            //lat = lat - abs(map.minlat);
+
+            int val = ((int)controller.registers.pitch);
+            int lat = clipped(val,map.minlat,map.maxlat-1);
+
+            if (val>=map.maxlat) {
+                controller.registers.roll=controller.registers.roll*(-1);
+                controller.registers.pitch=map.maxlat-1;
+            }
+
+            if ((val-lat)<0) {
+                controller.registers.roll=controller.registers.roll*(-1);
+                controller.registers.pitch=map.minlat;
+            }
+
+
             int lon = ((int)controller.registers.roll) + abs(map.minlon) - map.centery;
             lon = lon % (map.maxlon-map.minlon);
             if (lon<0) lon = (map.maxlon-map.minlon) + lon;
             lon = lon - abs(map.minlon);
 
             placeThisUnit(lon,lat,16,"assets/assets/units/settlers.png");
+
+            printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);
+        }*/
+
+        for (auto& u : units) 
+        {
+            if (u->faction == controller.faction)
+            {
+                unfog(u->latitude,u->longitude);
+                if (controller.controllingid != u->id)
+                    u->draw();
+            }
+        }
+
+        // Draw last the unit that you want on top of the stack (selected unit)
+        for (auto& u : units) 
+        {
+            if (u->faction == controller.faction)
+            {
+                if (controller.controllingid == u->id)
+                {
+                    if (count++ % 70 < 35)
+                    {
+                        u->draw();
+                    }
+                }
+            }
         }
 
         map.setCenter(0,controller.registers.yaw);

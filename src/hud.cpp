@@ -6,6 +6,10 @@
 extern std::unordered_map<std::string, GLuint> maptextures;
 
 
+extern int year;
+extern int pop;
+
+
 void placeMark4(float x, float y, int size, const char* modelName)
 {
     GLuint _texture;
@@ -115,10 +119,13 @@ void drawHUD()
     // width, height, 0 0 upper left
     drawString(0,-30,1,str,0.2f);
 
-    int year=4000;
-    int pop=6533;
+    char msg[256];
+    if (year<0)
+        sprintf (msg, "Year: %4d BC",-year);
+    else
+        sprintf (msg, "Year: %4d AD",year);
 
-    sprintf (str, "Year: %4d BC",year);
+    sprintf (str,msg);
     drawString(0,-60,1,str,0.2f);
 
 
@@ -126,6 +133,8 @@ void drawHUD()
     drawString(0,-90,1,str,0.2f);
 
     placeMark4(10,-110,7*3,"assets/assets/city/bulb.png");
+
+
 
 
 

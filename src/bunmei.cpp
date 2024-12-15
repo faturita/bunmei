@@ -49,6 +49,7 @@
 #include "profiling.h"
 #include "commandline.h"
 #include "font/DrawFonts.h"
+#include "math/yamathutil.h"
 #include "camera.h"
 #include "openglutils.h"
 #include "lodepng.h"
@@ -56,10 +57,21 @@
 #include "map.h"
 #include "hud.h"
 
+#include "units/Unit.h"
+#include "units/Warrior.h"
+#include "units/Settler.h"
+
 Camera Camera;
 extern Controller controller;
 
+std::vector<Unit*> units;
+
+extern Map map;
+
 float horizon = 10000;
+
+int year;
+int pop;
 
 
 void disclaimer()
@@ -71,6 +83,54 @@ void disclaimer()
 void setupWorldModelling()
 {
     initMap();
+
+
+    std::vector<coordinate> list;
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map(lat,lon).code==1)
+            {
+                list.push_back(coordinate(lat,lon));
+            }
+        }
+
+    coordinate c(0,0);
+    if (list.size()>0)
+    {
+        int r = getRandomInteger(0,list.size());
+        c = list[r];
+    }
+
+    Settler *settler = new Settler();
+    settler->longitude = c.lon;
+    settler->latitude = c.lat;
+    settler->id = 0;
+    settler->faction = 1;
+    settler->availablemoves = 2;
+
+
+    units.push_back(settler);
+
+
+
+    Warrior *warrior = new Warrior();
+    warrior->longitude = c.lon;
+    warrior->latitude = c.lat;
+    warrior->id = 1;
+    warrior->faction = 1;
+    warrior->availablemoves = 2;
+
+
+    units.push_back(warrior);
+
+
+    controller.faction = 1;
+    year = -4000;
+    pop = 0;
+
+    // @FIXME: Need to fix this.  THe idea is to start with the map centered in the moving unit.
+    //centermap(settler->longitude,settler->latitude);
 
 }
 
@@ -123,6 +183,22 @@ void worldStep(int value)
     {
         exit(0);
     }
+
+    if (controller.endofturn)
+    {
+        controller.endofturn=false;
+        for (auto& u : units) 
+        {
+            if (u->faction == controller.faction)
+            {
+                u->availablemoves = 2;
+            }
+        }
+        year++;
+        controller.controllingid=0;
+    }
+
+
 
     glutPostRedisplay();
     // @NOTE: update time should be adapted to real FPS (lower is faster).

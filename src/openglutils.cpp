@@ -1144,6 +1144,180 @@ void getScreenLocation(float &screenX, float &screenY, float &screenZ, float xx,
 }
 
 
+extern std::unordered_map<std::string, GLuint> maptextures;
+
+GLuint preloadTexture(const char* modelName)
+{
+    GLuint _texture;
+
+    if (maptextures.find(std::string(modelName)) == maptextures.end())
+    {
+        unsigned char *img;
+
+        unsigned w,h;
+
+        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+
+        Image image((char *)img, w, h);
+
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     w,h,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     img);
+
+
+        maptextures[std::string(modelName)]=_texture;
+
+    } else {
+        _texture = maptextures[std::string(modelName)];
+    }
+
+    return _texture;
+}
+
+
+
+void placeCity(float x, float y, int size, const char* modelName)
+{
+    GLuint _texture;
+
+    if (maptextures.find(std::string(modelName)) == maptextures.end())
+    {
+        unsigned char *img;
+
+        unsigned w,h;
+
+        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+
+        Image image((char *)img, w, h);
+
+        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
+
+        for(int i=0;i<w;i++)
+            for (int j=0;j<h;j++)
+            {
+                if (!(img[(i*h+j)*4+0]==0 && img[(i*h+j)*4+1]==0 && img[(i*h+j)*4+2] == 0))
+                {
+                    printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
+                    img[(i*h+j)*4+0] = 255;
+                    img[(i*h+j)*4+1] = 0;
+                    img[(i*h+j)*4+2] = 0;
+
+                    img[(i*h+j)*4+3] = 255;
+                }
+            }
+
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     w,h,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     img);
+
+
+        maptextures[std::string(modelName)]=_texture;
+
+    } else {
+        _texture = maptextures[std::string(modelName)];
+    }
+
+    placeMark(x, y, size, size, _texture);
+}
+
+
+void placeUnit(float x, float y, int size, const char* modelName)
+{
+    GLuint _texture;
+
+    if (maptextures.find(std::string(modelName)) == maptextures.end())
+    {
+        unsigned char *img;
+
+        unsigned w,h;
+
+        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+
+        Image image((char *)img, w, h);
+
+        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
+
+        for(int i=0;i<w;i++)
+            for (int j=0;j<h;j++)
+            {
+                if (img[(i*h+j)*4+0]==96 && img[(i*h+j)*4+1]==224 && img[(i*h+j)*4+2] == 100)
+                {
+                    //printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
+                    img[(i*h+j)*4+0] = 255;
+                    img[(i*h+j)*4+1] = 0;
+                    img[(i*h+j)*4+2] = 0;
+
+                    //img[(i*h+j)*4+3] = 255;
+                }
+            }
+
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     w,h,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     img);
+
+
+        maptextures[std::string(modelName)]=_texture;
+
+    } else {
+        _texture = maptextures[std::string(modelName)];
+    }
+
+    placeMark(x, y, size, size, _texture);
+}
+
+void placeThisUnit(float y, float x, int size, const char* modelName)
+{
+    placeUnit(600+16*y,0+16*x,size,modelName);
+}
+
+void placeCity(float y, float x)
+{
+    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city.png");
+}
+
+
+void placeMark(float x, float y, int size, const char* modelName)
+{
+    GLuint _texture = preloadTexture(modelName);
+    placeMark(x,y,size,size,_texture);
+}
+
+void place(float y, float x, int size, const char* modelName)
+{
+    placeMark(600+16*y,0+16*x,size,modelName);
+}
+
+
 
 void SmokeParticle::drawModel(float x, float y, float z, float width, float height, float angle, GLuint texture)
 {

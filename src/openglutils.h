@@ -22,6 +22,16 @@
 #include "imageloader.h"
 
 void placeMark(float x, float y, int sizex, int sizey, GLuint _texture);
+void place(float y, float x, int size, const char* modelName);
+void placeMark(float x, float y, int size, const char* modelName);
+void placeCity(float y, float x);
+void placeThisUnit(float y, float x, int size, const char* modelName);
+void placeUnit(float x, float y, int size, const char* modelName);
+void placeCity(float x, float y, int size, const char* modelName);
+GLuint preloadTexture(const char* modelName);
+
+
+
 void CheckGLError();
 GLuint loadTexture(Image* image) ;
 void drawLine(float x, float y, float z, float red, float green, float blue);
