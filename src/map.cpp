@@ -15,7 +15,7 @@
 // 1920 x 1080
 int width = 1200;
 int height = 800;
-int mapzoom=1;
+int mapzoom=2;
 
 float cx=0,cy=0;
 
@@ -593,6 +593,7 @@ void zoommapout()
         mapzoom--;
 }
 
+// Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates.
 void centermap(int ccx, int ccy)
 {
     //1728,1117
@@ -610,6 +611,20 @@ void centermap(int ccx, int ccy)
     // Screen width and height come from OpenGL.
     cx = (int)(ccx*(xsize)/(float)width)+cx-xsize/2; // 1440
     cy = (int)(ccy*(ysize)/(float)height)+cy-ysize/2;  // 900
+
+    printf("Center %f,%f\n",cx,cy);
+}
+
+void centermapinmap(int lat, int lon)
+{
+    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",lat,lon);
+
+    lat *= -1;
+
+    cx = 1200.0/2.0 + lon*16.0;            // 0-1200
+    cy = 800.0/2.0 + lat*16.0 ;            // 0-800
+
+    printf("Center %f,%f\n",cx,cy);
 }
 
 

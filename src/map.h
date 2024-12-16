@@ -137,6 +137,7 @@ void zoommapin();
 void zoommapout();
 
 void centermap(int ccx, int ccy);
+void centermapinmap(int latitude, int longitude);
 
 void drawMap();
 void initMap();

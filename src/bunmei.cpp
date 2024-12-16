@@ -129,8 +129,7 @@ void setupWorldModelling()
     year = -4000;
     pop = 0;
 
-    // @FIXME: Need to fix this.  THe idea is to start with the map centered in the moving unit.
-    //centermap(settler->longitude,settler->latitude);
+    centermapinmap(settler->latitude,settler->longitude);
 
 }
 
