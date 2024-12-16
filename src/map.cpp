@@ -908,6 +908,17 @@ void drawMap()
 
         map.setCenter(0,controller.registers.yaw);
 
+        //placeUnit(600,0,16,"assets/assets/general/texture_1.png");
+        //mapzoom = 1;
+
+
+
+
+
+
+
+
+
         glDisable(GL_BLEND);
 
     } glPopMatrix();
@@ -922,7 +933,7 @@ void drawMap()
 void placeInMap(int lat, int lon, int size, const char* texture)
 {
     coordinate c = map.remap(lat,lon);
-    placeThisUnit(c.lon,c.lat,16,"assets/assets/units/settlers.png");
+    placeThisUnit(c.lon,c.lat,16,texture);
 }
 
 

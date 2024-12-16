@@ -8,7 +8,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = false;
+        this->visible = false;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;
     }
