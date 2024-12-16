@@ -817,7 +817,7 @@ void drawMap()
             }
 
 
-            lon = ((int)lon) + abs(map.minlon) - map.centery;
+            lon = ((int)lon) + abs(map.minlon) - map.centerx;
             lon = lon % (map.maxlon-map.minlon);
             if (lon<0) lon = (map.maxlon-map.minlon) + lon;
             lon = lon - abs(map.minlon);  
@@ -919,6 +919,10 @@ void drawMap()
 
 }
 
-
+void placeInMap(int lat, int lon, int size, const char* texture)
+{
+    coordinate c = map.remap(lat,lon);
+    placeThisUnit(c.lon,c.lat,16,"assets/assets/units/settlers.png");
+}
 
 

@@ -1,8 +1,8 @@
 #include "../openglutils.h"
+#include "../map.h"
 #include "Settler.h"
-
 
 void Settler::draw()
 {
-    placeThisUnit(longitude,latitude,16,"assets/assets/units/settlers.png");
+    placeInMap(latitude,longitude,16,"assets/assets/units/settlers.png");
 }

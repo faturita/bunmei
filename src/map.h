@@ -129,6 +129,20 @@ class Map
             return coordinate(x,y);
         }
 
+        coordinate remap(int lat, int lon)
+        {
+            lat = lat - centerx;
+            lon = lon - centery;
+
+            lon += abs(minlon);
+
+            lon = rotclipped(lon,0,maxlon-minlon-1);
+
+            lon -= abs(minlon);
+
+            return coordinate(lat,lon);
+        }
+
 };
 
 
@@ -142,7 +156,7 @@ void centermapinmap(int latitude, int longitude);
 void drawMap();
 void initMap();
 
-
+void placeInMap(int latitude, int longitude, int size, const char *filename);
 
 
 #endif // MAP_H
