@@ -143,6 +143,14 @@ class Map
             return coordinate(lat,lon);
         }
 
+        coordinate mapre(int lat, int lon)
+        {
+            lat = lat + centerx;
+            lon = lon + centery;
+
+            return coordinate(lat,lon);
+        }
+
 };
 
 
@@ -157,6 +165,7 @@ void drawMap();
 void initMap();
 
 void placeInMap(int latitude, int longitude, int size, const char *filename);
+void placeCityInMap(int lat, int lon, int size, const char* texture);
 
 
 #endif // MAP_H

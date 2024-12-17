@@ -1205,13 +1205,13 @@ void placeCity(float x, float y, int size, const char* modelName)
         for(int i=0;i<w;i++)
             for (int j=0;j<h;j++)
             {
-                if (!(img[(i*h+j)*4+0]==0 && img[(i*h+j)*4+1]==0 && img[(i*h+j)*4+2] == 0))
+                printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
+
+                if (img[(i*h+j)*4+3]<255)
                 {
-                    printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
                     img[(i*h+j)*4+0] = 255;
                     img[(i*h+j)*4+1] = 0;
                     img[(i*h+j)*4+2] = 0;
-
                     img[(i*h+j)*4+3] = 255;
                 }
             }
@@ -1302,7 +1302,7 @@ void placeThisUnit(float y, float x, int size, const char* modelName)
 
 void placeCity(float y, float x)
 {
-    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city.png");
+    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city2.png");
 }
 
 

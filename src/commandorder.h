@@ -3,37 +3,14 @@
 
 enum class Command {
     None=0,
-    AttackOrder,
-    DestinationOrder,
-    TaxiOrder,
-    TelemetryOrder,
-    LaunchOrder,
-    CaptureOrder,
-    AutoOrder,
-    StopOrder,
-    SpawnOrder,
-    DockOrder,
-    FireOrder,
-    LandOrder,
-    JoinOrder
-};
-
-
-enum TargetType {
-    Air_To_Air = 1,
-    Air_To_Ground = 2
+    BuildCityOrder=1
 };
 
 struct commandparameters
 {
     int spawnid;
-    int typeofisland;
-    float x;
-    float y;
-    float z;
-    TargetType target_type;
-    bool bit;
-    int weapon;
+    int latitude;
+    int longitude;
     char buf[20];
 };
 

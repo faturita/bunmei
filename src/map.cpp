@@ -7,8 +7,11 @@
 #include "lodepng.h"
 #include "usercontrols.h"
 #include "math/yamathutil.h"
-#include "map.h"
+#include "font/DrawFonts.h"
 #include "units/Unit.h"
+#include "City.h"
+#include "map.h"
+
 
 
 // 1200 x 800
@@ -26,7 +29,7 @@ std::unordered_map<int, std::vector<int>> resources;
 Map map;
 extern std::vector<Unit*> units;
 
-
+extern std::vector<City*> cities;
 
 
 void initMap()
@@ -628,6 +631,34 @@ void centermapinmap(int lat, int lon)
 }
 
 
+void drawCityScreen(int centerlatitude, int centerlongitude)
+{
+    for(int lats=-10;lats<10;lats++)
+        for (int lons=-10;lons<10;lons++)
+        {
+            if ( (lats<-3 || lats>3) || (lons<-3 || lons>3) )
+            {
+                int la= centerlatitude + lats;
+                int lo = centerlongitude + lons;
+
+
+                placeMark(600+16*lo, 0+16*la,    16,"assets/assets/general/citytexture.png");
+
+            }
+
+        }
+
+    char str[256];
+    sprintf (str, "Kattegat");
+    int lat, lon;
+    lat = centerlatitude + (+9);
+    lon = centerlongitude + (-9);
+    drawString(600+16*lon, 0+16*lat,0,str,0.07f);
+
+}
+
+
+
 void drawMap()
 {
     // This will make things dark.
@@ -796,15 +827,23 @@ void drawMap()
             }
 
 
-
         if (controller.registers.pitch!=0 || controller.registers.roll !=0)
         {
-            int val = units[controller.controllingid]->latitude;
-            
-            val = ((int)val+controller.registers.pitch);
-            int lat = clipped(val,map.minlat,map.maxlat-1);
+            // Receives real latitude and longitude (contained in the unit)
+            int lon = units[controller.controllingid]->longitude;
+            int lat = units[controller.controllingid]->latitude;
 
-            int lon = units[controller.controllingid]->longitude + controller.registers.roll;
+            // Convert latitude and longitude into remaped coordinates
+            coordinate c = map.remap(lat,lon);
+
+            lon = c.lon;
+            lat = c.lat;
+
+            int val = lat;
+            val = ((int)val+controller.registers.pitch);
+            lat = clipped(val,map.minlat,map.maxlat-1);
+
+            lon = lon + controller.registers.roll;
 
             if (val>=map.maxlat) {
                 lon=lon*(-1);
@@ -816,19 +855,16 @@ void drawMap()
                 lat=map.minlat;
             }
 
-
-            lon = ((int)lon) + abs(map.minlon) - map.centerx;
-            lon = lon % (map.maxlon-map.minlon);
-            if (lon<0) lon = (map.maxlon-map.minlon) + lon;
-            lon = lon - abs(map.minlon);  
-
             if (units[controller.controllingid]->availablemoves>0)
             {
                 if (map(lat,lon).code==1)
                 {
+
+                    coordinate c = map.mapre(lat,lon);
+
                     // Confirm the change if it is moving into land.
-                    units[controller.controllingid]->latitude = lat;
-                    units[controller.controllingid]->longitude = lon;  
+                    units[controller.controllingid]->latitude = c.lat;
+                    units[controller.controllingid]->longitude = c.lon; 
 
                     units[controller.controllingid]->availablemoves--;
                 }
@@ -846,8 +882,61 @@ void drawMap()
 
             controller.registers.pitch= controller.registers.roll = 0;     
 
-            printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);   
+            printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
         }
+
+
+        // if (controller.registers.pitch!=0 || controller.registers.roll !=0)
+        // {
+        //     int val = units[controller.controllingid]->latitude;
+            
+        //     val = ((int)val+controller.registers.pitch);
+        //     int lat = clipped(val,map.minlat,map.maxlat-1);
+
+        //     int lon = units[controller.controllingid]->longitude + controller.registers.roll;
+
+        //     if (val>=map.maxlat) {
+        //         lon=lon*(-1);
+        //         lat=map.maxlat-1;
+        //     }
+
+        //     if ((val-lat)<0) {
+        //         lon=lon*(-1);
+        //         lat=map.minlat;
+        //     }
+
+
+        //     lon = ((int)lon) + abs(map.minlon) + map.centerx;
+        //     lon = lon % (map.maxlon-map.minlon);
+        //     if (lon<0) lon = (map.maxlon-map.minlon) + lon;
+        //     lon = lon - abs(map.minlon);  
+
+        //     if (units[controller.controllingid]->availablemoves>0)
+        //     {
+        //         if (map(lat,lon).code==1)
+        //         {
+        //             // Confirm the change if it is moving into land.
+        //             units[controller.controllingid]->latitude = lat;
+        //             units[controller.controllingid]->longitude = lon;  
+
+        //             units[controller.controllingid]->availablemoves--;
+        //         }
+        //     } 
+
+
+        //     if (units[controller.controllingid]->availablemoves==0)
+        //     {
+        //         if (units.size()>controller.controllingid+1)
+        //             controller.controllingid++;  
+        //         else
+        //             controller.endofturn = true; 
+        //     }
+
+
+        //     controller.registers.pitch= controller.registers.roll = 0;     
+
+        //     printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);   
+        // }
 
         /** 
         if (count++ % 100 < 50)
@@ -881,11 +970,21 @@ void drawMap()
             printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);
         }*/
 
+        for (auto& c : cities) 
+        {
+            coordinate co = map.remap(c->latitude,c->longitude);
+            if (map(co.lat,co.lon).visible)
+            {
+                c->draw();
+            }
+        }
+
         for (auto& u : units) 
         {
             if (u->faction == controller.faction)
             {
-                unfog(u->latitude,u->longitude);
+                coordinate c = map.remap(u->latitude,u->longitude);
+                unfog(c.lat,c.lon);
                 if (controller.controllingid != u->id)
                     u->draw();
             }
@@ -908,11 +1007,8 @@ void drawMap()
 
         map.setCenter(0,controller.registers.yaw);
 
-        //placeUnit(600,0,16,"assets/assets/general/texture_1.png");
-        //mapzoom = 1;
 
-
-
+        //drawCityScreen(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
 
 
 
@@ -936,4 +1032,9 @@ void placeInMap(int lat, int lon, int size, const char* texture)
     placeThisUnit(c.lon,c.lat,16,texture);
 }
 
+void placeCityInMap(int lat, int lon, int size, const char* texture)
+{
+    coordinate c = map.remap(lat,lon);
+    placeCity(c.lon,c.lat);
+}
 

@@ -5,3 +5,4 @@ bunmei
 src/**/*.o
 bunmei
 .vscode/*
+src/*.o

@@ -1,6 +1,9 @@
 #include "openglutils.h"
 #include "font/DrawFonts.h"
 #include "lodepng.h"
+#include "usercontrols.h"
+#include "math/yamathutil.h"
+#include "units/Unit.h"
 #include "hud.h"
 
 extern std::unordered_map<std::string, GLuint> maptextures;
@@ -8,6 +11,9 @@ extern std::unordered_map<std::string, GLuint> maptextures;
 
 extern int year;
 extern int pop;
+
+extern Controller controller;
+extern std::vector<Unit*> units;
 
 
 void placeMark4(float x, float y, int size, const char* modelName)
@@ -134,7 +140,8 @@ void drawHUD()
 
     placeMark4(10,-110,7*3,"assets/assets/city/bulb.png");
 
-
+    sprintf (str, "Lat, Lon:%d, %d",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+    drawString(0,-140,1,str,0.2f);
 
 
 

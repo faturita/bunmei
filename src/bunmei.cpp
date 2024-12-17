@@ -61,10 +61,13 @@
 #include "units/Warrior.h"
 #include "units/Settler.h"
 
+#include "City.h"
+
 Camera Camera;
 extern Controller controller;
 
 std::vector<Unit*> units;
+std::vector<City*> cities;
 
 extern Map map;
 
@@ -195,6 +198,26 @@ void worldStep(int value)
         }
         year++;
         controller.controllingid=0;
+    }
+
+    CommandOrder co = controller.pop();
+    if (co.command == Command::BuildCityOrder)
+    {
+        City *city = new City();
+        city->latitude = units[controller.controllingid]->latitude;
+        city->longitude = units[controller.controllingid]->longitude;
+        city->faction = units[controller.controllingid]->faction;
+        city->id = 1;           // @FIXME: Get an id assigner for cities.
+        city->pop = 1;
+        
+        cities.push_back(city);
+
+        // @FIXME: Disband the settler unit.
+
+        Unit *settler = units[controller.controllingid];
+        units.erase(units.begin()+controller.controllingid);
+        delete settler;
+
     }
 
 

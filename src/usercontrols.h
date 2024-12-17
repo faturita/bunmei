@@ -39,7 +39,6 @@ public:
     std::string str;
 
     float targetX, targetY, targetZ;
-    TargetType target_type;
 
     int slider=0;
 

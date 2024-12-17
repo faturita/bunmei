@@ -30,6 +30,12 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
         case ' ':controller.endofturn=true;break;
+        case 'b':
+        {
+            CommandOrder co;
+            co.command = Command::BuildCityOrder;
+            controller.push(co);
+        }
     default:break;
     }
 }
