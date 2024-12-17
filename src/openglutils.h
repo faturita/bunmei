@@ -22,6 +22,7 @@
 #include "imageloader.h"
 
 void placeMark(float x, float y, int sizex, int sizey, GLuint _texture);
+void placeMark(float x, float y, int sizex, int sizey, const char* modelName);
 void place(float y, float x, int size, const char* modelName);
 void placeMark(float x, float y, int size, const char* modelName);
 void placeCity(float y, float x);

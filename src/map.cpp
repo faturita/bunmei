@@ -31,6 +31,8 @@ extern std::vector<Unit*> units;
 
 extern std::vector<City*> cities;
 
+extern int pop;
+
 
 void initMap()
 {
@@ -970,6 +972,7 @@ void drawMap()
             printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",lat,lon, map(lat,lon).code, map(lat,lon).bioma);
         }*/
 
+        pop = 0;
         for (auto& c : cities) 
         {
             coordinate co = map.remap(c->latitude,c->longitude);
@@ -977,6 +980,7 @@ void drawMap()
             {
                 c->draw();
             }
+            pop += c->pop;
         }
 
         for (auto& u : units) 

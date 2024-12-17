@@ -1302,7 +1302,7 @@ void placeThisUnit(float y, float x, int size, const char* modelName)
 
 void placeCity(float y, float x)
 {
-    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city2.png");
+    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city_r.png");
 }
 
 
@@ -1310,6 +1310,12 @@ void placeMark(float x, float y, int size, const char* modelName)
 {
     GLuint _texture = preloadTexture(modelName);
     placeMark(x,y,size,size,_texture);
+}
+
+void placeMark(float x, float y, int sizex, int sizey, const char* modelName)
+{
+    GLuint _texture = preloadTexture(modelName);
+    placeMark(x,y,sizex,sizey,_texture);
 }
 
 void place(float y, float x, int size, const char* modelName)
