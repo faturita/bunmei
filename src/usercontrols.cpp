@@ -1,14 +1,17 @@
-#include "openglutils.h"
-#include "profiling.h"
-#include "usercontrols.h"
-#include "map.h"
-
 #include <assert.h>
 #include <string>
 #include <iostream>
 
-Controller controller;
+#include "openglutils.h"
+#include "profiling.h"
+#include "map.h"
+#include "City.h"
+#include "usercontrols.h"
 
+
+Controller controller;
+extern std::vector<City*> cities;
+extern Map map;
 
 // Mouse offset for camera zoom in and out.
 int _xoffset = 0;
@@ -87,7 +90,18 @@ void processMouse(int button, int state, int x, int y)
             if (specialKey == GLUT_ACTIVE_SHIFT)
             {
                 zoommapin();
-            } 
+            } else {
+                //controller.view = 2;
+                // for (auto& c : cities) 
+                // {
+                //     coordinate co = getcenteredlatlon();
+                //     if (co.lat == c->latitude && co.lon == c->longitude)
+                //     {
+                //         controller.view = 2;
+                //         break;
+                //     }
+                // }
+            }
         }
     }
         // set the color to pure green for the middle button

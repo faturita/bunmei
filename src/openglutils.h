@@ -51,7 +51,9 @@ void drawTheRectangularBox(GLuint _textureId, float xx, float yy, float zz);
 void drawTexturedBox(GLuint _textureId, float xx, float yy, float zz);
 void drawBox(GLuint texturedId, float xx, float yy, float zz);
 void drawBox(float xx, float yy, float zz);
-void drawRedBox(float width, float height, float length);
+
+void drawRedBox(float x, float y, int sizex, int sizey);
+void drawBlueBox(float x, float y, int sizex, int sizey);
 
 void drawBoxIsland(GLuint _textureId, float xx, float yy, float zz, float side,float height);
 void drawBoxIsland(float xx, float yy, float zz, float side, float height);

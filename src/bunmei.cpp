@@ -49,6 +49,7 @@
 #include "profiling.h"
 #include "commandline.h"
 #include "font/DrawFonts.h"
+#include "font/FontsBitmap.h"
 #include "math/yamathutil.h"
 #include "camera.h"
 #include "openglutils.h"
@@ -114,7 +115,6 @@ void setupWorldModelling()
 
 
     units.push_back(settler);
-
 
 
     Warrior *warrior = new Warrior();
@@ -279,6 +279,8 @@ int main(int argc, char** argv) {
     setupWorldModelling();
     initRendering();
     initSound();
+
+    preloadFonts();
 
     // OpenGL callback functions.
     glutDisplayFunc(drawScene);

@@ -8,8 +8,10 @@
 #include "usercontrols.h"
 #include "math/yamathutil.h"
 #include "font/DrawFonts.h"
+#include "font/FontsBitmap.h"
 #include "units/Unit.h"
 #include "City.h"
+#include "ui.h"
 #include "map.h"
 
 
@@ -618,6 +620,27 @@ void centermap(int ccx, int ccy)
     cy = (int)(ccy*(ysize)/(float)height)+cy-ysize/2;  // 900
 
     printf("Center %f,%f\n",cx,cy);
+
+    int lat = (800/2 - cy)/16;
+    int lon = (cx-1200/2)/16;
+
+    //coordinate c(lat,lon);
+
+    coordinate c = map.to_offset(lat,lon);
+
+    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
+}
+
+coordinate getcenteredlatlon()
+{
+    int lat = (cy-800/2)/16;
+    int lon = (cx-1200/2)/16;
+
+    coordinate c = map.to_offset(lat,lon);
+
+    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
+
+    return c;
 }
 
 void centermapinmap(int lat, int lon)
@@ -631,34 +654,6 @@ void centermapinmap(int lat, int lon)
 
     printf("Center %f,%f\n",cx,cy);
 }
-
-
-void drawCityScreen(int centerlatitude, int centerlongitude)
-{
-    for(int lats=-10;lats<10;lats++)
-        for (int lons=-10;lons<10;lons++)
-        {
-            if ( (lats<-3 || lats>3) || (lons<-3 || lons>3) )
-            {
-                int la= centerlatitude + lats;
-                int lo = centerlongitude + lons;
-
-
-                placeMark(600+16*lo, 0+16*la,    16,"assets/assets/general/citytexture.png");
-
-            }
-
-        }
-
-    char str[256];
-    sprintf (str, "Kattegat");
-    int lat, lon;
-    lat = centerlatitude + (+9);
-    lon = centerlongitude + (-9);
-    drawString(600+16*lon, 0+16*lat,0,str,0.07f);
-
-}
-
 
 
 void drawMap()
@@ -836,7 +831,7 @@ void drawMap()
             int lat = units[controller.controllingid]->latitude;
 
             // Convert latitude and longitude into remaped coordinates
-            coordinate c = map.remap(lat,lon);
+            coordinate c = map.to_fixed(lat,lon);
 
             lon = c.lon;
             lat = c.lat;
@@ -862,7 +857,7 @@ void drawMap()
                 if (map(lat,lon).code==1)
                 {
 
-                    coordinate c = map.mapre(lat,lon);
+                    coordinate c = map.to_offset(lat,lon);
 
                     // Confirm the change if it is moving into land.
                     units[controller.controllingid]->latitude = c.lat;
@@ -975,7 +970,7 @@ void drawMap()
         pop = 0;
         for (auto& c : cities) 
         {
-            coordinate co = map.remap(c->latitude,c->longitude);
+            coordinate co = map.to_fixed(c->latitude,c->longitude);
             if (map(co.lat,co.lon).visible)
             {
                 c->draw();
@@ -987,7 +982,7 @@ void drawMap()
         {
             if (u->faction == controller.faction)
             {
-                coordinate c = map.remap(u->latitude,u->longitude);
+                coordinate c = map.to_fixed(u->latitude,u->longitude);
                 unfog(c.lat,c.lon);
                 if (controller.controllingid != u->id)
                     u->draw();
@@ -1012,12 +1007,23 @@ void drawMap()
         map.setCenter(0,controller.registers.yaw);
 
 
-        //drawCityScreen(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        if (controller.view == 2)
+        {
+            coordinate co = getcenteredlatlon();
+            drawCityScreen(co.lat,co.lon);
+        }
 
+        //placeMark(600,0,145,137,"assets/assets/general/font1.png");
 
+        //drawBlueBox(600,0,100,100);
 
+        //placeLetter(600,0,"?");
 
+        //drawRedBox(600,0,30,10);
 
+        //placeWord(600,0,"EXIT");
+
+        //placeMark(600,0,8,16,"assets/assets/general/34.png");
 
         glDisable(GL_BLEND);
 
@@ -1032,13 +1038,13 @@ void drawMap()
 
 void placeInMap(int lat, int lon, int size, const char* texture)
 {
-    coordinate c = map.remap(lat,lon);
+    coordinate c = map.to_fixed(lat,lon);
     placeThisUnit(c.lon,c.lat,16,texture);
 }
 
 void placeCityInMap(int lat, int lon, int size, const char* texture)
 {
-    coordinate c = map.remap(lat,lon);
+    coordinate c = map.to_fixed(lat,lon);
     placeCity(c.lon,c.lat);
 }
 

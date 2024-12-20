@@ -129,7 +129,8 @@ class Map
             return coordinate(x,y);
         }
 
-        coordinate remap(int lat, int lon)
+        // Convert offset lat,lon (zero,zero can be shifted) to screen fixed lat,lon (zero,zero is the center of the screen)
+        coordinate to_fixed(int lat, int lon)
         {
             lat = lat - centerx;
             lon = lon - centery;
@@ -143,7 +144,8 @@ class Map
             return coordinate(lat,lon);
         }
 
-        coordinate mapre(int lat, int lon)
+        // Convert fixed lat, lon (zero,zero is the center of the screen) to offset lat, lon (zero,zero can be shifted)
+        coordinate to_offset(int lat, int lon)
         {
             lat = lat + centerx;
             lon = lon + centery;
@@ -160,6 +162,7 @@ void zoommapout();
 
 void centermap(int ccx, int ccy);
 void centermapinmap(int latitude, int longitude);
+coordinate getcenteredlatlon();
 
 void drawMap();
 void initMap();
