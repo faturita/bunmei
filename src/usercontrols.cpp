@@ -92,15 +92,16 @@ void processMouse(int button, int state, int x, int y)
                 zoommapin();
             } else {
                 //controller.view = 2;
-                // for (auto& c : cities) 
-                // {
-                //     coordinate co = getcenteredlatlon();
-                //     if (co.lat == c->latitude && co.lon == c->longitude)
-                //     {
-                //         controller.view = 2;
-                //         break;
-                //     }
-                // }
+                for (auto& c : cities) 
+                {
+                    //coordinate co = getcenteredlatlon();
+                    printf("City %d,%d\n",c->latitude, c->longitude);
+                    //if (co.lat == c->latitude && co.lon == c->longitude)
+                    {
+                        //controller.view = 2;
+                        break;
+                    }
+                }
             }
         }
     }

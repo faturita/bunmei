@@ -4,7 +4,7 @@
 
 void City::draw()
 {
-    placeCityInMap(latitude,longitude,16,"assets/assets/map/city_r.png");
+    //placeCityInMap(latitude,longitude,16,"assets/assets/map/city_r.png");
 
     int p = pop / 10;
     int r = pop % 10;

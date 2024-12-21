@@ -5,5 +5,5 @@
 
 void Warrior::draw()
 {
-    placeInMap(latitude,longitude,16,"assets/assets/units/warrior.png");
+    //placeInMap(latitude,longitude,16,"assets/assets/units/warrior.png");
 }

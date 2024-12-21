@@ -2,6 +2,7 @@
 #define MAP_H
 
 #include "math/yamathutil.h"
+#include "coordinate.h"
 
 struct mapcell
 {
@@ -19,17 +20,6 @@ struct mapcell
     int resource;
 };
 
-struct coordinate
-{
-    coordinate(int lat,int lon)
-    {
-        this->lat = lat;
-        this->lon = lon;
-    }
-    int lat;
-    int lon;
-};
-
 class Map
 {
     private:
@@ -37,7 +27,7 @@ class Map
 
 
     public:
-        int centerx, centery;
+        int offsetlat, offsetlon;
         int minlat = -20;
         int maxlat = 20;
         int minlon = -35;
@@ -45,8 +35,8 @@ class Map
 
         void init()
         {
-            centerx = 0;
-            centery = 0;
+            offsetlat = 0;
+            offsetlon = 0;
             int no_of_cols = maxlon-minlon;
             int no_of_rows = maxlat-minlat;
             int initial_value = 0;
@@ -54,26 +44,26 @@ class Map
             map.resize(no_of_rows, std::vector<mapcell>(no_of_cols, initial_value));
         }
 
-        void setCenter(int x, int y)
+        void setCenter(int lat, int lon)
         {
-            centerx = x;
-            centery = y;
+            offsetlat = lat;
+            offsetlon = lon;
         }
 
         mapcell &operator()(int lat, int lon)
         {
-            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
-            x = rotclipped(x,0,maxlat-minlat-1);
-            y = rotclipped(y,0,maxlon-minlon-1);
-            return map[x][y];
+            int row=lat+abs(minlat)+offsetlat,col=lon+abs(minlon)+offsetlon;
+            row = rotclipped(row,0,maxlat-minlat-1);
+            col = rotclipped(col,0,maxlon-minlon-1);
+            return map[row][col];
         }
 
         mapcell &set(int lat, int lon)
         {
-            int x=lat+abs(minlat),y=lon+abs(minlon);
-            x = clipped(x,0,maxlat-minlat-1);
-            y = clipped(y,0,maxlon-minlon-1);
-            return map[x][y];
+            int row=lat+abs(minlat),col=lon+abs(minlon);
+            row = clipped(row,0,maxlat-minlat-1);
+            col = clipped(col,0,maxlon-minlon-1);
+            return map[row][col];
         }
 
         mapcell &operator()(coordinate c)
@@ -123,17 +113,17 @@ class Map
 
         coordinate i(int lat, int lon)
         {
-            int x=lat+abs(minlat)+centerx,y=lon+abs(minlon)+centery;
-            x = rotclipped(x,0,maxlat-minlat-1);
-            y = rotclipped(y,0,maxlon-minlon-1);
-            return coordinate(x,y);
+            int row=lat+abs(minlat)+offsetlat,col=lon+abs(minlon)+offsetlon;
+            row = rotclipped(row,0,maxlat-minlat-1);
+            col = rotclipped(col,0,maxlon-minlon-1);
+            return coordinate(row,col);
         }
 
         // Convert offset lat,lon (zero,zero can be shifted) to screen fixed lat,lon (zero,zero is the center of the screen)
         coordinate to_fixed(int lat, int lon)
         {
-            lat = lat - centerx;
-            lon = lon - centery;
+            lat = lat - offsetlat;
+            lon = lon - offsetlon;
 
             lon += abs(minlon);
 
@@ -147,28 +137,19 @@ class Map
         // Convert fixed lat, lon (zero,zero is the center of the screen) to offset lat, lon (zero,zero can be shifted)
         coordinate to_offset(int lat, int lon)
         {
-            lat = lat + centerx;
-            lon = lon + centery;
+            lat = lat + offsetlat;
+            lon = lon + offsetlon;
 
             return coordinate(lat,lon);
         }
 
 };
 
+void drawMap();
 
 void zoommapin();
-
 void zoommapout();
-
+// Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates.
 void centermap(int ccx, int ccy);
-void centermapinmap(int latitude, int longitude);
-coordinate getcenteredlatlon();
 
-void drawMap();
-void initMap();
-
-void placeInMap(int latitude, int longitude, int size, const char *filename);
-void placeCityInMap(int lat, int lon, int size, const char* texture);
-
-
-#endif // MAP_H
+#endif   // MAP_H

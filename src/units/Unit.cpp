@@ -4,5 +4,5 @@
 
 void Unit::draw()
 {
-    placeThisUnit(longitude,latitude,16,"assets/assets/units/tank.png");
+    //placeThisUnit(longitude,latitude,16,"assets/assets/units/tank.png");
 }
