@@ -3,6 +3,7 @@
 #include "lodepng.h"
 #include "font/FontsBitmap.h"
 #include "font/DrawFonts.h"
+#include "map.h"
 #include "ui.h"
 
 
@@ -17,7 +18,7 @@ void drawCityScreen(int centerlatitude, int centerlongitude)
                 int lo = centerlongitude + lons;
 
 
-                placeMark(600+16*lo, 0+16*la,    16,"assets/assets/general/citytexture.png");
+                placeTile(lo,la,"assets/assets/general/citytexture.png");
 
             }
 

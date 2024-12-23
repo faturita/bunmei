@@ -1,8 +1,8 @@
 
+#include "gamekernel.h"
 #include "usercontrols.h"
 #include "map.h"
-#include "gamekernel.h"
-
+#include "ui.h"
 #include "City.h"
 
 #include "units/Unit.h"
@@ -642,4 +642,76 @@ void drawUnitsAndCities()
             }
         }
     }
+
+    map.setCenter(0,controller.registers.yaw);
+}
+
+void adjustMovements()
+{
+    if (controller.registers.pitch!=0 || controller.registers.roll !=0)
+    {
+        // Receives real latitude and longitude (contained in the unit)
+        int lon = units[controller.controllingid]->longitude;
+        int lat = units[controller.controllingid]->latitude;
+
+        // Convert latitude and longitude into remaped coordinates
+        coordinate c = map.to_fixed(lat,lon);
+
+        lon = c.lon;
+        lat = c.lat;
+
+        int val = lat;
+        val = ((int)val+controller.registers.pitch);
+        lat = clipped(val,map.minlat,map.maxlat-1);
+
+        lon = lon + controller.registers.roll;
+
+        if (val>=map.maxlat) {
+            lon=lon*(-1);
+            lat=map.maxlat-1;
+        }
+
+        if ((val-lat)<0) {
+            lon=lon*(-1);
+            lat=map.minlat;
+        }
+
+        if (units[controller.controllingid]->availablemoves>0)
+        {
+            if (map(lat,lon).code==1)
+            {
+
+                coordinate c = map.to_offset(lat,lon);
+
+                // Confirm the change if it is moving into land.
+                units[controller.controllingid]->latitude = c.lat;
+                units[controller.controllingid]->longitude = c.lon; 
+
+                units[controller.controllingid]->availablemoves--;
+            }
+        } 
+
+
+        if (units[controller.controllingid]->availablemoves==0)
+        {
+            if (units.size()>controller.controllingid+1)
+                controller.controllingid++;  
+            else
+                controller.endofturn = true; 
+        }
+
+
+        controller.registers.pitch= controller.registers.roll = 0;     
+
+        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
+    }    
+}
+
+void openCityScreen()
+{
+    if (controller.view == 2)
+    {
+        coordinate co = getCurrentCenter();
+        drawCityScreen(co.lat,co.lon);
+    }       
 }

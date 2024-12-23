@@ -10,7 +10,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = true;      // make it a vector per faction
+        this->visible = false;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;
     }
@@ -141,6 +141,12 @@ class Map
             lat = lat + offsetlat;
             lon = lon + offsetlon;
 
+            lon += abs(minlon);
+
+            lon = rotclipped(lon,0,maxlon-minlon-1);
+
+            lon -= abs(minlon);
+
             return coordinate(lat,lon);
         }
 
@@ -152,10 +158,14 @@ void zoommapin();
 void zoommapout();
 // Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates.
 void centermap(int ccx, int ccy);
+void centermapinmap(int lat, int lon);
+coordinate getCurrentCenter();
 
 void unfog(int lat, int lon);
 
 void drawUnitsAndCities();
+void adjustMovements();
+void openCityScreen();
 
 void place(int x, int y, int sizex, int sizey, const char* modelName);
 void place(int x, int y, int sizex, int sizey, GLuint _texture);

@@ -2,6 +2,7 @@
 #include "../map.h"
 #include "Unit.h"
 
+extern Map map;
 
 void Unit::draw()
 {

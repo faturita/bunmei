@@ -94,7 +94,8 @@ void setupWorldModelling()
     year = -4000;
     pop = 0;
 
-    //centermapinmap(settler->latitude,settler->longitude);
+    centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+    zoommapin();
 
 }
 
