@@ -1,4 +1,5 @@
 
+#include "usercontrols.h"
 #include "map.h"
 #include "gamekernel.h"
 
@@ -8,6 +9,9 @@
 #include "units/Warrior.h"
 #include "units/Settler.h"
 
+extern Controller controller;
+
+
 std::unordered_map<int, std::string> tiles;
 Map map;
 std::unordered_map<int, std::vector<int>> resources;
@@ -15,6 +19,8 @@ std::unordered_map<int, std::vector<int>> resources;
 
 extern std::vector<Unit*> units;
 extern std::vector<City*> cities;
+
+extern int pop;
 
 
 void initMap()
@@ -307,8 +313,8 @@ void initMap()
             map.set(lat,lon) = mapcell(1);
             map.set(lat,lon).bioma = 1;
             int dir=getRandomInteger(0,3);
-            if (dir==0) lat+=1;
-            if (dir==1) lat-=1;
+            if (dir==0) lat-=1;
+            if (dir==1) lat+=1;
             if (dir==2) lon+=1;
             if (dir==3) lon-=1;
 
@@ -323,8 +329,8 @@ void initMap()
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
         int north,south,east,west;
-        north = map(lat+1,lon).code;
-        south = map(lat-1,lon).code;
+        north = map(lat-1,lon).code;
+        south = map(lat+1,lon).code;
         east  = map(lat,lon+1).code;
         west  = map(lat,lon-1).code;
 
@@ -340,8 +346,8 @@ void initMap()
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
             int north,south,east,west;
-            north = map(lat+1,lon).code;
-            south = map(lat-1,lon).code;
+            north = map(lat-1,lon).code;
+            south = map(lat+1,lon).code;
             east  = map(lat,lon+1).code;
             west  = map(lat,lon-1).code;
 
@@ -350,7 +356,6 @@ void initMap()
                 map.set(lat,lon) = mapcell(1);
             }
         }
-
 
     // Pick the biomas.
     for(int i=0;i<100;i++)
@@ -368,15 +373,14 @@ void initMap()
             {
                 map.set(lat,lon).bioma = bioma;
                 int dir=getRandomInteger(0,3);
-                if (dir==0) lat+=1;
-                if (dir==1) lat-=1;
+                if (dir==0) lat-=1;
+                if (dir==1) lat+=1;
                 if (dir==2) lon+=1;
                 if (dir==3) lon-=1;
             }
 
         }
     }
-
 
     // First lets pick the river sources
     std::vector<coordinate> riversources;
@@ -430,8 +434,8 @@ void initMap()
                 {
                     int llat = lat; int llon = lon;
                     dir=getRandomInteger(0,3);
-                    if (dir==0) llat+=1;
-                    if (dir==1) llat-=1;
+                    if (dir==0) llat-=1;
+                    if (dir==1) llat+=1;
                     if (dir==2) llon+=1;
                     if (dir==3) llon-=1;
                     
@@ -451,8 +455,8 @@ void initMap()
 
             }
             //if (!keepsearching) break;
-            if (dir==0) lat+=1;
-            if (dir==1) lat-=1;
+            if (dir==0) lat-=1;
+            if (dir==1) lat+=1;
             if (dir==2) lon+=1;
             if (dir==3) lon-=1;
             //if (counter++==4) break;
@@ -595,4 +599,47 @@ void initFactions()
 
 
     units.push_back(warrior);
+}
+
+
+void drawUnitsAndCities()
+{
+    static int count=0;
+
+    pop = 0;
+    for (auto& c : cities) 
+    {
+        coordinate co = map.to_fixed(c->latitude,c->longitude);
+        if (map(co.lat,co.lon).visible)
+        {
+            c->draw();
+        }
+        pop += c->pop;
+    }
+
+    for (auto& u : units) 
+    {
+        if (u->faction == controller.faction)
+        {
+            coordinate c = map.to_fixed(u->latitude,u->longitude);
+            unfog(c.lat,c.lon);
+            if (controller.controllingid != u->id)
+                u->draw();
+        }
+    }
+
+    // Draw last the unit that you want on top of the stack (selected unit)
+    for (auto& u : units) 
+    {
+        if (u->faction == controller.faction)
+        {
+            if (controller.controllingid == u->id)
+            {
+                if (count++ % 70 < 35)
+                {
+                    u->draw();
+                }
+            }
+        }
+    }
 }

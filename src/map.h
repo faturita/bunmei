@@ -1,6 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
 
+#include "openglutils.h"
 #include "math/yamathutil.h"
 #include "coordinate.h"
 
@@ -9,7 +10,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = false;      // make it a vector per faction
+        this->visible = true;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;
     }
@@ -73,12 +74,12 @@ class Map
 
         mapcell &south(int lat, int lon)
         {
-            return operator()(lat-1,lon);
+            return operator()(lat+1,lon);
         }
 
         mapcell &north(int lat, int lon)
         {
-            return operator()(lat+1,lon);
+            return operator()(lat-1,lon);
         }
 
         mapcell &west(int lat, int lon)
@@ -93,12 +94,12 @@ class Map
 
         coordinate isouth(int lat, int lon)
         {
-            return coordinate(lat-1,lon);
+            return coordinate(lat+1,lon);
         }
 
         coordinate inorth(int lat, int lon)
         {
-            return coordinate(lat+1,lon);
+            return coordinate(lat-1,lon);
         }
 
         coordinate iwest(int lat, int lon)
@@ -151,5 +152,17 @@ void zoommapin();
 void zoommapout();
 // Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates.
 void centermap(int ccx, int ccy);
+
+void unfog(int lat, int lon);
+
+void drawUnitsAndCities();
+
+void place(int x, int y, int sizex, int sizey, const char* modelName);
+void place(int x, int y, int sizex, int sizey, GLuint _texture);
+void place(int x, int y, int size, const char* modelName);
+void placeTile(int x, int y, const char* modelName);
+void placeTile(int x, int y, int size, const char* modelName);
+void placeThisUnit(int lat, int lon, int size, const char* modelName);
+void placeThisCity(int lat, int lon);
 
 #endif   // MAP_H

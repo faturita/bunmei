@@ -1158,64 +1158,7 @@ GLuint preloadTexture(const char* modelName)
     return _texture;
 }
 
-
-
-void placeCity(float x, float y, int size, const char* modelName)
-{
-    GLuint _texture;
-
-    if (maptextures.find(std::string(modelName)) == maptextures.end())
-    {
-        unsigned char *img;
-
-        unsigned w,h;
-
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
-
-        Image image((char *)img, w, h);
-
-        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
-
-        for(int i=0;i<w;i++)
-            for (int j=0;j<h;j++)
-            {
-                printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
-
-                if (img[(i*h+j)*4+3]<255)
-                {
-                    img[(i*h+j)*4+0] = 255;
-                    img[(i*h+j)*4+1] = 0;
-                    img[(i*h+j)*4+2] = 0;
-                    img[(i*h+j)*4+3] = 255;
-                }
-            }
-
-        glGenTextures(1, &_texture);
-        glBindTexture(GL_TEXTURE_2D, _texture);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        glTexImage2D(GL_TEXTURE_2D,
-                     0,
-                     GL_RGBA,
-                     w,h,
-                     0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
-                     img);
-
-
-        maptextures[std::string(modelName)]=_texture;
-
-    } else {
-        _texture = maptextures[std::string(modelName)];
-    }
-
-    placeMark(x, y, size, size, _texture);
-}
-
-
-void placeUnit(float x, float y, int size, const char* modelName)
+GLuint preloadUnitTexture(const char* modelName, int red, int green, int blue)
 {
     GLuint _texture;
 
@@ -1237,9 +1180,9 @@ void placeUnit(float x, float y, int size, const char* modelName)
                 if (img[(i*h+j)*4+0]==96 && img[(i*h+j)*4+1]==224 && img[(i*h+j)*4+2] == 100)
                 {
                     //printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
-                    img[(i*h+j)*4+0] = 255;
-                    img[(i*h+j)*4+1] = 0;
-                    img[(i*h+j)*4+2] = 0;
+                    img[(i*h+j)*4+0] = red;
+                    img[(i*h+j)*4+1] = green;
+                    img[(i*h+j)*4+2] = blue;
 
                     //img[(i*h+j)*4+3] = 255;
                 }
@@ -1265,20 +1208,61 @@ void placeUnit(float x, float y, int size, const char* modelName)
     } else {
         _texture = maptextures[std::string(modelName)];
     }
-
-    placeMark(x, y, size, size, _texture);
+    return _texture;
 }
 
-void placeThisUnit(float y, float x, int size, const char* modelName)
+GLuint preloadCityTexture(const char* modelName, int red, int green, int blue)
 {
-    placeUnit(600+16*y,0+16*x,size,modelName);
-}
+    GLuint _texture;
 
-void placeCity(float y, float x)
-{
-    placeCity(600+16*y,0+16*x,16,"assets/assets/map/city_r.png");
-}
+    if (maptextures.find(std::string(modelName)) == maptextures.end())
+    {
+        unsigned char *img;
 
+        unsigned w,h;
+
+        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+
+        Image image((char *)img, w, h);
+
+        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
+
+        for(int i=0;i<w;i++)
+            for (int j=0;j<h;j++)
+            {
+                printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
+
+                if (img[(i*h+j)*4+3]<255)
+                {
+                    img[(i*h+j)*4+0] = red;
+                    img[(i*h+j)*4+1] = green;
+                    img[(i*h+j)*4+2] = blue;
+                    img[(i*h+j)*4+3] = 255;
+                }
+            }
+
+        glGenTextures(1, &_texture);
+        glBindTexture(GL_TEXTURE_2D, _texture);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     GL_RGBA,
+                     w,h,
+                     0,
+                     GL_RGBA,
+                     GL_UNSIGNED_BYTE,
+                     img);
+
+
+        maptextures[std::string(modelName)]=_texture;
+
+    } else {
+        _texture = maptextures[std::string(modelName)];
+    }
+    return _texture;
+}
 
 void placeMark(float x, float y, int size, const char* modelName)
 {
@@ -1291,118 +1275,3 @@ void placeMark(float x, float y, int sizex, int sizey, const char* modelName)
     GLuint _texture = preloadTexture(modelName);
     placeMark(x,y,sizex,sizey,_texture);
 }
-
-void place(float y, float x, int size, const char* modelName)
-{
-    placeMark(600+16*y,0+16*x,size,modelName);
-}
-
-
-
-void SmokeParticle::drawModel(float x, float y, float z, float width, float height, float angle, GLuint texture)
-{
-    glPushAttrib(GL_CURRENT_BIT);
-    glPushMatrix();
-    {
-        glEnable(GL_TEXTURE_2D);
-        //glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); //GL_NEAREST = no smoothing
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D,texture);
-        glTranslatef(x, y, z);
-        glRotated(angle, 0, 0,1);
-        glBegin(GL_QUADS);
-        double x_centre = width/2;
-        double y_centre = height/2;
-        glTexCoord2d(0.0,0.0); glVertex3f(-x_centre, -y_centre,-y_centre);
-        glTexCoord2d(1.0,0.0); glVertex3f(x_centre, -y_centre,-y_centre);
-        glTexCoord2d(1.0,1.0); glVertex3f(x_centre, y_centre,+y_centre);
-        glTexCoord2d(0.0,1.0); glVertex3f(-x_centre, y_centre,+y_centre);
-        glEnd();
-    }
-    glPopMatrix();
-    glPopAttrib();
-}
-
-
-void SmokeParticle::Move(void)
-{
-    x += cos(direction) * speed;
-    z += sin(direction) * speed;
-    y += 1;
-    size += 0.1;
-    alpha -= alpha*0.01;
-    rotation += 0.1;
-}
-
-void SmokeParticle::Draw(void)
-{
-    glColor4d(1, 1, 1, alpha);
-
-
-    // Each particle grows in a cone with axis (0,1,0), this is Up.
-    // So the idea is to pick the axis where you want to make it grow, and rotate x,y,z towards it.
-    Vec3f Up(0,1,0);
-    Vec3f rot,fw = axis;
-    fw = fw.normalize();
-
-    rot = Up.cross(fw);
-
-    float a = _acos(  Up.dot(fw)  );
-
-    Vec3f tran(x,y,z);
-    tran = tran.rotateOn(rot, a);
-
-    if (isnan(tran[0])) tran = Vec3f(x,y,z);
-
-    //dout << tran << std::endl;
-
-    drawModel(pos[0]+tran[0], pos[1]+tran[1], pos[2]+tran[2], size, size, rotation, textures["smoke"]);
-}
-
-SmokeParticle::SmokeParticle()
-{
-    x = 0;
-    z = 0;
-    y = 0;
-    size = 0;
-    direction = getRandomInteger(0,360);
-    rotation = getRandomInteger(0,360);
-    speed = 0.05;
-    alpha = 0.3;
-}
-
-float SmokeParticle::getAlpha()
-{
-    return alpha;
-}
-
-void Smoke::drawModel(Vec3f pos, Vec3f axis)
-{
-    SmokeParticle s;
-    s.pos = pos ; //Vec3f(-5000,1000-2.5,-5000);
-    s.axis = (-1)*axis; //(-1)*Vec3f(7,8,9);
-
-    Smoke_Vector.push_back(s);
-
-    if (Smoke_Vector.size()>number_of_particles)
-    {
-        Smoke_Vector.erase(Smoke_Vector.begin());
-    }
-
-    for( size_t i = 0 ; i < Smoke_Vector.size() ; ++i )
-        {
-        Smoke_Vector[i].Draw();
-        Smoke_Vector[i].Move();
-        }
-}
-
-
-void Smoke::clean()
-{
-    Smoke_Vector.clear();
-}
-
-

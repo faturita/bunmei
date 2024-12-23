@@ -15,6 +15,8 @@
 #include "map.h"
 
 std::unordered_map<std::string, GLuint> maptextures;
+extern std::unordered_map<int, std::string> tiles;
+extern Map map;
 
 int width = 1200;
 int height = 800;
@@ -71,12 +73,80 @@ void centermap(int ccx, int ccy)
     printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
 }
 
+void unfog(int lat, int lon)
+{
+    coordinate c = coordinate(lat,lon);
+    for(int llat=-1;llat<=1;llat++)
+        for (int llon=-1;llon<=1;llon++)
+        {
+            int lllat=c.lat+llat,lllon=c.lon+llon;
+            map(lllat,lllon).visible = true;
+        }
+}
 
+
+// These two functions perform the right mapping from model coordinates to opengl coordinates
 void place(int x, int y, int sizex, int sizey, const char* modelName)
 {
     placeMark((width/2)+x,-y,sizex,sizey,modelName);      // x,y x-> column y-> row  
 }
 
+void place(int x, int y, int sizex, int sizey, GLuint _texture)
+{
+    placeMark((width/2)+x,-y,sizex,sizey,_texture);      // x,y x-> column y-> row  
+}
+
+// --------
+
+void place(int x, int y, int size, const char* modelName)
+{
+    place(x,y,size,size,modelName);   // x,y x-> column y-> row  
+}
+
+void placeTile(int x, int y, const char* modelName)
+{
+    place(x*16,y*16,16,16,modelName);      // x,y x-> column y-> row  
+}
+
+void placeTile(int x, int y, int size, const char* modelName)
+{
+    place(x*16,y*16,size,size,modelName);      // x,y x-> column y-> row  
+}
+
+void placeThisUnit(int lat, int lon, int size, const char* modelName)
+{
+    GLuint _texture = preloadUnitTexture(modelName,255,0,0);
+    //coordinate c = map.to_fixed(lat,lon);//coordinate c = map.to_fixed(lat,lon);
+    coordinate c(lat,lon);
+    place(c.lon*16,c.lat*16,size,size,_texture);      // x,y x-> column y-> row  
+}
+
+void placeThisCity(int lat, int lon)
+{
+    GLuint _texture = preloadCityTexture("assets/assets/map/city_r.png",255,0,0);
+    //coordinate c = map.to_fixed(lat,lon);//coordinate c = map.to_fixed(lat,lon);
+    coordinate c(lat,lon);
+    place(c.lon*16,c.lat*16,16,16,_texture);      // x,y x-> column y-> row  
+}
+
+void drawGrid()
+{
+    place(0,0,16,16,"assets/assets/terrain/land.png");      // x,y x-> column y-> row  
+
+    place(10*16,10*16, 16,16,"assets/assets/terrain/land.png");    
+
+    place(-10*16,10*16, 16,16,"assets/assets/terrain/land.png");   
+
+    place(10*16,-10*16, 16,16,"assets/assets/terrain/land.png");   
+
+    place(-10*16,-10*16, 16,16,"assets/assets/terrain/land.png");    
+
+    for(int col=-35;col<=34;col++)
+        for (int row=-20;row<=19;row++)
+        {
+            place(col*16,row*16,16,16,"assets/assets/general/grid.png");      // x,y x-> column y-> row  
+        }
+}
 
 void drawMap()
 {
@@ -117,21 +187,127 @@ void drawMap()
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        place(0,0,16,16,"assets/assets/terrain/land.png");      // x,y x-> column y-> row  
+        //drawGrid();
 
-        place(10*16,10*16, 16,16,"assets/assets/terrain/land.png");    
-
-        place(-10*16,10*16, 16,16,"assets/assets/terrain/land.png");   
-
-        place(10*16,-10*16, 16,16,"assets/assets/terrain/land.png");   
-
-        place(-10*16,-10*16, 16,16,"assets/assets/terrain/land.png");    
-
-        for(int col=-35;col<=34;col++)
-            for (int row=-20;row<=19;row++)
+        // Water or Land
+        for(int lat=map.minlat;lat<=map.maxlat-1;lat++)
+        {
+            for(int lon=map.minlon;lon<=map.maxlon-1;lon++)
             {
-                place(col*16,row*16,16,16,"assets/assets/general/grid.png");      // x,y x-> column y-> row  
+                if (map(lat,lon).visible) placeTile(lon,lat,tiles[map(lat,lon).code].c_str());
             }
+        }
+
+        // Biomas, including biomas on ocean (like river mouths)
+        for(int lat=map.minlat;lat<=map.maxlat-1;lat++)
+        {
+            for(int lon=map.minlon;lon<=map.maxlon-1;lon++)
+            {
+                if (map(lat,lon).visible && map(lat,lon).bioma!=0) placeTile(lon,lat,tiles[map(lat,lon).bioma].c_str());
+            }
+        }
+
+        // Coasts
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                int land = map(lat,lon).code;
+                mapcell next = map.south(lat,lon);
+                coordinate c = map.isouth(lat,lon);
+
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                {
+                    if ((map(lat,lon).bioma & 0xf2) != 0xa2) 
+                    {
+                        place(16*c.lon-4,   16*c.lat-8,8,8,"assets/assets/terrain/coast_s2.png");    
+                        place(16*c.lon+4,   16*c.lat-8,8,8,"assets/assets/terrain/coast_s2.png"); 
+                    }
+                    else
+                    {
+                        place(16*c.lon-4,   16*c.lat-8,8,8,"assets/assets/terrain/coast_sm1.png");    
+                        place(16*c.lon+4,   16*c.lat-8,8,8,"assets/assets/terrain/coast_sm2.png"); 
+                    }
+                }
+
+
+                next = map.north(lat,lon);
+                c = map.inorth(lat,lon);
+
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                {
+                    if ((map(lat,lon).bioma & 0xf8) != 0xa8)
+                    {
+                        place(16*c.lon-4,   16*c.lat+8,8,8,"assets/assets/terrain/coast_n2.png");    
+                        place(16*c.lon+4,   16*c.lat+8,8,8,"assets/assets/terrain/coast_n2.png"); 
+                    }
+                    else
+                    {
+                        place(16*c.lon-4,   16*c.lat+8,8,8,"assets/assets/terrain/coast_nm2.png");    
+                        place(16*c.lon+4,   16*c.lat+8,8,8,"assets/assets/terrain/coast_nm1.png"); 
+                    }
+                }
+
+                next = map.east(lat,lon);
+                c = map.ieast(lat,lon);
+
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                {
+                    if ((map(lat,lon).bioma & 0xf4) != 0xa4)
+                    {
+                        place(16*c.lon-8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_e5.png");    
+                        place(16*c.lon-8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_e5.png"); 
+                    }
+                    else
+                    {
+                        place(16*c.lon-8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_em1.png");    
+                        place(16*c.lon-8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_em2.png"); 
+                    }
+                }
+
+                next = map.west(lat,lon);
+                c = map.iwest(lat,lon);
+
+                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                {
+                    if ((map(lat,lon).bioma & 0xf1) != 0xa1) 
+                    {
+                        place(16*c.lon+8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_w2.png");    
+                        place(16*c.lon+8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_w2.png"); 
+                    } 
+                    else 
+                    {
+                        place(16*c.lon+8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_wm2.png");    
+                        place(16*c.lon+8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_wm1.png"); 
+                    }
+                }
+            }
+
+        // Add Resources
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+        {
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                int size = 15;
+                if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
+                if (map(lat,lon).visible && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) placeTile(lon,lat,size,tiles[map(lat,lon).resource].c_str());
+            }
+        }
+
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                if (map(lat,lon).visible)
+                {
+                    if (!(map.south(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_s.png");
+                    if (!(map.north(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_n.png");
+                    if (!(map.west(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_w.png");
+                    if (!(map.east(lat,lon).visible)) place(lon,lat,16,"assets/assets/map/fog_e.png");
+
+                }
+            }
+
+        drawUnitsAndCities();
+
 
 
     } glPopMatrix();
