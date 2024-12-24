@@ -17,6 +17,8 @@ public:
     // Device ID to be controller.
     size_t controllingid=CONTROLLING_NONE;
 
+    int cityid = -1;
+
     // Index to Observable interfaces.
     int camera;
 

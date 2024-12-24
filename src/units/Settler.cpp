@@ -4,5 +4,5 @@
 
 void Settler::draw()
 {
-    placeInMap(latitude,longitude,16,"assets/assets/units/settlers.png");
+    placeThisUnit(latitude,longitude,16,"assets/assets/units/settlers.png");
 }

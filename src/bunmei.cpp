@@ -2,7 +2,7 @@
 **
 ** Main Program - Bunmei - 18/18/2023
 **
-** Copyright (C) 2014  Rodrigo Ramele
+** Copyright (C) 2014  faturita - Rodrigo Ramele
 **
 ** For personal, educationnal, and research purpose only, this software is
 ** provided under the Gnu GPL (V.3) license. To use this software in
@@ -58,13 +58,11 @@
 #include "map.h"
 #include "hud.h"
 
-#include "units/Unit.h"
-#include "units/Warrior.h"
-#include "units/Settler.h"
+#include "gamekernel.h"
 
+#include "units/Unit.h"
 #include "City.h"
 
-Camera Camera;
 extern Controller controller;
 
 std::vector<Unit*> units;
@@ -89,50 +87,15 @@ void setupWorldModelling()
     initMap();
 
 
-    std::vector<coordinate> list;
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for(int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            if (map(lat,lon).code==1)
-            {
-                list.push_back(coordinate(lat,lon));
-            }
-        }
-
-    coordinate c(0,0);
-    if (list.size()>0)
-    {
-        int r = getRandomInteger(0,list.size());
-        c = list[r];
-    }
-
-    Settler *settler = new Settler();
-    settler->longitude = c.lon;
-    settler->latitude = c.lat;
-    settler->id = 0;
-    settler->faction = 1;
-    settler->availablemoves = 2;
-
-
-    units.push_back(settler);
-
-
-    Warrior *warrior = new Warrior();
-    warrior->longitude = c.lon;
-    warrior->latitude = c.lat;
-    warrior->id = 1;
-    warrior->faction = 1;
-    warrior->availablemoves = 2;
-
-
-    units.push_back(warrior);
+    initFactions();
 
 
     controller.faction = 1;
     year = -4000;
     pop = 0;
 
-    centermapinmap(settler->latitude,settler->longitude);
+    centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+    zoommapin();
 
 }
 
@@ -207,7 +170,7 @@ void worldStep(int value)
         city->latitude = units[controller.controllingid]->latitude;
         city->longitude = units[controller.controllingid]->longitude;
         city->faction = units[controller.controllingid]->faction;
-        city->id = 1;           // @FIXME: Get an id assigner for cities.
+        city->id = 0;           // @FIXME: Get an id assigner for cities.
         city->pop = 1;
         
         cities.push_back(city);

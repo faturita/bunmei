@@ -14,6 +14,7 @@ class Unit
     int availablemoves;
 
     void virtual draw();
+
 };
 
 #endif

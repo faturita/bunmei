@@ -2,6 +2,7 @@
 #include "../math/yamathutil.h"
 #include "../lodepng.h"
 #include "../openglutils.h"
+#include "../map.h"
 
 std::unordered_map<std::string, GLuint> fonts;
 
@@ -26,6 +27,12 @@ GLuint preloadFontTexture(const char* letterName, const char* modelName)
                 if (img[(i*h+j)*4+0]<100)
                 {
                     img[(i*h+j)*4+3] = 0;
+                }
+                else
+                {
+                    img[(i*h+j)*4+0] = 255;
+                    img[(i*h+j)*4+1] = 255;
+                    img[(i*h+j)*4+2] = 255;
                 }
             }
 
@@ -146,20 +153,15 @@ void  preloadFont(const char* fontName)
     }
 }
 
-void placeLetter(float x, float y, const char* letter)
-{
-    GLuint _texture = fonts[std::string(letter)];
-
-    placeMark(x,y,8,16,_texture);
-}
-
-void placeWord(float x, float y, const char* word)
+void placeWord(float x, float y, int sizex, int sizey, const char* word)
 {
     for(int i=0;i<strlen(word);i++)
     {
         char letter[2];
         letter[0] = word[i];
         letter[1] = '\0';
-        placeLetter(x+i*8,y,letter);
+        place(x*16+i*sizex,y*16,sizex,sizey,fonts[std::string(letter)]);
     }
 }
+
+    

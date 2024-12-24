@@ -21,15 +21,23 @@ int _yoffset = 0;
 void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
         case 27: //Escape key
-            controller.interrupt();
+        {
+            if (controller.view == 2)
+            {
+                controller.view = 1;
+            } else {
+                controller.interrupt();
+            }
+        }
+        break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
-        case 'w':controller.registers.pitch+=1.0;break;
-        case 's':controller.registers.pitch-=1.0;break;
-        case 'q':controller.registers.pitch+=1.0;controller.registers.roll-=1.0f;break;
-        case 'e':controller.registers.pitch+=1.0;controller.registers.roll+=1.0f;break;
-        case 'z':controller.registers.pitch-=1.0;controller.registers.roll-=1.0f;break;
-        case 'c':controller.registers.pitch-=1.0;controller.registers.roll+=1.0f;break;
+        case 'w':controller.registers.pitch-=1.0;break;
+        case 's':controller.registers.pitch+=1.0;break;
+        case 'q':controller.registers.pitch-=1.0;controller.registers.roll-=1.0f;break;
+        case 'e':controller.registers.pitch-=1.0;controller.registers.roll+=1.0f;break;
+        case 'z':controller.registers.pitch+=1.0;controller.registers.roll-=1.0f;break;
+        case 'c':controller.registers.pitch+=1.0;controller.registers.roll+=1.0f;break;
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
         case ' ':controller.endofturn=true;break;
@@ -92,15 +100,17 @@ void processMouse(int button, int state, int x, int y)
                 zoommapin();
             } else {
                 //controller.view = 2;
-                // for (auto& c : cities) 
-                // {
-                //     coordinate co = getcenteredlatlon();
-                //     if (co.lat == c->latitude && co.lon == c->longitude)
-                //     {
-                //         controller.view = 2;
-                //         break;
-                //     }
-                // }
+                for (auto& c : cities) 
+                {
+                    coordinate co = getCurrentCenter();
+                    printf("City %d,%d\n",c->latitude, c->longitude);
+                    if (co.lat == c->latitude && co.lon == c->longitude)
+                    {
+                        controller.view = 2;
+                        controller.cityid = c->id;
+                        break;
+                    }
+                }
             }
         }
     }
