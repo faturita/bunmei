@@ -48,16 +48,15 @@ void drawCityScreen(int cla, int clo, City *city)
             }
         }
 
+    drawBoundingBox(cla,clo,-3,-3,3,3);
+
     placeWord(clo + (-10),cla + (-10),4,8,city->name);
 
-    
 
     place((clo + (-10))*16,(cla + (-9))*16,8,16,"assets/assets/city/people_content_m.png");
     place((clo + (-10))*16+4,(cla + (-9))*16,8,16,"assets/assets/city/people_content_f.png");
 
     placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
     drawBoundingBox(cla,clo,-10,-8,-4,-4);
-
-
 
 }

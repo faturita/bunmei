@@ -14,7 +14,13 @@ class City
         int pop;
         char name[256];
 
+        int shields;
+        int food;
+
+
     void virtual draw();
+
+    void tick();
 
 };
 

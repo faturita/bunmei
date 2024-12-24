@@ -170,7 +170,7 @@ void worldStep(int value)
         city->latitude = units[controller.controllingid]->latitude;
         city->longitude = units[controller.controllingid]->longitude;
         city->faction = units[controller.controllingid]->faction;
-        city->id = 0;           // @FIXME: Get an id assigner for cities.
+        city->id = 1;           // @FIXME: Get an id assigner for cities.
         city->pop = 1;
         
         cities.push_back(city);

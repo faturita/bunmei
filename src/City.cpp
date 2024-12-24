@@ -32,3 +32,13 @@ void City::draw()
         place(16*longitude,16*latitude-1,8,16, s.c_str());
     }
 }
+
+void City::tick()
+{
+    int seasonshields = 0;
+    for(int lat=-2;lat<=2;lat++)
+        for(int lon=-2;lon<=2;lon++)
+        {
+
+        }
+}
