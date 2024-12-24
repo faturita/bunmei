@@ -6,11 +6,13 @@
 class City
 {
     public:
+        City();
         int latitude;
         int longitude;
         int faction;
         int id;
         int pop;
+        char name[256];
 
     void virtual draw();
 

@@ -2,6 +2,11 @@
 #include "map.h"
 #include "City.h"
 
+City::City()
+{
+    strncpy(name,"Kattegat",256);
+}
+
 void City::draw()
 {
     placeThisCity(latitude,longitude);
@@ -26,7 +31,4 @@ void City::draw()
         //placeMark(600+16*longitude, 0+16*latitude+1,    8,16,s.c_str());
         place(16*longitude,16*latitude-1,8,16, s.c_str());
     }
-
-
-
 }

@@ -21,7 +21,15 @@ int _yoffset = 0;
 void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
         case 27: //Escape key
-            controller.interrupt();
+        {
+            if (controller.view == 2)
+            {
+                controller.view = 1;
+            } else {
+                controller.interrupt();
+            }
+        }
+        break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch-=1.0;break;
@@ -99,6 +107,7 @@ void processMouse(int button, int state, int x, int y)
                     if (co.lat == c->latitude && co.lon == c->longitude)
                     {
                         controller.view = 2;
+                        controller.cityid = c->id;
                         break;
                     }
                 }

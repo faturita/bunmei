@@ -711,7 +711,8 @@ void openCityScreen()
 {
     if (controller.view == 2)
     {
+        City *city = cities[controller.cityid];
         coordinate co = getCurrentCenter();
-        drawCityScreen(co.lat,co.lon);
+        drawCityScreen(co.lat,co.lon,city);
     }       
 }

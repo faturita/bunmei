@@ -5,7 +5,6 @@
 
 GLuint preloadFont(const char* fontName);
 void preloadFonts();
-void placeLetter(float x, float y, const char* letter);
-void placeWord(float x, float y, const char* word);
+void placeWord(float x, float y, int sizex, int sizey, const char* word);
 
 #endif   // FONTSBITMAP_H
