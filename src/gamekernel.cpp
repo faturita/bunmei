@@ -17,8 +17,9 @@ Map map;
 std::unordered_map<int, std::vector<int>> resources;
 
 
-extern std::vector<Unit*> units;
-extern std::vector<City*> cities;
+extern std::unordered_map<int, Unit*> units;
+extern std::unordered_map<int, City*> cities;
+
 
 extern int pop;
 
@@ -587,7 +588,7 @@ void initFactions()
     settler->availablemoves = 2;
 
 
-    units.push_back(settler);
+    units[settler->id] = settler;
 
 
     Warrior *warrior = new Warrior();
@@ -598,7 +599,7 @@ void initFactions()
     warrior->availablemoves = 2;
 
 
-    units.push_back(warrior);
+    units[warrior->id] = warrior;
 }
 
 
@@ -607,7 +608,7 @@ void drawUnitsAndCities()
     static int count=0;
 
     pop = 0;
-    for (auto& c : cities) 
+    for (auto& [k, c] : cities) 
     {
         coordinate co = map.to_fixed(c->latitude,c->longitude);
         if (map(co.lat,co.lon).visible)
@@ -617,7 +618,7 @@ void drawUnitsAndCities()
         pop += c->pop;
     }
 
-    for (auto& u : units) 
+    for (auto& [k,u] : units) 
     {
         if (u->faction == controller.faction)
         {
@@ -629,7 +630,7 @@ void drawUnitsAndCities()
     }
 
     // Draw last the unit that you want on top of the stack (selected unit)
-    for (auto& u : units) 
+    for (auto& [k,u] : units) 
     {
         if (u->faction == controller.faction)
         {
@@ -694,10 +695,19 @@ void adjustMovements()
 
         if (units[controller.controllingid]->availablemoves==0)
         {
-            if (units.size()>controller.controllingid+1)
-                controller.controllingid++;  
-            else
-                controller.endofturn = true; 
+            controller.endofturn = true;
+            for (auto& [k,u] : units)
+            {
+                if (u->faction == controller.faction)
+                {
+                    if (u->availablemoves>0)
+                    {
+                        controller.controllingid = u->id;
+                        controller.endofturn = false;
+                        break;
+                    }
+                }
+            }
         }
 
 
@@ -715,4 +725,24 @@ void openCityScreen()
         coordinate co = getCurrentCenter();
         drawCityScreen(co.lat,co.lon,city);
     }       
+}
+
+int getNextCityId()
+{
+    int nextid = 0;
+    for (auto& [k, c] : cities) 
+    {
+        if (c->id>nextid) nextid = c->id;
+    }
+    return nextid+1;
+}
+
+int getNextUnitId()
+{
+    int nextid = 0;
+    for (auto& [k, c] : units) 
+    {
+        if (c->id>nextid) nextid = c->id;
+    }
+    return nextid+1;
 }

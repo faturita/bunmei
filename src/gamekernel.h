@@ -3,5 +3,7 @@
 
 void initMap();
 void initFactions();
+int getNextCityId();
+int getNextUnitId();
 
 #endif // GAMEKERNEL_H

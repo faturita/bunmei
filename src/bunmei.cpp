@@ -65,8 +65,11 @@
 
 extern Controller controller;
 
-std::vector<Unit*> units;
-std::vector<City*> cities;
+//std::vector<Unit*> units;
+//std::vector<City*> cities;
+
+std::unordered_map<int, Unit*> units;
+std::unordered_map<int, City*> cities;
 
 extern Map map;
 
@@ -152,15 +155,17 @@ void worldStep(int value)
     if (controller.endofturn)
     {
         controller.endofturn=false;
-        for (auto& u : units) 
+        int initialkey = 0;
+        for (auto& [k, u] : units) 
         {
+            initialkey = k;
             if (u->faction == controller.faction)
             {
                 u->availablemoves = 2;
             }
         }
         year++;
-        controller.controllingid=0;
+        controller.controllingid=initialkey;
     }
 
     CommandOrder co = controller.pop();
@@ -170,16 +175,19 @@ void worldStep(int value)
         city->latitude = units[controller.controllingid]->latitude;
         city->longitude = units[controller.controllingid]->longitude;
         city->faction = units[controller.controllingid]->faction;
-        city->id = 1;           // @FIXME: Get an id assigner for cities.
+        city->id = getNextCityId();
         city->pop = 1;
         
-        cities.push_back(city);
+        cities[city->id] = city;
 
         // @FIXME: Disband the settler unit.
 
         Unit *settler = units[controller.controllingid];
-        units.erase(units.begin()+controller.controllingid);
+        units.erase(controller.controllingid);
         delete settler;
+
+        auto it = units.begin();
+        controller.controllingid = it->first;
 
     }
 

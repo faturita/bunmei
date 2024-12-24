@@ -15,7 +15,7 @@ private:
 public:
 
     // Device ID to be controller.
-    size_t controllingid=CONTROLLING_NONE;
+    int controllingid=CONTROLLING_NONE;
 
     int cityid = -1;
 

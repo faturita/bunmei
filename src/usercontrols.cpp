@@ -10,7 +10,7 @@
 
 
 Controller controller;
-extern std::vector<City*> cities;
+extern std::unordered_map<int, City*> cities;
 extern Map map;
 
 // Mouse offset for camera zoom in and out.
@@ -100,7 +100,7 @@ void processMouse(int button, int state, int x, int y)
                 zoommapin();
             } else {
                 //controller.view = 2;
-                for (auto& c : cities) 
+                for (auto& [k,c] : cities) 
                 {
                     coordinate co = getCurrentCenter();
                     printf("City %d,%d\n",c->latitude, c->longitude);
