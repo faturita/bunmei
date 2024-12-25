@@ -17,7 +17,7 @@ class City
         int shields;
         int food;
 
-
+    void setName(const char* name);
     void virtual draw();
 
     void tick();

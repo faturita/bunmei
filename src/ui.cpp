@@ -10,7 +10,7 @@
 extern float cx;
 extern float cy;
 
-void drawBoundingBox(int cla, int clo, int startleft, int starttop, int endright, int endbottom)
+void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
 {
 
     place((clo + (startleft))*16,(cla + (starttop))*16,16,16,"assets/assets/general/topleft.png");
@@ -48,7 +48,7 @@ void drawCityScreen(int cla, int clo, City *city)
             }
         }
 
-    drawBoundingBox(cla,clo,-3,-3,3,3);
+    drawBoundingBox(clo,cla,-3,-3,3,3);
 
     placeWord(clo + (-10),cla + (-10),4,8,city->name);
 
@@ -57,6 +57,15 @@ void drawCityScreen(int cla, int clo, City *city)
     place((clo + (-10))*16+4,(cla + (-9))*16,8,16,"assets/assets/city/people_content_f.png");
 
     placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
-    drawBoundingBox(cla,clo,-10,-8,-4,-4);
+    drawBoundingBox(clo,cla,-10,-8,-4,-4);
+
+    placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");
+    drawBoundingBox(clo,cla,-10,-3,-4,9);
+
+    placeWord(clo + (4),cla + (-10),4,8,"PALACE");
+    drawBoundingBox(clo,cla,4,-10,9,-1);
+
+    placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
+    drawBoundingBox(clo,cla,4,4,9,9);
 
 }

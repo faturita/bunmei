@@ -600,6 +600,18 @@ void initFactions()
 
 
     units[warrior->id] = warrior;
+
+
+    Settler *settler2 = new Settler();
+    settler2->longitude = c.lon;
+    settler2->latitude = c.lat;
+    settler2->id = 2;
+    settler2->faction = 1;
+    settler2->availablemoves = 2;
+
+
+    units[settler2->id] = settler2;
+
 }
 
 

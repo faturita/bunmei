@@ -1,4 +1,5 @@
 #include "openglutils.h"
+#include "font/FontsBitmap.h"
 #include "map.h"
 #include "City.h"
 
@@ -6,6 +7,11 @@ City::City()
 {
     strncpy(name,"Kattegat",256);
 }
+
+void City::setName(const char* name)
+{
+    strncpy(this->name,name,256);
+}   
 
 void City::draw()
 {
@@ -31,6 +37,7 @@ void City::draw()
         //placeMark(600+16*longitude, 0+16*latitude+1,    8,16,s.c_str());
         place(16*longitude,16*latitude-1,8,16, s.c_str());
     }
+    placeWord((longitude-1),(latitude+1),4,8, name);
 }
 
 void City::tick()
