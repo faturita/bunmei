@@ -651,9 +651,9 @@ void drawUnitsAndCities()
 
     for(auto& f:factions)
     {
+        //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
         f->pop = 0;
     }
-
 
     for (auto& [k, c] : cities) 
     {

@@ -1,8 +1,16 @@
 #include "../openglutils.h"
 #include "../map.h"
+#include "../Faction.h"
 #include "Settler.h"
+
+
+extern std::vector<Faction*> factions;
 
 void Settler::draw()
 {
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/settlers.png");
+    int red = factions[faction]->red;
+    int green = factions[faction]->green;
+    int blue = factions[faction]->blue;
+    
+    placeThisUnit(latitude,longitude,16,"assets/assets/units/settlers.png", red, green, blue);
 }

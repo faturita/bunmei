@@ -63,7 +63,7 @@ void getScreenLocation(float &winX, float &winY, float &winZ, float xx, float zz
 
 void Draw_Texture(double x, double y, double z, double width, double height, double Angle, GLuint texture);
 
-GLuint preloadCityTexture(const char* modelName, int red, int green, int blue);
-GLuint preloadUnitTexture(const char* modelName, int red, int green, int blue);
+GLuint preloadCityTexture(const char* filename, const char* modelName, int red, int green, int blue);
+GLuint preloadUnitTexture(const char* filename, const char* modelName, int red, int green, int blue);
 
 #endif /* OPENGLUTILS_H_ */

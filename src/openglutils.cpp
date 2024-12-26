@@ -946,7 +946,7 @@ GLuint preloadTexture(const char* modelName)
     return _texture;
 }
 
-GLuint preloadUnitTexture(const char* modelName, int red, int green, int blue)
+GLuint preloadUnitTexture(const char* filename, const char* modelName, int red, int green, int blue)
 {
     GLuint _texture;
 
@@ -956,7 +956,7 @@ GLuint preloadUnitTexture(const char* modelName, int red, int green, int blue)
 
         unsigned w,h;
 
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+        lodepng_decode_file(&img, &w, &h, filename, LCT_RGBA, 8);
 
         Image image((char *)img, w, h);
 
@@ -999,7 +999,7 @@ GLuint preloadUnitTexture(const char* modelName, int red, int green, int blue)
     return _texture;
 }
 
-GLuint preloadCityTexture(const char* modelName, int red, int green, int blue)
+GLuint preloadCityTexture(const char* filename, const char* modelName, int red, int green, int blue)
 {
     GLuint _texture;
 
@@ -1009,7 +1009,7 @@ GLuint preloadCityTexture(const char* modelName, int red, int green, int blue)
 
         unsigned w,h;
 
-        lodepng_decode_file(&img, &w, &h, modelName, LCT_RGBA, 8);
+        lodepng_decode_file(&img, &w, &h, filename, LCT_RGBA, 8);
 
         Image image((char *)img, w, h);
 
