@@ -1,7 +1,10 @@
 #include "openglutils.h"
 #include "font/FontsBitmap.h"
+#include "Faction.h"
 #include "map.h"
 #include "City.h"
+
+extern std::vector<Faction*> factions;
 
 City::City()
 {
@@ -15,7 +18,11 @@ void City::setName(const char* name)
 
 void City::draw()
 {
-    placeThisCity(latitude,longitude);
+    int red = factions[faction]->red;
+    int green = factions[faction]->green;
+    int blue = factions[faction]->blue;
+    
+    placeThisCity(latitude,longitude, red,green,blue);
 
     int p = pop / 10;
     int r = pop % 10;

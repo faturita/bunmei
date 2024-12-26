@@ -58,6 +58,7 @@
 #include "map.h"
 #include "hud.h"
 
+#include "Faction.h"
 #include "gamekernel.h"
 
 #include "units/Unit.h"
@@ -70,13 +71,12 @@ extern Controller controller;
 
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
+std::vector<Faction*> factions;
 
 extern Map map;
 
-float horizon = 10000;
-
 int year;
-int pop;
+
 
 
 void disclaimer()
@@ -92,10 +92,9 @@ void setupWorldModelling()
 
     initFactions();
 
-
-    controller.faction = 1;
+    controller.faction = factions[0]->id;
+    controller.controllingid = 1;
     year = -4000;
-    pop = 0;
 
     centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
     zoommapin();
@@ -188,6 +187,8 @@ void worldStep(int value)
 
         auto it = units.begin();
         controller.controllingid = it->first;
+
+        controller.controllingid = nextUnitId(controller.faction);
 
     }
 

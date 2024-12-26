@@ -141,16 +141,16 @@ void placeTile(int x, int y, int size, const char* modelName)
     place(x*16,y*16,size,size,modelName);      // x,y x-> column y-> row  
 }
 
-void placeThisUnit(int lat, int lon, int size, const char* modelName)
+void placeThisUnit(int lat, int lon, int size, const char* modelName, int red, int green, int blue)
 {
-    GLuint _texture = preloadUnitTexture(modelName,255,0,0);
+    GLuint _texture = preloadUnitTexture(modelName,red,green,blue);
     coordinate c = map.to_fixed(lat,lon);
     place(c.lon*16,c.lat*16,size,size,_texture);      // x,y x-> column y-> row  
 }
 
-void placeThisCity(int lat, int lon)
+void placeThisCity(int lat, int lon, int red, int green, int blue)
 {
-    GLuint _texture = preloadCityTexture("assets/assets/map/city_r.png",255,0,0);
+    GLuint _texture = preloadCityTexture("assets/assets/map/city_r.png",red,green,blue);
     coordinate c = map.to_fixed(lat,lon);
     place(c.lon*16,c.lat*16,16,16,_texture);      // x,y x-> column y-> row  
 }

@@ -1,4 +1,4 @@
-
+#include "Faction.h"
 #include "gamekernel.h"
 #include "usercontrols.h"
 #include "map.h"
@@ -19,9 +19,7 @@ std::unordered_map<int, std::vector<int>> resources;
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-
-
-extern int pop;
+extern std::vector<Faction*> factions;
 
 
 void initMap()
@@ -563,54 +561,86 @@ void initMap()
 
 void initFactions()
 {
-    std::vector<coordinate> list;
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for(int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            if (map(lat,lon).code==1)
+
+    Faction *faction = new Faction();
+    faction->id = 0;
+    strcpy(faction->name,"Vikings");
+    faction->red = 255;
+    faction->green = 0;
+    faction->blue = 0;
+    
+    factions.push_back(faction);
+
+    faction = new Faction();
+    faction->id = 1;
+    strcpy(faction->name,"Romans");
+    faction->red = 255;
+    faction->green = 255;
+    faction->blue = 255;
+    
+    factions.push_back(faction);
+
+
+    faction = new Faction();
+    faction->id = 2;
+    strcpy(faction->name,"Greeks");
+    faction->red = 0;
+    faction->green = 0;
+    faction->blue = 255;
+    factions.push_back(faction);
+
+
+    for (auto& f: factions)
+    {
+        std::vector<coordinate> list;
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                list.push_back(coordinate(lat,lon));
+                if (map(lat,lon).code==1)
+                {
+                    list.push_back(coordinate(lat,lon));
+                }
             }
+
+        coordinate c(0,0);
+        if (list.size()>0)
+        {
+            int r = getRandomInteger(0,list.size());
+            c = list[r];
         }
 
-    coordinate c(0,0);
-    if (list.size()>0)
-    {
-        int r = getRandomInteger(0,list.size());
-        c = list[r];
+        Settler *settler = new Settler();
+        settler->longitude = c.lon;
+        settler->latitude = c.lat;
+        settler->id = getNextUnitId();
+        settler->faction = f->id;
+        settler->availablemoves = 2;
+
+
+        units[settler->id] = settler;
+
+
+        Warrior *warrior = new Warrior();
+        warrior->longitude = c.lon;
+        warrior->latitude = c.lat;
+        warrior->id = getNextUnitId();
+        warrior->faction = f->id;
+        warrior->availablemoves = 2;
+
+
+        units[warrior->id] = warrior;
+
+
+        Settler *settler2 = new Settler();
+        settler2->longitude = c.lon;
+        settler2->latitude = c.lat;
+        settler2->id = getNextUnitId();
+        settler2->faction = f->id;
+        settler2->availablemoves = 2;
+
+
+        units[settler2->id] = settler2;
     }
-
-    Settler *settler = new Settler();
-    settler->longitude = c.lon;
-    settler->latitude = c.lat;
-    settler->id = 0;
-    settler->faction = 1;
-    settler->availablemoves = 2;
-
-
-    units[settler->id] = settler;
-
-
-    Warrior *warrior = new Warrior();
-    warrior->longitude = c.lon;
-    warrior->latitude = c.lat;
-    warrior->id = 1;
-    warrior->faction = 1;
-    warrior->availablemoves = 2;
-
-
-    units[warrior->id] = warrior;
-
-
-    Settler *settler2 = new Settler();
-    settler2->longitude = c.lon;
-    settler2->latitude = c.lat;
-    settler2->id = 2;
-    settler2->faction = 1;
-    settler2->availablemoves = 2;
-
-
-    units[settler2->id] = settler2;
 
 }
 
@@ -619,7 +649,12 @@ void drawUnitsAndCities()
 {
     static int count=0;
 
-    pop = 0;
+    for(auto& f:factions)
+    {
+        f->pop = 0;
+    }
+
+
     for (auto& [k, c] : cities) 
     {
         coordinate co = map.to_fixed(c->latitude,c->longitude);
@@ -627,18 +662,15 @@ void drawUnitsAndCities()
         {
             c->draw();
         }
-        pop += c->pop;
+        factions[c->faction]->pop += c->pop;
     }
 
     for (auto& [k,u] : units) 
     {
-        if (u->faction == controller.faction)
-        {
-            coordinate c = map.to_fixed(u->latitude,u->longitude);
-            unfog(c.lat,c.lon);
-            if (controller.controllingid != u->id)
-                u->draw();
-        }
+        coordinate c = map.to_fixed(u->latitude,u->longitude);
+        unfog(c.lat,c.lon);
+        if (controller.controllingid != u->id)
+            u->draw();
     }
 
     // Draw last the unit that you want on top of the stack (selected unit)
@@ -757,4 +789,18 @@ int getNextUnitId()
         if (c->id>nextid) nextid = c->id;
     }
     return nextid+1;
+}
+
+int nextUnitId(int faction)
+{
+    int id = 0;
+    for (auto& [k, c] : units) 
+    {
+        if (c->faction==faction) 
+        {
+            id = c->id;
+            break;
+        }
+    }
+    return id;
 }

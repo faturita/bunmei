@@ -10,7 +10,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = false;      // make it a vector per faction
+        this->visible = true;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;
     }
@@ -172,7 +172,7 @@ void place(int x, int y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int size, const char* modelName);
 void placeTile(int x, int y, const char* modelName);
 void placeTile(int x, int y, int size, const char* modelName);
-void placeThisUnit(int lat, int lon, int size, const char* modelName);
-void placeThisCity(int lat, int lon);
+void placeThisUnit(int lat, int lon, int size, const char* modelName, int red=255, int green=0, int blue=0);
+void placeThisCity(int lat, int lon, int red, int green, int blue);
 
 #endif   // MAP_H

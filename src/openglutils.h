@@ -53,11 +53,7 @@ void drawBlueBox(float x, float y, int sizex, int sizey);
 void drawBoxIsland(GLuint _textureId, float xx, float yy, float zz, float side,float height);
 void drawBoxIsland(float xx, float yy, float zz, float side, float height);
 
-void drawFloor(float x, float y, float z);
-
 void drawLightning();
-
-void drawSky (float x,float y, float z);
 
 void initTextures();
 
