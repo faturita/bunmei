@@ -614,7 +614,7 @@ void initFactions()
         settler->latitude = c.lat;
         settler->id = getNextUnitId();
         settler->faction = f->id;
-        settler->availablemoves = 2;
+        settler->availablemoves = settler->getUnitMoves();
 
 
         units[settler->id] = settler;
@@ -625,7 +625,7 @@ void initFactions()
         warrior->latitude = c.lat;
         warrior->id = getNextUnitId();
         warrior->faction = f->id;
-        warrior->availablemoves = 2;
+        warrior->availablemoves = warrior->getUnitMoves();
 
 
         units[warrior->id] = warrior;
@@ -636,7 +636,7 @@ void initFactions()
         settler2->latitude = c.lat;
         settler2->id = getNextUnitId();
         settler2->faction = f->id;
-        settler2->availablemoves = 2;
+        settler2->availablemoves = settler2->getUnitMoves();
 
 
         units[settler2->id] = settler2;

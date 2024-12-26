@@ -8,6 +8,7 @@
 class Warrior : public Unit
 {
     public:
+    Warrior();
 
     void draw();
 };

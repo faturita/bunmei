@@ -14,7 +14,7 @@ extern std::unordered_map<std::string, GLuint> maptextures;
 extern int year;
 
 extern Controller controller;
-extern std::vector<Unit*> units;
+extern std::unordered_map<int, Unit*> units;
 extern std::vector<Faction*> factions;
 
 
@@ -140,12 +140,13 @@ void drawHUD()
     sprintf (str, "Population:%d",factions[controller.faction]->pop);
     drawString(0,-90,1,str,0.2f);
 
-    placeMark4(10,-110,7*3,"assets/assets/city/bulb.png");
+    sprintf (str, "(%s)",units[controller.controllingid]->name);
+    drawString(0,-120,1,str,0.2f);
 
-    sprintf (str, "Lat, Lon:%d, %d",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-    drawString(0,-140,1,str,0.2f);
+    sprintf (str, "(%d, %d)",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+    drawString(0,-150,1,str,0.2f);
 
-
+    placeMark4(10,-180,7*3,"assets/assets/city/bulb.png");
 
     glPopAttrib();
     glEnable(GL_DEPTH_TEST);

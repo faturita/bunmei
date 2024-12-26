@@ -6,6 +6,12 @@
 
 extern std::vector<Faction*> factions;
 
+Settler::Settler()
+{
+    strcpy(name,"Settler");
+    moves = 2;
+}
+
 void Settler::draw()
 {
     int red = factions[faction]->red;

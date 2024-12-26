@@ -5,6 +5,12 @@
 
 extern std::vector<Faction*> factions;
 
+Warrior::Warrior()
+{
+    strcpy(name,"Warrior");
+    moves = 2;
+}
+
 void Warrior::draw()
 {
     int red = factions[faction]->red;

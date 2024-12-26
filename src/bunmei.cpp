@@ -66,8 +66,6 @@
 
 extern Controller controller;
 
-//std::vector<Unit*> units;
-//std::vector<City*> cities;
 
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
@@ -92,8 +90,9 @@ void setupWorldModelling()
 
     initFactions();
 
-    controller.faction = factions[0]->id;
-    controller.controllingid = 1;
+    controller.faction = factions[1]->id;
+    controller.controllingid = nextUnitId(controller.faction);
+    
     year = -4000;
 
     centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
@@ -154,17 +153,15 @@ void worldStep(int value)
     if (controller.endofturn)
     {
         controller.endofturn=false;
-        int initialkey = 0;
         for (auto& [k, u] : units) 
         {
-            initialkey = k;
             if (u->faction == controller.faction)
             {
-                u->availablemoves = 2;
+                u->availablemoves = u->getUnitMoves();
             }
         }
         year++;
-        controller.controllingid=initialkey;
+        controller.controllingid=nextUnitId(controller.faction);
     }
 
     CommandOrder co = controller.pop();
