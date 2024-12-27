@@ -18,7 +18,7 @@ City::City()
 
 
     tiles[coordinate(0,0)] = 1;     // We are working on the city location.
-    tiles[coordinate(0,1)] = 1;     // We are also working on an extra location because the pop is one.
+    assignWorkingTile();
 
 }
 
@@ -44,7 +44,7 @@ void City::draw()
     {
         s = "assets/assets/general/"+std::to_string(p)+".png";
         //placeMark(600+16*longitude-4, 0+16*latitude+1,    8,16,s.c_str());
-        place(16*longitude-4,16*latitude+1,8,16, s.c_str());
+        place(16*longitude-4,16*latitude-1,8,16, s.c_str());
         s = "assets/assets/general/"+std::to_string(r)+".png";
         //placeMark(600+16*longitude+4, 0+16*latitude+1,    8,16,s.c_str());
         place(16*longitude+4,16*latitude-1,8,16, s.c_str());
@@ -58,6 +58,19 @@ void City::draw()
     placeWord((longitude-1),(latitude+1),4,8, name);
 }
 
+void City::assignWorkingTile()
+{
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            if (!workingOn(lat,lon))
+            {
+                tiles[coordinate(lat,lon)] = 1;
+                return;   
+            }
+        }    
+}
+
 void City::tick()
 {
     // @NOTE: This is the core game logic
@@ -65,8 +78,20 @@ void City::tick()
     {
         printf("Resource %d:%d\n",i,resources[i]);
     }
+
+    if (resources[0]>100)
+    {
+        resources[0] = 0;
+        pop++;
+
+        assignWorkingTile();
+
+        // @FIXME Check what happens when there are no more tiles to work on
+    }
+
 }
 
+// Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
     // @NOTE: Eventually we can add who is working (professions)
@@ -76,5 +101,7 @@ bool City::workingOn(int lat, int lon)
     {
         return true;
     }
+
+    return false;
 
 }

@@ -4,6 +4,7 @@
 #include "font/FontsBitmap.h"
 #include "font/DrawFonts.h"
 #include "map.h"
+#include "resources.h"
 #include "City.h"
 #include "ui.h"
 
@@ -11,6 +12,7 @@ extern float cx;
 extern float cy;
 
 extern Map map;
+extern std::vector<Resource*> resources;
 
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
 {
@@ -54,9 +56,15 @@ void drawCityScreen(int cla, int clo, City *city)
 
     placeWord(clo + (-10),cla + (-10),4,8,city->name);
 
-
-    place((clo + (-10))*16,(cla + (-9))*16,8,16,"assets/assets/city/people_content_m.png");
-    place((clo + (-10))*16+4,(cla + (-9))*16,8,16,"assets/assets/city/people_content_f.png");
+    for(int i=0;i<city->pop;i++)
+    {
+        if (i%2==0)
+            place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,"assets/assets/city/people_content_m.png");
+        else
+            place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,"assets/assets/city/people_content_f.png");
+    }
+    
+    
 
     placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
     drawBoundingBox(clo,cla,-10,-8,-4,-4);
@@ -74,6 +82,9 @@ void drawCityScreen(int cla, int clo, City *city)
     placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
     drawBoundingBox(clo,cla,4,4,9,9);
 
+    for(int i=0;i<city->resources[1];i++)
+        place((clo+(4))*16-4+7*(i%10)  ,(cla+(4))*16-4+7*(i/10)  ,7,7,"assets/assets/city/production.png");
+
 
     for(int lats=-3;lats<=3;lats++)
         for(int lons=-3;lons<=3;lons++)
@@ -81,10 +92,24 @@ void drawCityScreen(int cla, int clo, City *city)
             int la= cla + lats;
             int lo = clo + lons;
 
-            place((lo)*16-4  ,(la)*16-4  ,7,7,"assets/assets/city/food.png");
-            place((lo)*16-4+7,(la)*16-4  ,7,7,"assets/assets/city/food.png");
-            place((lo)*16-4  ,(la)*16-4+7,7,7,"assets/assets/city/production.png");
-            place((lo)*16-4+7,(la)*16-4+7,7,7,"assets/assets/city/trade.png");
+            if (city->workingOn(lats,lons))
+            {
+                // @FIXME: Need to be better implemented
+                for(int i=0;i<map(la,lo).resource_production_rate[0];i++)
+                    place((lo)*16-4+7*i  ,(la)*16-4  ,7,7,resources[0]->assetname);
+
+                int i=0;
+                for(i=0;i<map(la,lo).resource_production_rate[1];i++)
+                    place((lo)*16-4+7*i  ,(la)*16-4+7  ,7,7,resources[1]->assetname);
+
+                for(int j=i;j<map(la,lo).resource_production_rate[2]+i;j++)
+                    place((lo)*16-4+7*j  ,(la)*16-4+7  ,7,7,resources[2]->assetname);
+
+                //place((lo)*16-4  ,(la)*16-4  ,7,7,"assets/assets/city/food.png");
+                //place((lo)*16-4+7,(la)*16-4  ,7,7,"assets/assets/city/food.png");
+                //place((lo)*16-4  ,(la)*16-4+7,7,7,"assets/assets/city/production.png");
+                //place((lo)*16-4+7,(la)*16-4+7,7,7,"assets/assets/city/trade.png");
+            }
         }
 
 }

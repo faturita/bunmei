@@ -29,6 +29,7 @@ class City
     void tick();
 
     bool workingOn(int lat, int lon);
+    void assignWorkingTile();
 
 };
 

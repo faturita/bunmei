@@ -577,6 +577,7 @@ void initResources()
             map(lat,lon).resource_production_rate.push_back(0);
             map(lat,lon).resource_production_rate.push_back(0);
             map(lat,lon).resource_production_rate.push_back(0);
+            map(lat,lon).resource_production_rate[0] = 1;
             if (map(lat,lon).code==1)
             {
                 // @FIXME Adjust the basic production rate of each tile
