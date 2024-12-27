@@ -4,6 +4,7 @@
 #include "map.h"
 #include "ui.h"
 #include "City.h"
+#include "resources.h"
 
 #include "units/Unit.h"
 #include "units/Warrior.h"
@@ -14,12 +15,13 @@ extern Controller controller;
 
 std::unordered_map<int, std::string> tiles;
 Map map;
-std::unordered_map<int, std::vector<int>> resources;
+std::unordered_map<int, std::vector<int>> resourcesxbioma;
 
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
+extern std::vector<Resource*> resources;
 
 
 void initMap()
@@ -247,17 +249,17 @@ void initMap()
     tiles[0x10c] = "assets/assets/terrain/seal.png";
     tiles[0x10d] = "assets/assets/terrain/shield.png";
 
-    resources[0x20] = {0x100,0x108,0x10b,0x10c};
-    resources[0x30] = {0x10a,0x10b};
-    resources[0x40] = {0x107};
-    resources[0x50] = {0x100,0x101,0x102,0x103,0x104,0x105,0x107,0x109,0x10b,0x10d};
-    resources[0x60] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
-    resources[0x70] = {0x102,0x104,0x108,0x10b};
-    resources[0x80] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
-    resources[0x90] = {0x105,0x107,0x109,0x10b,0x10d};
-    resources[0xa0] = {0x106};
-    resources[0xb0] = {0x104,0x108,0x10b};
-    resources[0xc0] = {0x100,0x103,0x104,0x108,0x10b,0x10c};
+    resourcesxbioma[0x20] = {0x100,0x108,0x10b,0x10c};
+    resourcesxbioma[0x30] = {0x10a,0x10b};
+    resourcesxbioma[0x40] = {0x107};
+    resourcesxbioma[0x50] = {0x100,0x101,0x102,0x103,0x104,0x105,0x107,0x109,0x10b,0x10d};
+    resourcesxbioma[0x60] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
+    resourcesxbioma[0x70] = {0x102,0x104,0x108,0x10b};
+    resourcesxbioma[0x80] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
+    resourcesxbioma[0x90] = {0x105,0x107,0x109,0x10b,0x10d};
+    resourcesxbioma[0xa0] = {0x106};
+    resourcesxbioma[0xb0] = {0x104,0x108,0x10b};
+    resourcesxbioma[0xc0] = {0x100,0x103,0x104,0x108,0x10b,0x10c};
 
 
 
@@ -488,7 +490,7 @@ void initMap()
             int lon = resource.lon;
             printf("Resources Location %d,%d\n",lat,lon) ;
 
-            std::vector<int> available_resources = resources[map(lat,lon).bioma];
+            std::vector<int> available_resources = resourcesxbioma[map(lat,lon).bioma];
 
             if (available_resources.size()>0)
             {
@@ -555,6 +557,34 @@ void initMap()
                 if (b3) map.set(lat,lon).bioma = 4;
                 if (b4) map.set(lat,lon).bioma = 5;
 
+            }
+        }
+}
+
+void initResources()
+{
+    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
+    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
+    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
+    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
+    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
+
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            map(lat,lon).resource_production_rate.push_back(0);
+            map(lat,lon).resource_production_rate.push_back(0);
+            map(lat,lon).resource_production_rate.push_back(0);
+            map(lat,lon).resource_production_rate.push_back(0);
+            map(lat,lon).resource_production_rate.push_back(0);
+            if (map(lat,lon).code==1)
+            {
+                // @FIXME Adjust the basic production rate of each tile
+                map(lat,lon).resource_production_rate[0] = 1;
+                map(lat,lon).resource_production_rate[1] = 1;
+                map(lat,lon).resource_production_rate[2] = 1;
+                map(lat,lon).resource_production_rate[3] = 1;
+                map(lat,lon).resource_production_rate[4] = 1;
             }
         }
 }
@@ -693,7 +723,7 @@ void drawUnitsAndCities()
 
 void adjustMovements()
 {
-    if (controller.registers.pitch!=0 || controller.registers.roll !=0)
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
     {
         // Receives real latitude and longitude (contained in the unit)
         int lon = units[controller.controllingid]->longitude;

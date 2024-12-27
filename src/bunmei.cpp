@@ -58,6 +58,7 @@
 #include "map.h"
 #include "hud.h"
 
+#include "resources.h"
 #include "Faction.h"
 #include "gamekernel.h"
 
@@ -70,6 +71,7 @@ extern Controller controller;
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
+std::vector<Resource*> resources;
 
 extern Map map;
 
@@ -87,6 +89,7 @@ void setupWorldModelling()
 {
     initMap();
 
+    initResources();
 
     initFactions();
 
@@ -162,6 +165,32 @@ void worldStep(int value)
         }
         year++;
         controller.controllingid=nextUnitId(controller.faction);
+
+        for (auto& [k, c] : cities) 
+        {
+            // Go through all the map locations and gather all the resources.
+            for(int lat=-3;lat<=3;lat++)
+                for(int lon=-3;lon<=3;lon++)
+                {
+                    if (c->workingOn(lat,lon))
+                    {
+                        // This is the core game logic
+                        for(auto &r:resources)
+                        {
+                            c->resources[r->id] += map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id];
+                        }
+                    }
+                }
+
+
+            // Update summarized city values
+            c->tick();
+        }
+
+
+
+
+
     }
 
     CommandOrder co = controller.pop();
@@ -182,12 +211,18 @@ void worldStep(int value)
         units.erase(controller.controllingid);
         delete settler;
 
-        auto it = units.begin();
-        controller.controllingid = it->first;
-
         controller.controllingid = nextUnitId(controller.faction);
 
     }
+    else if (co.command == Command::DisbandUnitOrder)
+    {
+        Unit *unit = units[controller.controllingid];
+        units.erase(controller.controllingid);
+        delete unit;
+
+        controller.controllingid = nextUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
+    }
+
 
 
 

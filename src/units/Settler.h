@@ -11,6 +11,7 @@ class Settler : public Unit
     Settler();
 
     void draw();
+    bool canBuildCity();
 };
 
 #endif   // SETTLER_H

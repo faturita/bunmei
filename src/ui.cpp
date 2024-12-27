@@ -10,6 +10,8 @@
 extern float cx;
 extern float cy;
 
+extern Map map;
+
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
 {
 
@@ -62,10 +64,27 @@ void drawCityScreen(int cla, int clo, City *city)
     placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");
     drawBoundingBox(clo,cla,-10,-3,-4,9);
 
+    for(int i=0;i<city->resources[0];i++)
+        place((clo+(-10))*16-4+7*(i%10)  ,(cla+(-2))*16-4+7*(i/10)  ,7,7,"assets/assets/city/food.png");
+
+
     placeWord(clo + (4),cla + (-10),4,8,"PALACE");
     drawBoundingBox(clo,cla,4,-10,9,-1);
 
     placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
     drawBoundingBox(clo,cla,4,4,9,9);
+
+
+    for(int lats=-3;lats<=3;lats++)
+        for(int lons=-3;lons<=3;lons++)
+        {
+            int la= cla + lats;
+            int lo = clo + lons;
+
+            place((lo)*16-4  ,(la)*16-4  ,7,7,"assets/assets/city/food.png");
+            place((lo)*16-4+7,(la)*16-4  ,7,7,"assets/assets/city/food.png");
+            place((lo)*16-4  ,(la)*16-4+7,7,7,"assets/assets/city/production.png");
+            place((lo)*16-4+7,(la)*16-4+7,7,7,"assets/assets/city/trade.png");
+        }
 
 }

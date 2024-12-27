@@ -3,6 +3,7 @@
 
 void initMap();
 void initFactions();
+void initResources();
 int getNextCityId();
 int getNextUnitId();
 int nextUnitId(int faction);

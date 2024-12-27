@@ -20,6 +20,7 @@ class Unit
 
     int getUnitMoves();
     void virtual draw();
+    bool virtual canBuildCity();
 
 };
 

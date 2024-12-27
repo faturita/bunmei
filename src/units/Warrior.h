@@ -11,6 +11,7 @@ class Warrior : public Unit
     Warrior();
 
     void draw();
+    bool canBuildCity();
 };
 
 #endif   // WARRIOR_H

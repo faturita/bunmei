@@ -20,3 +20,8 @@ void Settler::draw()
     
     placeThisUnit(latitude,longitude,16,"assets/assets/units/settlers.png", red, green, blue);
 }
+
+bool Settler::canBuildCity()
+{
+    return true;
+}

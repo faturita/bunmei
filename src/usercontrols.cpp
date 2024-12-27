@@ -6,11 +6,13 @@
 #include "profiling.h"
 #include "map.h"
 #include "City.h"
+#include "units/Unit.h"
 #include "usercontrols.h"
 
 
 Controller controller;
 extern std::unordered_map<int, City*> cities;
+extern std::unordered_map<int, Unit*> units;
 extern Map map;
 
 // Mouse offset for camera zoom in and out.
@@ -43,8 +45,18 @@ void handleKeypress(unsigned char key, int x, int y) {
         case ' ':controller.endofturn=true;break;
         case 'b':
         {
+            if (units[controller.controllingid]->canBuildCity())
+            {
+                CommandOrder co;
+                co.command = Command::BuildCityOrder;
+                controller.push(co);
+            }
+        }
+        break;
+        case 'D':
+        {
             CommandOrder co;
-            co.command = Command::BuildCityOrder;
+            co.command = Command::DisbandUnitOrder;
             controller.push(co);
         }
     default:break;

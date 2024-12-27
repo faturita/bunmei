@@ -140,11 +140,14 @@ void drawHUD()
     sprintf (str, "Population:%d",factions[controller.faction]->pop);
     drawString(0,-90,1,str,0.2f);
 
-    sprintf (str, "(%s)",units[controller.controllingid]->name);
-    drawString(0,-120,1,str,0.2f);
+    if (controller.controllingid != CONTROLLING_NONE)
+    {
+        sprintf (str, "(%s)",units[controller.controllingid]->name);
+        drawString(0,-120,1,str,0.2f);
 
-    sprintf (str, "(%d, %d)",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-    drawString(0,-150,1,str,0.2f);
+        sprintf (str, "(%d, %d)",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        drawString(0,-150,1,str,0.2f);
+    }
 
     placeMark4(10,-180,7*3,"assets/assets/city/bulb.png");
 

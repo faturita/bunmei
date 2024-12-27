@@ -19,3 +19,8 @@ int Unit::getUnitMoves()
 {
     return moves;
 }
+
+bool Unit::canBuildCity()
+{
+    return false;
+}

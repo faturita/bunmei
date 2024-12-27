@@ -9,6 +9,17 @@ extern std::vector<Faction*> factions;
 City::City()
 {
     strncpy(name,"Kattegat",256);
+
+    resources.push_back(0);
+    resources.push_back(0);
+    resources.push_back(0);
+    resources.push_back(0);
+    resources.push_back(0);
+
+
+    tiles[coordinate(0,0)] = 1;     // We are working on the city location.
+    tiles[coordinate(0,1)] = 1;     // We are also working on an extra location because the pop is one.
+
 }
 
 void City::setName(const char* name)
@@ -49,10 +60,21 @@ void City::draw()
 
 void City::tick()
 {
-    int seasonshields = 0;
-    for(int lat=-2;lat<=2;lat++)
-        for(int lon=-2;lon<=2;lon++)
-        {
+    // @NOTE: This is the core game logic
+    for(int i=0;i<resources.size();i++)
+    {
+        printf("Resource %d:%d\n",i,resources[i]);
+    }
+}
 
-        }
+bool City::workingOn(int lat, int lon)
+{
+    // @NOTE: Eventually we can add who is working (professions)
+    coordinate c(lat,lon);
+
+    if (tiles.find(c) != tiles.end())
+    {
+        return true;
+    }
+
 }
