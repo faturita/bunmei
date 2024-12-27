@@ -63,6 +63,7 @@
 #include "gamekernel.h"
 
 #include "units/Unit.h"
+#include "units/Settler.h"
 #include "City.h"
 
 extern Controller controller;
@@ -182,13 +183,27 @@ void worldStep(int value)
                     }
                 }
 
+            if (c->resources[1]>50)
+            {
+                c->resources[1] = 0;
+
+                // Production finished...
+                Settler *settler = new Settler();
+                settler->longitude = c->longitude;
+                settler->latitude = c->latitude;
+                settler->id = getNextUnitId();
+                settler->faction = c->faction;
+                settler->availablemoves = settler->getUnitMoves();
+
+
+                units[settler->id] = settler;        
+            }
+
+
 
             // Update summarized city values
             c->tick();
         }
-
-
-
 
 
     }

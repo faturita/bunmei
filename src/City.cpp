@@ -79,6 +79,7 @@ void City::tick()
         printf("Resource %d:%d\n",i,resources[i]);
     }
 
+    // @FIXME: This needs to be some form of exponential progression to balance the rate of growth of the city.
     if (resources[0]>100)
     {
         resources[0] = 0;
