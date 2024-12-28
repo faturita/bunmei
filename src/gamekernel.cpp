@@ -608,7 +608,6 @@ void initFactions()
     faction->red = 255;
     faction->green = 255;
     faction->blue = 255;
-    
     factions.push_back(faction);
 
 
@@ -646,7 +645,6 @@ void initFactions()
         settler->id = getNextUnitId();
         settler->faction = f->id;
         settler->availablemoves = settler->getUnitMoves();
-
 
         units[settler->id] = settler;
 
@@ -798,7 +796,8 @@ void openCityScreen()
     {
         City *city = cities[controller.cityid];
         coordinate co = getCurrentCenter();
-        drawCityScreen(co.lat,co.lon,city);
+        coordinate c = map.to_fixed(city->latitude,city->longitude);
+        drawCityScreen(c.lat,c.lon,city);
     }       
 }
 

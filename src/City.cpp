@@ -5,6 +5,7 @@
 #include "City.h"
 
 extern std::vector<Faction*> factions;
+extern Map map;
 
 City::City()
 {
@@ -35,6 +36,11 @@ void City::draw()
     
     placeThisCity(latitude,longitude, red,green,blue);
 
+    coordinate c = map.to_fixed(latitude,longitude);
+
+    int lon = c.lon;
+    int lat = c.lat;
+
     int p = pop / 10;
     int r = pop % 10;
 
@@ -44,18 +50,18 @@ void City::draw()
     {
         s = "assets/assets/general/"+std::to_string(p)+".png";
         //placeMark(600+16*longitude-4, 0+16*latitude+1,    8,16,s.c_str());
-        place(16*longitude-4,16*latitude-1,8,16, s.c_str());
+        place(16*lon-4,16*lat-1,8,16, s.c_str());
         s = "assets/assets/general/"+std::to_string(r)+".png";
         //placeMark(600+16*longitude+4, 0+16*latitude+1,    8,16,s.c_str());
-        place(16*longitude+4,16*latitude-1,8,16, s.c_str());
+        place(16*lon+4,16*lat-1,8,16, s.c_str());
     } 
     else
     {
         s = "assets/assets/general/"+std::to_string(r)+".png";
         //placeMark(600+16*longitude, 0+16*latitude+1,    8,16,s.c_str());
-        place(16*longitude,16*latitude-1,8,16, s.c_str());
+        place(16*lon,16*lat-1,8,16, s.c_str());
     }
-    placeWord((longitude-1),(latitude+1),4,8, name);
+    placeWord((lon-1),(lat+1),4,8, name);
 }
 
 void City::assignWorkingTile()

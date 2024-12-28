@@ -73,7 +73,7 @@ void drawCityScreen(int cla, int clo, City *city)
     drawBoundingBox(clo,cla,-10,-3,-4,9);
 
     for(int i=0;i<city->resources[0];i++)
-        place((clo+(9))*16-4+7*(i%10)  ,(cla+(-2))*16-4+7*(i/10)  ,7,7,"assets/assets/city/food.png");
+        place((clo+(-10))*16-4+7*(i%10)  ,(cla+(-2))*16-4+7*(i/10)  ,7,7,"assets/assets/city/food.png");
 
 
     placeWord(clo + (4),cla + (-10),4,8,"PALACE");
@@ -83,7 +83,7 @@ void drawCityScreen(int cla, int clo, City *city)
     drawBoundingBox(clo,cla,4,4,9,9);
 
     for(int i=0;i<city->resources[1];i++)
-        place((clo+(5))*16-4+7*(i%10)  ,(cla+(5))*16-4+7*(i/10)  ,7,7,"assets/assets/city/production.png");
+        place((clo+(4))*16-4+7*(i%10)  ,(cla+(4))*16-4+7*(i/10)  ,7,7,"assets/assets/city/production.png");
 
 
     for(int lats=-3;lats<=3;lats++)
