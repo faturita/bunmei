@@ -2,9 +2,9 @@
 #define UNIT_H
 
 #include <iostream>
+#include "../buildable.h"
 
-
-class Unit
+class Unit : public Buildable
 {
     protected:
         int moves;
@@ -21,6 +21,8 @@ class Unit
     int getUnitMoves();
     void virtual draw();
     bool virtual canBuildCity();
+    int virtual cost(int r_id);
+    BuildableType getType();
 
 };
 

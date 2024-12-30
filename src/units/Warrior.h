@@ -14,4 +14,11 @@ class Warrior : public Unit
     bool canBuildCity();
 };
 
+class WarriorFactory : public BuildableFactory
+{
+    public:
+    Warrior* create();
+    virtual int cost(int r_id);
+};
+
 #endif   // WARRIOR_H

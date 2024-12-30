@@ -153,14 +153,15 @@ void  preloadFont(const char* fontName)
     }
 }
 
-void placeWord(float x, float y, int sizex, int sizey, const char* word)
+// x long, y latitude
+void placeWord(float x, float y, int sizex, int sizey, const char* word, int yoffset)
 {
     for(int i=0;i<strlen(word);i++)
     {
         char letter[2];
         letter[0] = word[i];
         letter[1] = '\0';
-        place(x*16+i*sizex,y*16,sizex,sizey,fonts[std::string(letter)]);
+        place(x*16+i*sizex,y*16+yoffset,sizex,sizey,fonts[std::string(letter)]);
     }
 }
 

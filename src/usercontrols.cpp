@@ -7,6 +7,7 @@
 #include "map.h"
 #include "City.h"
 #include "units/Unit.h"
+#include "ui.h"
 #include "usercontrols.h"
 
 
@@ -94,36 +95,58 @@ void processMouse(int button, int state, int x, int y)
     {
         _xoffset = _yoffset = 0;
 
-        // @NOTE: On linux the right button on the touchpad sometimes do not work.
-        if (GLUT_RIGHT_BUTTON == button || GLUT_MIDDLE_BUTTON == button)
+        switch (controller.view)
         {
-            //buttonState = 0;
-            zoommapout();
-        }
-        // set the color to pure red for the left button
-        if (button == GLUT_LEFT_BUTTON) 
-        {
-            //buttonState = 1;
-            CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
-            centermap(x,y);
-
-            if (specialKey == GLUT_ACTIVE_SHIFT)
+            case 1:
             {
-                zoommapin();
-            } else {
-                //controller.view = 2;
-                for (auto& [k,c] : cities) 
+                // @NOTE: On linux the right button on the touchpad sometimes do not work.
+                if (GLUT_RIGHT_BUTTON == button || GLUT_MIDDLE_BUTTON == button)
                 {
-                    coordinate co = getCurrentCenter();
-                    printf("City %d,%d\n",c->latitude, c->longitude);
-                    if (co.lat == c->latitude && co.lon == c->longitude)
+                    //buttonState = 0;
+                    zoommapout();
+                }
+                // set the color to pure red for the left button
+                if (button == GLUT_LEFT_BUTTON) 
+                {
+                    //buttonState = 1;
+                    CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
+                    centermap(x,y);
+
+                    if (specialKey == GLUT_ACTIVE_SHIFT)
                     {
-                        controller.view = 2;
-                        controller.cityid = c->id;
-                        break;
+                        zoommapin();
+                    } else {
+                        //controller.view = 2;
+                        for (auto& [k,c] : cities) 
+                        {
+                            coordinate co = getCurrentCenter();
+                            printf("City %d,%d\n",c->latitude, c->longitude);
+                            if (co.lat == c->latitude && co.lon == c->longitude)
+                            {
+                                controller.view = 2;
+                                controller.cityid = c->id;
+                                break;
+                            }
+                        }
                     }
                 }
+                break;
             }
+            case 2:
+            {
+                if (button == GLUT_LEFT_BUTTON) 
+                {
+                    CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
+                    printf("City %d\n",controller.cityid);
+                    coordinate c = convertToMap(x,y,32);
+                    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
+                    coordinate c2 = convertToMap(x,y,16);
+                    clickOnCityScreen(c.lat,c.lon, c2.lat, c2.lon);
+                }
+            }
+            break;
+            default:
+            break;
         }
     }
         // set the color to pure green for the middle button

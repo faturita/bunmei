@@ -24,3 +24,13 @@ bool Unit::canBuildCity()
 {
     return false;
 }
+
+int Unit::cost(int r_id)
+{
+    return 100;
+}
+
+BuildableType Unit::getType()
+{
+    return BuildableType::UNIT;
+}

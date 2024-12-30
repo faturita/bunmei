@@ -37,6 +37,7 @@ void zoommapout()
         mapzoom--;
 }
 
+
 // Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates., X column, Y row
 void centermap(int ccx, int ccy)  // lon,lat
 {
@@ -68,37 +69,59 @@ void centermap(int ccx, int ccy)  // lon,lat
 
     coordinate c = map.to_offset(lat,lon);
 
-    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
+    //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
 }
 
 // Returns Real Lat,Lon of the current center of the screen (this can be compared to real locations of units and cities)
 coordinate getCurrentCenter()
 {
-    printf("Center %f,%f\n",cx,cy);
+    //printf("Center %f,%f\n",cx,cy);
 
     float dcx = (cx+8)-(width/2-35*16);
     float dcy = (cy+8)-(height/2-20*16);
 
-    printf("Center  adjustd %f,%f\n",dcx,dcy);
+    //printf("Center  adjustd %f,%f\n",dcx,dcy);
 
     int lon = (int)(dcx/16) - 35;
     int lat = (int)(dcy/16) - 20;
 
     coordinate c = map.to_offset(lat,lon);
 
-    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);    
+    //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);    
+
+    return c;
+}
+
+// Convert mouse coordinates into lat,lon map coordinates without any offset adjustment.
+// So clicking on the center of the screen will give 0,0 result, and on the bottom right, +,+
+coordinate convertToMap(int ccx, int ccy, int gridsize)
+{
+    float fccx = ccx/1728.0*width;
+    float fccy = ccy/1117.0*height;
+
+    ccx = fccx;
+    ccy = fccy; 
+
+    float dcx = (ccx+16)-(width/2-35*gridsize);
+    float dcy = (ccy+16)-(height/2-20*gridsize);
+
+    int lon = (int)(dcx/gridsize) - 35;
+    int lat = (int)(dcy/gridsize) - 20;
+
+    //coordinate c = map.to_offset(lat,lon);            // With offset
+    coordinate c(lat,lon);                              // Without offset
 
     return c;
 }
 
 void centermapinmap(int lat, int lon)
 {
-    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",lat,lon);
+    //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",lat,lon);
 
     cx = width/2.0 + lon*16.0;            // 0-1200
     cy = height/2.0 + lat*16.0 ;            // 0-800
 
-    printf("Center %f,%f\n",cx,cy);
+    //printf("Center %f,%f\n",cx,cy);
 }
 
 void unfog(int lat, int lon)

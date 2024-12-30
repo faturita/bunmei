@@ -58,12 +58,19 @@
 #include "map.h"
 #include "hud.h"
 
+#include "buildable.h"
+
 #include "resources.h"
 #include "Faction.h"
 #include "gamekernel.h"
 
+#include "buildings/Building.h"
+#include "buildings/Palace.h"
+#include "buildings/Barracks.h"
+
 #include "units/Unit.h"
 #include "units/Settler.h"
+#include "units/Warrior.h"
 #include "City.h"
 
 extern Controller controller;
@@ -183,24 +190,40 @@ void worldStep(int value)
                     }
                 }
 
-            if (c->resources[1]>50)
+
+            // Peek the production queue.
+            if (c->productionQueue.size()>0)
             {
-                c->resources[1] = 0;
+                BuildableFactory *bf = c->productionQueue.front();
+                if (c->resources[1]>=bf->cost(1))
+                {
+                    c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
 
-                // Production finished...
-                Settler *settler = new Settler();
-                settler->longitude = c->longitude;
-                settler->latitude = c->latitude;
-                settler->id = getNextUnitId();
-                settler->faction = c->faction;
-                settler->availablemoves = settler->getUnitMoves();
+                    // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
+                    c->productionQueue.pop();
+                    Buildable *b = bf->create();
 
+                    if (b->getType() == BuildableType::UNIT)
+                    {
+                        Unit *unit = (Unit*)b;
+                        unit->longitude = c->longitude;
+                        unit->latitude = c->latitude;
+                        unit->id = getNextUnitId();
+                        unit->faction = c->faction;
+                        unit->availablemoves = unit->getUnitMoves();
 
-                units[settler->id] = settler;        
+                        units[unit->id] = unit;  
+                    }
+                    else
+                    {
+                        Building *building = (Building*)b;
+                        building->faction = c->faction;
+                        c->buildings.push_back(building);
+                    }
+    
+                }
             }
-
-
-
+            
             // Update summarized city values
             c->tick();
         }
@@ -217,6 +240,20 @@ void worldStep(int value)
         city->faction = units[controller.controllingid]->faction;
         city->id = getNextCityId();
         city->pop = 1;
+
+        // Buildings already built in the city
+        city->buildings.push_back(new Palace());
+        city->buildings.push_back(new Barracks());
+
+        // What the city can actually build.
+        city->buildable.push_back(new BarracksFactory());
+        city->buildable.push_back(new PalaceFactory());
+        city->buildable.push_back(new SettlerFactory());
+        city->buildable.push_back(new WarriorFactory());
+
+        // We add the Warrior as the first thing to build in the city.
+        city->productionQueue.push(new WarriorFactory());
+
         
         cities[city->id] = city;
 

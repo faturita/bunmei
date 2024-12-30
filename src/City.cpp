@@ -21,6 +21,8 @@ City::City()
     tiles[coordinate(0,0)] = 1;     // We are working on the city location.
     assignWorkingTile();
 
+    isCapital = false;
+
 }
 
 void City::setName(const char* name)
@@ -111,4 +113,14 @@ bool City::workingOn(int lat, int lon)
 
     return false;
 
+}
+
+bool City::isCapitalCity()
+{
+    return isCapital;
+}
+
+void City::setCapitalCity()
+{
+    isCapital = true;
 }

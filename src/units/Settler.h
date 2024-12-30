@@ -14,6 +14,14 @@ class Settler : public Unit
     bool canBuildCity();
 };
 
+class SettlerFactory : public BuildableFactory
+{
+    public:
+    Settler* create();
+    virtual int cost(int r_id);
+};
+
+
 #endif   // SETTLER_H
 
 

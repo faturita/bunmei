@@ -2,16 +2,25 @@
 #define CITY_H
 
 #include <unordered_map>
+#include <queue>
 #include <iostream>
 #include "coordinate.h"
+#include "buildings/Building.h"
 
 class City
 {
     protected:
     std::unordered_map<coordinate, int> tiles;
+
+    bool isCapital;
+
     public:
+    std::queue<BuildableFactory*> productionQueue;              // List of things that are currently being built within THIS particular city.
+    std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
+    std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
+
     std::vector<int> resources;
-    
+
         City();
         int latitude;
         int longitude;
@@ -30,6 +39,8 @@ class City
 
     bool workingOn(int lat, int lon);
     void assignWorkingTile();
+    bool isCapitalCity();
+    void setCapitalCity();
 
 };
 

@@ -24,3 +24,14 @@ bool Warrior::canBuildCity()
 {
     return false;
 }
+
+Warrior* WarriorFactory::create()
+{
+    return new Warrior();
+}
+
+int WarriorFactory::cost(int r_id)
+{
+    return 40;
+}
+

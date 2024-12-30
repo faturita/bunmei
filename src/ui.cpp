@@ -34,7 +34,14 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 
 }
 
-
+void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
+{
+    printf("Click on City Screen %d,%d - %d, %d\n",lat,lon, lat2, lon2);
+    if ((lat==4 && lon==5) || (lat==4 && lon==4))
+    {
+        printf("Change\n"); // Row, Column
+    }
+}
 
 void drawCityScreen(int cla, int clo, City *city)
 {
@@ -52,6 +59,7 @@ void drawCityScreen(int cla, int clo, City *city)
             }
         }
 
+    drawBoundingBox(clo,cla,-10,-10,9,9);
     drawBoundingBox(clo,cla,-3,-3,3,3);
 
     placeWord(clo + (-10),cla + (-10),4,8,city->name);
@@ -76,14 +84,17 @@ void drawCityScreen(int cla, int clo, City *city)
         place((clo+(-10))*16-4+7*(i%10)  ,(cla+(-2))*16-4+7*(i/10)  ,7,7,"assets/assets/city/food.png");
 
 
-    placeWord(clo + (4),cla + (-10),4,8,"PALACE");
+    for(int i=0;i<city->buildings.size();i++)
+    {
+        placeWord(clo + (4),cla + (-10),4,8,city->buildings[i]->name, i*8);
+    }
     drawBoundingBox(clo,cla,4,-10,9,-1);
 
     placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
     drawBoundingBox(clo,cla,4,4,9,9);
 
     for(int i=0;i<city->resources[1];i++)
-        place((clo+(4))*16-4+7*(i%10)  ,(cla+(4))*16-4+7*(i/10)  ,7,7,"assets/assets/city/production.png");
+        place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
 
 
     for(int lats=-3;lats<=3;lats++)

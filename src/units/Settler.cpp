@@ -25,3 +25,14 @@ bool Settler::canBuildCity()
 {
     return true;
 }
+
+Settler* SettlerFactory::create()
+{
+    return new Settler();
+}
+
+int SettlerFactory::cost(int r_id)
+{
+    // @FIXME: Add also the cost in terms of food (and modify the loop to include all the required resources)
+    return 100;
+}
