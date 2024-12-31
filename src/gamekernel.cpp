@@ -233,6 +233,7 @@ void initMap()
     tiles[0xce] = "assets/assets/terrain/tundra_nes.png";
     tiles[0xcf] = "assets/assets/terrain/tundra_nesw.png";
 
+    tiles[0xd0] = "assets/assets/terrain/ocean.png";
 
     tiles[0x100] = "assets/assets/terrain/marble.png"; 
     tiles[0x101] = "assets/assets/terrain/coal.png"; 
@@ -249,6 +250,7 @@ void initMap()
     tiles[0x10c] = "assets/assets/terrain/seal.png";
     tiles[0x10d] = "assets/assets/terrain/shield.png";
 
+    resourcesxbioma[0xd0] = {0x106,0x10b};
     resourcesxbioma[0x20] = {0x100,0x108,0x10b,0x10c};
     resourcesxbioma[0x30] = {0x10a,0x10b};
     resourcesxbioma[0x40] = {0x107};
@@ -358,7 +360,7 @@ void initMap()
             }
         }
 
-    // Pick the biomas.
+    // Pick the land biomas.
     for(int i=0;i<100;i++)
     {
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
@@ -383,7 +385,17 @@ void initMap()
         }
     }
 
-    // First lets pick the river sources
+    // Set the single water bioma.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map(lat,lon).code==0)
+            {
+                map.set(lat,lon).bioma = 0xd0;
+            }
+        }
+
+    // Pick the river sources.
     std::vector<coordinate> riversources;
 
     for(int i=0;i<100;i++)
@@ -394,12 +406,11 @@ void initMap()
         if (map(lat,lon).code==1)
         {
             riversources.push_back(coordinate(lat,lon));
-            
         }
     }
 
 
-    // Put the rivers
+    // Follow the sources and paint the rivers until they reach the ocean.
     for(auto &river:riversources)
     {
         int lat = river.lat;
@@ -469,7 +480,7 @@ void initMap()
         }
     }
 
-        // First lets pick the river sources
+    // Now, pick several places where to put special resources.
     std::vector<coordinate> resourcelocations;
 
     for(int i=0;i<300;i++)
@@ -484,11 +495,25 @@ void initMap()
         }
     }
 
+    // Pick water spots where to put some resources.
+    for(int i=0;i<50;i++)
+    {
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
+
+        if (map(lat,lon).code==0)
+        {
+            resourcelocations.push_back(coordinate(lat,lon));
+            
+        }
+    }
+
+    // Now go through all the resource locations and pick a resource for each one.
     for(auto &resource:resourcelocations)
         {
             int lat = resource.lat;
             int lon = resource.lon;
-            printf("Resources Location %d,%d\n",lat,lon) ;
+            printf("Resources Location Code %d  Bioma %d @ %d,%d\n",map(lat,lon).code, map(lat,lon).bioma, lat,lon) ;
 
             std::vector<int> available_resources = resourcesxbioma[map(lat,lon).bioma];
 
@@ -504,8 +529,7 @@ void initMap()
     //map.set(-8,-4).code = 0;
     //map.set(-8,-4).bioma = 0xa0;
 
-
-
+    //map.set(4,4).resource = 0x106;
 
 
 
@@ -577,8 +601,14 @@ void initResources()
             map(lat,lon).resource_production_rate.push_back(0);
             map(lat,lon).resource_production_rate.push_back(0);
             map(lat,lon).resource_production_rate.push_back(0);
-            map(lat,lon).resource_production_rate[0] = 1;
-            if (map(lat,lon).code==1)
+
+            if (map(lat,lon).code==0)       // Water
+            {
+                map(lat,lon).resource_production_rate[0] = 1;
+                if (map(lat,lon).resource==0x106) map(lat,lon).resource_production_rate[0] = 3;
+            }
+            else
+            if (map(lat,lon).code==1)       // Land
             {
                 // @FIXME Adjust the basic production rate of each tile
                 map(lat,lon).resource_production_rate[0] = 1;
@@ -586,6 +616,12 @@ void initResources()
                 map(lat,lon).resource_production_rate[2] = 1;
                 map(lat,lon).resource_production_rate[3] = 1;
                 map(lat,lon).resource_production_rate[4] = 1;
+
+                printf("Bioma %x\n",map(lat,lon).bioma);
+                if (map(lat,lon).bioma/16==0x5) // Grassland
+                {
+                    map(lat,lon).resource_production_rate[0] = 3;
+                }
             }
         }
 }

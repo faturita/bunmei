@@ -39,8 +39,10 @@ class City
 
     bool workingOn(int lat, int lon);
     void assignWorkingTile();
+    void assignWorkingTile(coordinate c);
     bool isCapitalCity();
     void setCapitalCity();
+
 
 };
 

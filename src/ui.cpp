@@ -39,6 +39,9 @@ bool changeIsActive = false;
 int selection = -1;
 int baselat = 11;
 
+coordinate clickedTile(0,0);
+bool tileWorkingIsActive = false;
+
 void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
 {
     printf("Click on City Screen %d,%d - %d, %d\n",lat,lon, lat2, lon2);
@@ -55,6 +58,14 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         selection = lat2 - baselat;
         printf("Selection %d\n",selection);
     }
+
+    if ((lat>-3 || lat<3) && (lon>-3 || lon<3))
+    {
+        printf("Tile Working....\n");
+        tileWorkingIsActive = true;
+        clickedTile = coordinate(lat,lon);
+    }
+
 
 }
 
@@ -143,6 +154,15 @@ void drawCityScreen(int cla, int clo, City *city)
         }
     }
 
+
+
+    if (tileWorkingIsActive)
+    {
+        city->assignWorkingTile(clickedTile);
+        tileWorkingIsActive = false;
+    }
+
+
     for(int lats=-3;lats<=3;lats++)
         for(int lons=-3;lons<=3;lons++)
         {
@@ -151,7 +171,15 @@ void drawCityScreen(int cla, int clo, City *city)
 
             if (city->workingOn(lats,lons))
             {
-                // @FIXME: Need to be better implemented
+                // @FIXME: Layout of resources per tile Needs to be better implemented
+
+
+                // @NOTE: The algorithm seems to be like this.  Pick all the resources
+                //   in this order:  Food, Production, Trade, Gold, Science, and whatever is left
+                //   Then accumulate all the resources, divide them in two rows, and place them
+                //   based on the allowed distance.  The maximimun is then 16 times 2, which is 32.
+
+
                 for(int i=0;i<map(la,lo).resource_production_rate[0];i++)
                     place((lo)*16-4+7*i  ,(la)*16-4  ,7,7,resources[0]->assetname);
 

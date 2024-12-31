@@ -79,6 +79,19 @@ void City::assignWorkingTile()
         }    
 }
 
+void City::assignWorkingTile(coordinate c)
+{
+    if (c.lat < -3 || c.lat > 3 || c.lon < -3 || c.lon > 3 || (c.lat == 0 && c.lon == 0))
+    {
+        return;
+    }
+
+    if (!workingOn(c.lat,c.lon) && tiles.size()<(pop+1))        // Everybody can work on the fields (on the available fields)
+        tiles[c] = 1;
+    else
+        tiles.erase(c);
+}
+
 void City::tick()
 {
     // @NOTE: This is the core game logic
