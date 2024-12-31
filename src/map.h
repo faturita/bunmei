@@ -156,6 +156,7 @@ class Map
 
 void drawMap();
 
+void resetzoom();
 void zoommapin();
 void zoommapout();
 // Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates.

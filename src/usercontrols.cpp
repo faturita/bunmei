@@ -8,6 +8,7 @@
 #include "City.h"
 #include "units/Unit.h"
 #include "ui.h"
+#include "gamekernel.h"
 #include "usercontrols.h"
 
 
@@ -44,6 +45,18 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
         case ' ':controller.endofturn=true;break;
+        case 'C':
+        {
+            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            resetzoom();
+        }
+        break;
+        case 9:
+        {
+            controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
+            printf("Controlling %d\n",controller.controllingid);
+        }
+        break;
         case 'b':
         {
             if (units[controller.controllingid]->canBuildCity())

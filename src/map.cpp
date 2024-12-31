@@ -37,6 +37,10 @@ void zoommapout()
         mapzoom--;
 }
 
+void resetzoom()
+{
+    mapzoom = 2;
+}
 
 // Get Screen X,Y coordinate where the user clicked and convert it to opengl coordinates., X column, Y row
 void centermap(int ccx, int ccy)  // lon,lat

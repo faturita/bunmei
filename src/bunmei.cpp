@@ -153,90 +153,8 @@ void drawScene()
     glutSwapBuffers();
 }
 
-
-
-
-void worldStep(int value)
+inline void processCommandOrders()
 {
-    // Derive the control to the correct object
-    if (controller.isInterrupted())
-    {
-        exit(0);
-    }
-
-    if (controller.endofturn)
-    {
-        controller.endofturn=false;
-        for (auto& [k, u] : units) 
-        {
-            if (u->faction == controller.faction)
-            {
-                u->availablemoves = u->getUnitMoves();
-            }
-        }
-        year++;
-        controller.controllingid=nextUnitId(controller.faction);
-
-        for (auto& [k, c] : cities) 
-        {
-            // Pick two food items per one population and gather the rest.
-            // If granary is present the amount of food that is required to increase the population is half.
-
-            // Go through all the map locations and gather all the resources.
-            for(int lat=-3;lat<=3;lat++)
-                for(int lon=-3;lon<=3;lon++)
-                {
-                    if (c->workingOn(lat,lon))
-                    {
-                        // This is the core game logic
-                        for(auto &r:resources)
-                        {
-                            c->resources[r->id] += map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id];
-                        }
-                    }
-                }
-
-
-            // Peek the production queue.
-            if (c->productionQueue.size()>0)
-            {
-                BuildableFactory *bf = c->productionQueue.front();
-                if (c->resources[1]>=bf->cost(1))
-                {
-                    c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
-
-                    // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
-                    c->productionQueue.pop();
-                    Buildable *b = bf->create();
-
-                    if (b->getType() == BuildableType::UNIT)
-                    {
-                        Unit *unit = (Unit*)b;
-                        unit->longitude = c->longitude;
-                        unit->latitude = c->latitude;
-                        unit->id = getNextUnitId();
-                        unit->faction = c->faction;
-                        unit->availablemoves = unit->getUnitMoves();
-
-                        units[unit->id] = unit;  
-                    }
-                    else
-                    {
-                        Building *building = (Building*)b;
-                        building->faction = c->faction;
-                        c->buildings.push_back(building);
-                    }
-    
-                }
-            }
-            
-            // Update summarized city values
-            c->tick();
-        }
-
-
-    }
-
     CommandOrder co = controller.pop();
     if (co.command == Command::BuildCityOrder)
     {
@@ -275,7 +193,7 @@ void worldStep(int value)
         units.erase(controller.controllingid);
         delete settler;
 
-        controller.controllingid = nextUnitId(controller.faction);
+        controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
 
     }
     else if (co.command == Command::DisbandUnitOrder)
@@ -284,10 +202,132 @@ void worldStep(int value)
         units.erase(controller.controllingid);
         delete unit;
 
-        controller.controllingid = nextUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
+        controller.controllingid = nextMovableUnitId(controller.faction,controller.controllingid);  //@FIXME: There could be the case that there are no more units.
+    }    
+}
+
+inline void endOfYear()
+{
+    year++;
+    for (auto& [k, u] : units) 
+    {
+        u->availablemoves = u->getUnitMoves();
+    }
+    controller.controllingid=nextUnitId(controller.faction);
+
+    for (auto& [k, c] : cities) 
+    {
+        // Pick two food items per one population and gather the rest.
+        // If granary is present the amount of food that is required to increase the population is half.
+
+        // Go through all the map locations and gather all the resources.
+        for(int lat=-3;lat<=3;lat++)
+            for(int lon=-3;lon<=3;lon++)
+            {
+                if (c->workingOn(lat,lon))
+                {
+                    // This is the core game logic
+                    for(auto &r:resources)
+                    {
+                        c->resources[r->id] += map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id];
+                    }
+                }
+            }
+
+
+        // Peek the production queue.
+        if (c->productionQueue.size()>0)
+        {
+            BuildableFactory *bf = c->productionQueue.front();
+            if (c->resources[1]>=bf->cost(1))
+            {
+                c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
+
+                // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
+                c->productionQueue.pop();
+                Buildable *b = bf->create();
+
+                if (b->getType() == BuildableType::UNIT)
+                {
+                    Unit *unit = (Unit*)b;
+                    unit->longitude = c->longitude;
+                    unit->latitude = c->latitude;
+                    unit->id = getNextUnitId();
+                    unit->faction = c->faction;
+                    unit->availablemoves = unit->getUnitMoves();
+
+                    units[unit->id] = unit;  
+                }
+                else
+                {
+                    Building *building = (Building*)b;
+                    building->faction = c->faction;
+                    c->buildings.push_back(building);
+                }
+
+            }
+        }
+        
+        // Update summarized city values
+        c->tick();
+    }
+    for(auto& f:factions)
+    {
+        f->ready();
+    }
+}
+
+inline bool endOfTurnForAllFactions()
+{
+    for(auto& f:factions)
+    {
+        if (!f->isDone())
+            return false;
+    }
+    return true;
+}
+
+void worldStep(int value)
+{
+    // Derive the control to the correct object
+    if (controller.isInterrupted())
+    {
+        exit(0);
     }
 
+    if (controller.endofturn)
+    {
+        controller.endofturn=false;
+        factions[controller.faction]->done();
 
+        // Reset all the remaining available moves for all the units that belong to the controller faction.
+        for (auto& [k, u] : units) 
+        {
+            if (u->faction == controller.faction) u->availablemoves = 0;
+        }
+
+        if (controller.faction<2) 
+        {
+            controller.faction++;
+            controller.controllingid=nextUnitId(controller.faction);
+            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        }
+        else
+        {
+            controller.faction=0;
+            controller.controllingid=nextUnitId(controller.faction);
+            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        }
+    }
+
+    if (endOfTurnForAllFactions())
+    {
+        // Let all the other factions play.
+        
+        endOfYear();
+    }
+
+    processCommandOrders();
 
 
     glutPostRedisplay();

@@ -834,3 +834,18 @@ int nextUnitId(int faction)
     }
     return id;
 }
+
+int nextMovableUnitId(int faction, int currentid)
+{
+    // @FIXME: Implement a circular queue to manage this
+    int id = 0;
+    for (auto& [k, c] : units) 
+    {
+        if (c->faction==faction && c->availablemoves>0 && (currentid != c->id)) 
+        {
+            id = c->id;
+            return id;
+        }
+    }
+    return id;
+}
