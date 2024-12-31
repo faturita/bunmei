@@ -31,6 +31,11 @@ Settler* SettlerFactory::create()
     return new Settler();
 }
 
+SettlerFactory::SettlerFactory()
+{
+    strncpy(this->name,"Settler",256);  
+}
+
 int SettlerFactory::cost(int r_id)
 {
     // @FIXME: Add also the cost in terms of food (and modify the loop to include all the required resources)

@@ -12,7 +12,8 @@ class Barracks : public Building
 class BarracksFactory : public BuildableFactory
 {
     public:
-    Barracks* create();
+    BarracksFactory();
+    virtual Buildable* create();
     virtual int cost(int r_id);
 };
 

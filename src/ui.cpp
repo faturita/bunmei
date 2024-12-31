@@ -34,13 +34,28 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 
 }
 
+// @FIXME: This is super ugly, but it works for now.
+bool changeIsActive = false;
+int selection = -1;
+int baselat = 11;
+
 void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
 {
     printf("Click on City Screen %d,%d - %d, %d\n",lat,lon, lat2, lon2);
     if ((lat==4 && lon==5) || (lat==4 && lon==4))
     {
         printf("Change\n"); // Row, Column
+        changeIsActive = true;
+        if (lat2==8) baselat = 10;
+        else baselat = 11;
     }
+
+    if (changeIsActive)
+    {
+        selection = lat2 - baselat;
+        printf("Selection %d\n",selection);
+    }
+
 }
 
 void drawCityScreen(int cla, int clo, City *city)
@@ -87,15 +102,46 @@ void drawCityScreen(int cla, int clo, City *city)
     for(int i=0;i<city->buildings.size();i++)
     {
         placeWord(clo + (4),cla + (-10),4,8,city->buildings[i]->name, i*8);
+        place((clo + (7))*16  ,(cla + (-10))*16+8*i  ,24,8,city->buildings[i]->assetname);
     }
     drawBoundingBox(clo,cla,4,-10,9,-1);
 
     placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
+    if (city->productionQueue.size()>0)
+    {
+        BuildableFactory *bf = city->productionQueue.front();
+        placeWord(clo + (7),cla + (4),4,8,bf->name);
+    }
+    else
+    {
+        placeWord(clo + (7),cla + (4),4,8,"Nothing");
+    }
     drawBoundingBox(clo,cla,4,4,9,9);
 
-    for(int i=0;i<city->resources[1];i++)
-        place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
-
+    if (changeIsActive)
+    {
+        int i=0;
+        for(auto it=city->buildable.begin();it!=city->buildable.end();it++)
+        {
+            BuildableFactory *bf = *it;
+            placeWord(clo + (4),cla + (5),4,8,bf->name, (i)*8);
+            if (selection>=0 && selection == i)
+            {
+                while (!city->productionQueue.empty()) city->productionQueue.pop();
+                city->productionQueue.push(city->buildable[i]);
+                changeIsActive = false;
+                selection = -1;
+            }
+            i++;
+        }
+    }
+    else
+    {
+        for(int i=0;i<city->resources[1];i++)
+        {
+            place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
+        }
+    }
 
     for(int lats=-3;lats<=3;lats++)
         for(int lons=-3;lons<=3;lons++)

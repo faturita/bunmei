@@ -17,6 +17,7 @@ class Warrior : public Unit
 class WarriorFactory : public BuildableFactory
 {
     public:
+    WarriorFactory();
     Warrior* create();
     virtual int cost(int r_id);
 };

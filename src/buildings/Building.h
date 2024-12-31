@@ -7,10 +7,11 @@
 class Building : public Buildable
 {
     public:
+    Building();
     int faction;
     char name[256];
+    char assetname[256];
     void setName(const char* name);
-    int virtual cost(int r_id);
     BuildableType getType();
 };
 

@@ -3,16 +3,23 @@
 Palace::Palace()
 {
     strcpy(name,"Palace");
+    strncpy(this->assetname,"assets/assets/city/palace.png",256);
 }
 
-Palace* PalaceFactory::create()
+// --------------------------------------------------------
+Buildable* PalaceFactory::create()
 {
     Palace* p = new Palace();
     return p;
 }
 
+PalaceFactory::PalaceFactory()
+{
+    strncpy(this->name,"Palace",256);
+}
+
 int PalaceFactory::cost(int r_id)
 {
-    return 1000;
+    return 10000;
 }
 

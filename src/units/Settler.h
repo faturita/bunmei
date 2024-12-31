@@ -17,6 +17,7 @@ class Settler : public Unit
 class SettlerFactory : public BuildableFactory
 {
     public:
+    SettlerFactory();
     Settler* create();
     virtual int cost(int r_id);
 };

@@ -67,10 +67,13 @@
 #include "buildings/Building.h"
 #include "buildings/Palace.h"
 #include "buildings/Barracks.h"
+#include "buildings/Granary.h"
 
 #include "units/Unit.h"
 #include "units/Settler.h"
 #include "units/Warrior.h"
+#include "units/Horseman.h"
+#include "units/Worker.h"
 #include "City.h"
 
 extern Controller controller;
@@ -101,7 +104,7 @@ void setupWorldModelling()
 
     initFactions();
 
-    controller.faction = factions[1]->id;
+    controller.faction = factions[0]->id;
     controller.controllingid = nextUnitId(controller.faction);
     
     year = -4000;
@@ -176,6 +179,9 @@ void worldStep(int value)
 
         for (auto& [k, c] : cities) 
         {
+            // Pick two food items per one population and gather the rest.
+            // If granary is present the amount of food that is required to increase the population is half.
+
             // Go through all the map locations and gather all the resources.
             for(int lat=-3;lat<=3;lat++)
                 for(int lon=-3;lon<=3;lon++)
@@ -241,15 +247,21 @@ void worldStep(int value)
         city->id = getNextCityId();
         city->pop = 1;
 
-        // Buildings already built in the city
-        city->buildings.push_back(new Palace());
-        city->buildings.push_back(new Barracks());
+        if (city->id==1)
+        {
+            city->setCapitalCity();
+            // Buildings already built in the city
+            city->buildings.push_back(new Palace());
+        }
 
         // What the city can actually build.
         city->buildable.push_back(new BarracksFactory());
         city->buildable.push_back(new PalaceFactory());
         city->buildable.push_back(new SettlerFactory());
+        city->buildable.push_back(new GranaryFactory());
         city->buildable.push_back(new WarriorFactory());
+        city->buildable.push_back(new WorkerFactory());
+        city->buildable.push_back(new HorsemanFactory());
 
         // We add the Warrior as the first thing to build in the city.
         city->productionQueue.push(new WarriorFactory());

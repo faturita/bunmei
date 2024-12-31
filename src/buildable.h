@@ -13,6 +13,7 @@ class Buildable {
 
 class BuildableFactory {
 public:
+    char name[256];
     virtual int cost(int r_id) = 0;
     virtual Buildable* create() = 0;
 };

@@ -12,7 +12,8 @@ class Palace : public Building
 class PalaceFactory : public BuildableFactory
 {
     public:
-    Palace* create();
+    PalaceFactory();
+    virtual Buildable* create();
     virtual int cost(int r_id);
 };
 
