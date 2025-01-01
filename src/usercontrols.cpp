@@ -47,7 +47,9 @@ void handleKeypress(unsigned char key, int x, int y) {
         case ' ':controller.endofturn=true;break;
         case 'C':
         {
-            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            c = map.to_fixed(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);
             resetzoom();
         }
         break;

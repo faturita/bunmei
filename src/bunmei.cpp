@@ -310,13 +310,17 @@ void worldStep(int value)
         {
             controller.faction++;
             controller.controllingid=nextUnitId(controller.faction);
-            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            c = map.to_fixed(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);            
         }
         else
         {
             controller.faction=0;
             controller.controllingid=nextUnitId(controller.faction);
-            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            c = map.to_fixed(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);
         }
     }
 

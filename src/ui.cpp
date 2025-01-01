@@ -178,17 +178,38 @@ void drawCityScreen(int cla, int clo, City *city)
                 //   in this order:  Food, Production, Trade, Gold, Science, and whatever is left
                 //   Then accumulate all the resources, divide them in two rows, and place them
                 //   based on the allowed distance.  The maximimun is then 16 times 2, which is 32.
+                std::vector<Resource*> resourcesToDisplay;
+
+                for(int i=0;i<resources.size();i++)
+                {
+                    for(int j=0;j<map(la,lo).resource_production_rate[i];j++)
+                    {
+                        resourcesToDisplay.push_back(resources[i]);
+                    }
+                }
+
+                printf("Resources to display per tile: %d\n",resourcesToDisplay.size());
+                int resperrow = ceil((float)resourcesToDisplay.size()/2.0);
+                int colsepar = clipInt(16/resperrow,1,7);//3
+
+                printf("Resperrow and colsepar %d %d\n",resperrow,colsepar);
+
+                for(int i=0;i<resourcesToDisplay.size();i++)
+                {
+                    printf("Resource %d %s\n",i,resourcesToDisplay[i]->name);
+                    place((lo)*16-4+colsepar*(i%resperrow)  ,(la)*16-4+7*(i/resperrow)  ,7,7,resourcesToDisplay[i]->assetname);
+                }
 
 
-                for(int i=0;i<map(la,lo).resource_production_rate[0];i++)
-                    place((lo)*16-4+7*i  ,(la)*16-4  ,7,7,resources[0]->assetname);
+                //for(int i=0;i<map(la,lo).resource_production_rate[0];i++)
+                //    place((lo)*16-4+7*i  ,(la)*16-4  ,7,7,resources[0]->assetname);
 
-                int i=0;
-                for(i=0;i<map(la,lo).resource_production_rate[1];i++)
-                    place((lo)*16-4+7*i  ,(la)*16-4+7  ,7,7,resources[1]->assetname);
+                //int i=0;
+                //for(i=0;i<map(la,lo).resource_production_rate[1];i++)
+                //    place((lo)*16-4+7*i  ,(la)*16-4+7  ,7,7,resources[1]->assetname);
 
-                for(int j=i;j<map(la,lo).resource_production_rate[2]+i;j++)
-                    place((lo)*16-4+7*j  ,(la)*16-4+7  ,7,7,resources[2]->assetname);
+                //for(int j=i;j<map(la,lo).resource_production_rate[2]+i;j++)
+                //    place((lo)*16-4+7*j  ,(la)*16-4+7  ,7,7,resources[2]->assetname);
 
                 //place((lo)*16-4  ,(la)*16-4  ,7,7,"assets/assets/city/food.png");
                 //place((lo)*16-4+7,(la)*16-4  ,7,7,"assets/assets/city/food.png");

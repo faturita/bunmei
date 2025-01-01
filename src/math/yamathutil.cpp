@@ -240,6 +240,14 @@ float min(float val1, float val2)
     else return val2;
 }
 
+int clipInt(int val, int min, int max)
+{
+    if (val<min) return min;
+    if (val>max) return max;
+    return val;
+}
+
+
 /**
  * https://barrgroup.com/embedded-systems/how-to/crc-calculation-c-code
  *

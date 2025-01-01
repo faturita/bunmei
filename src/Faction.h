@@ -6,6 +6,7 @@ class Faction {
         bool doneThisTurn;
     public:
         int pop;
+        int gold;
         char name[256];
         int id;
         int red, green, blue;
