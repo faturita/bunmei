@@ -221,18 +221,16 @@ inline void endOfYear()
         // If granary is present the amount of food that is required to increase the population is half.
 
         // Go through all the map locations and gather all the resources.
-        for(int lat=-3;lat<=3;lat++)
-            for(int lon=-3;lon<=3;lon++)
-            {
-                if (c->workingOn(lat,lon))
-                {
-                    // This is the core game logic
-                    for(auto &r:resources)
-                    {
-                        c->resources[r->id] += map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id];
-                    }
-                }
-            }
+        for(auto &r:resources)
+        {
+            c->resources[r->id] += c->getProductionRate(r->id);
+        }
+
+        // Reduce the number of resources according to what is required now.
+        for(auto &r:resources)
+        {
+            c->resources[r->id] -= c->getConsumptionRate(r->id);
+        }
 
 
         // Peek the production queue.
@@ -268,8 +266,26 @@ inline void endOfYear()
             }
         }
         
-        // Update summarized city values
-        c->tick();
+        // Balance city population according to available resources.
+        if (c->resources[0]>100)
+        {
+            c->resources[0] = 0;
+            c->pop++;
+
+            c->assignWorkingTile();
+        } else 
+        if (c->resources[0]<0)
+        {
+            c->resources[0] = 0;
+
+            if (c->pop>1)
+            {
+                c->pop--;
+                c->deAssigntWorkingTile();
+            }
+
+        }
+
     }
     for(auto& f:factions)
     {
@@ -310,13 +326,17 @@ void worldStep(int value)
         {
             controller.faction++;
             controller.controllingid=nextUnitId(controller.faction);
-            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            c = map.to_fixed(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);            
         }
         else
         {
             controller.faction=0;
             controller.controllingid=nextUnitId(controller.faction);
-            centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+            c = map.to_fixed(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);
         }
     }
 

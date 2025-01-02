@@ -606,21 +606,31 @@ void initResources()
             {
                 map(lat,lon).resource_production_rate[0] = 1;
                 if (map(lat,lon).resource==0x106) map(lat,lon).resource_production_rate[0] = 3;
+                if (map(lat,lon).resource==0x10b) map(lat,lon).resource_production_rate[1] = 2;
             }
             else
             if (map(lat,lon).code==1)       // Land
             {
                 // @FIXME Adjust the basic production rate of each tile
                 map(lat,lon).resource_production_rate[0] = 1;
-                map(lat,lon).resource_production_rate[1] = 1;
-                map(lat,lon).resource_production_rate[2] = 1;
-                map(lat,lon).resource_production_rate[3] = 1;
-                map(lat,lon).resource_production_rate[4] = 1;
 
                 printf("Bioma %x\n",map(lat,lon).bioma);
+                if (map(lat,lon).code == 1 && map(lat,lon).bioma == 0x00) // Regular land
+                {
+                    map(lat,lon).resource_production_rate[0] = 2;
+                }
                 if (map(lat,lon).bioma/16==0x5) // Grassland
                 {
                     map(lat,lon).resource_production_rate[0] = 3;
+                }
+                if (map(lat,lon).bioma/16==0xa) // River
+                {
+                    map(lat,lon).resource_production_rate[0] = 4;
+                }
+                if (map(lat,lon).bioma/16==0x3) // Desert
+                {
+                    map(lat,lon).resource_production_rate[0] = 1;
+
                 }
             }
         }
