@@ -35,11 +35,10 @@ class City
     void setName(const char* name);
     void virtual draw();
 
-    void tick();
-
     bool workingOn(int lat, int lon);
     void assignWorkingTile();
     void assignWorkingTile(coordinate c);
+    void deAssigntWorkingTile();
     bool isCapitalCity();
     void setCapitalCity();
 

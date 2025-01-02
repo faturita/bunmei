@@ -188,15 +188,15 @@ void drawCityScreen(int cla, int clo, City *city)
                     }
                 }
 
-                printf("Resources to display per tile: %d\n",resourcesToDisplay.size());
+                //printf("Resources to display per tile: %d\n",resourcesToDisplay.size());
                 int resperrow = ceil((float)resourcesToDisplay.size()/2.0);
                 int colsepar = clipInt(16/resperrow,1,7);//3
 
-                printf("Resperrow and colsepar %d %d\n",resperrow,colsepar);
+                //printf("Resperrow and colsepar %d %d\n",resperrow,colsepar);
 
                 for(int i=0;i<resourcesToDisplay.size();i++)
                 {
-                    printf("Resource %d %s\n",i,resourcesToDisplay[i]->name);
+                    //printf("Resource %d %s\n",i,resourcesToDisplay[i]->name);
                     place((lo)*16-4+colsepar*(i%resperrow)  ,(la)*16-4+7*(i/resperrow)  ,7,7,resourcesToDisplay[i]->assetname);
                 }
 

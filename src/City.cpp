@@ -79,6 +79,19 @@ void City::assignWorkingTile()
         }    
 }
 
+void City::deAssigntWorkingTile()
+{
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            if (workingOn(lat,lon) && lat!=0 && lon!=0 && tiles.size()>(pop+1))
+            {
+                tiles.erase(coordinate(lat,lon));
+                return;   
+            }
+        }    
+}
+
 void City::assignWorkingTile(coordinate c)
 {
     if (c.lat < -3 || c.lat > 3 || c.lon < -3 || c.lon > 3 || (c.lat == 0 && c.lon == 0))
@@ -90,27 +103,6 @@ void City::assignWorkingTile(coordinate c)
         tiles[c] = 1;
     else
         tiles.erase(c);
-}
-
-void City::tick()
-{
-    // @NOTE: This is the core game logic
-    for(int i=0;i<resources.size();i++)
-    {
-        printf("Resource %d:%d\n",i,resources[i]);
-    }
-
-    // @FIXME: This needs to be some form of exponential progression to balance the rate of growth of the city.
-    if (resources[0]>100)
-    {
-        resources[0] = 0;
-        pop++;
-
-        assignWorkingTile();
-
-        // @FIXME Check what happens when there are no more tiles to work on
-    }
-
 }
 
 // Lat Lon are RELATIVE to the city here.

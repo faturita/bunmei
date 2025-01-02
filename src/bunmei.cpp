@@ -220,6 +220,18 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
+
+        // This is the list of required resources per resource.  For instance, to feed current population.
+        std::vector<int> required;
+
+        for(auto &r:resources)
+        {
+            required.push_back(0);
+        }
+
+        required[0] = c->pop*2;  // Food, requires twice the population.  @FIXME: add for instance the amount of shields needed to sustain armies        
+
+
         // Go through all the map locations and gather all the resources.
         for(int lat=-3;lat<=3;lat++)
             for(int lon=-3;lon<=3;lon++)
@@ -229,10 +241,18 @@ inline void endOfYear()
                     // This is the core game logic
                     for(auto &r:resources)
                     {
+                        printf("Resource %s, increase %d\n", r->name,map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id]);
                         c->resources[r->id] += map(c->latitude+lat,c->longitude+lon).resource_production_rate[r->id];
                     }
                 }
             }
+
+        // Reduce the number of resources according to what is required now.
+        for(auto &r:resources)
+        {
+            printf("Resource %s, decrease %d \n", r->name,required[r->id]);
+            c->resources[r->id] -= required[r->id];
+        }
 
 
         // Peek the production queue.
@@ -268,8 +288,26 @@ inline void endOfYear()
             }
         }
         
-        // Update summarized city values
-        c->tick();
+        // Balance city population according to available resources.
+        if (c->resources[0]>100)
+        {
+            c->resources[0] = 0;
+            c->pop++;
+
+            c->assignWorkingTile();
+        } else 
+        if (c->resources[0]<0)
+        {
+            c->resources[0] = 0;
+
+            if (c->pop>1)
+            {
+                c->pop--;
+                c->deAssigntWorkingTile();
+            }
+
+        }
+
     }
     for(auto& f:factions)
     {

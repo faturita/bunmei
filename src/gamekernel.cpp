@@ -611,14 +611,6 @@ void initResources()
             else
             if (map(lat,lon).code==1)       // Land
             {
-                for(auto& r: resources)
-                {
-                    if (map(lat,lon).resource==r->id)
-                    {
-                        map(lat,lon).resource_production_rate[0] = 0;
-                    }
-                }
-
                 // @FIXME Adjust the basic production rate of each tile
                 map(lat,lon).resource_production_rate[0] = 1;
 
