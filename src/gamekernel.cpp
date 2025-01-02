@@ -605,6 +605,7 @@ void initResources()
             if (map(lat,lon).code==0)       // Water
             {
                 map(lat,lon).resource_production_rate[0] = 1;
+                map(lat,lon).resource_production_rate[2] = 1;
                 if (map(lat,lon).resource==0x106) map(lat,lon).resource_production_rate[0] = 3;
                 if (map(lat,lon).resource==0x10b) map(lat,lon).resource_production_rate[1] = 2;
             }
@@ -626,6 +627,7 @@ void initResources()
                 if (map(lat,lon).bioma/16==0xa) // River
                 {
                     map(lat,lon).resource_production_rate[0] = 4;
+                    map(lat,lon).resource_production_rate[2] = 1;
                 }
                 if (map(lat,lon).bioma/16==0x3) // Desert
                 {
@@ -635,10 +637,15 @@ void initResources()
                 {
                     map(lat,lon).resource_production_rate[1] = 1;
                 }
-                if (map(lat,lon).bioma/16==0x4) // Hills
+                if (map(lat,lon).bioma/16==0x4) // Forests
                 {
                     map(lat,lon).resource_production_rate[1] = 2;
                 }
+                if (map(lat,lon).bioma/16==0x8) // Mountains
+                {
+                    map(lat,lon).resource_production_rate[1] = 1;
+                }
+
             }
         }
 }

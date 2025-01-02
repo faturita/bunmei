@@ -178,7 +178,8 @@ inline void processCommandOrders()
         city->id = getNextCityId();
         city->pop = 1;
 
-        if (city->id==1)
+        // @NOTE: When the population is zero, the first city is the capital city.
+        if (factions[controller.faction]->pop==0)
         {
             city->setCapitalCity();
             // Buildings already built in the city

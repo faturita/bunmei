@@ -63,6 +63,7 @@ public:
 
     void reset()
     {
+        corder.command = Command::None;
         registers.roll=registers.pitch=registers.precesion=registers.bank=0;registers.yaw=0;
         registers.thrust=0;
     };
