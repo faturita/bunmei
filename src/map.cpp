@@ -63,13 +63,13 @@ void centermap(int ccx, int ccy)  // lon,lat
 
     printf("Center %f,%f\n",cx,cy);
 
-    float dcx = (cx+8)-(width/2-35*16);
-    float dcy = (cy+8)-(height/2-20*16);
+    float dcx = (cx+8)-(width/2-MAPHALFWIDTH*16);
+    float dcy = (cy+8)-(height/2-MAPHALFHEIGHT*16);
 
     printf("Center  adjustd %f,%f\n",dcx,dcy);
 
-    int lon = (int)(dcx/16) - 35;
-    int lat = (int)(dcy/16) - 20;
+    int lon = (int)(dcx/16) - MAPHALFWIDTH;
+    int lat = (int)(dcy/16) - MAPHALFHEIGHT;
 
     coordinate c = map.to_offset(lat,lon);
 
@@ -81,13 +81,13 @@ coordinate getCurrentCenter()
 {
     //printf("Center %f,%f\n",cx,cy);
 
-    float dcx = (cx+8)-(width/2-35*16);
-    float dcy = (cy+8)-(height/2-20*16);
+    float dcx = (cx+8)-(width/2-MAPHALFWIDTH*16);
+    float dcy = (cy+8)-(height/2-MAPHALFHEIGHT*16);
 
     //printf("Center  adjustd %f,%f\n",dcx,dcy);
 
-    int lon = (int)(dcx/16) - 35;
-    int lat = (int)(dcy/16) - 20;
+    int lon = (int)(dcx/16) - MAPHALFWIDTH;
+    int lat = (int)(dcy/16) - MAPHALFHEIGHT;
 
     coordinate c = map.to_offset(lat,lon);
 
@@ -106,11 +106,11 @@ coordinate convertToMap(int ccx, int ccy, int gridsize)
     ccx = fccx;
     ccy = fccy; 
 
-    float dcx = (ccx+16)-(width/2-35*gridsize);
-    float dcy = (ccy+16)-(height/2-20*gridsize);
+    float dcx = (ccx+16)-(width/2-MAPHALFWIDTH*gridsize);
+    float dcy = (ccy+16)-(height/2-MAPHALFHEIGHT*gridsize);
 
-    int lon = (int)(dcx/gridsize) - 35;
-    int lat = (int)(dcy/gridsize) - 20;
+    int lon = (int)(dcx/gridsize) - MAPHALFWIDTH;
+    int lat = (int)(dcy/gridsize) - MAPHALFHEIGHT;
 
     //coordinate c = map.to_offset(lat,lon);            // With offset
     coordinate c(lat,lon);                              // Without offset
@@ -198,8 +198,8 @@ void drawGrid()
 
     place(-10*16,-10*16, 16,16,"assets/assets/terrain/land.png");    
 
-    for(int col=-35;col<=34;col++)
-        for (int row=-20;row<=19;row++)
+    for(int col=-MAPHALFWIDTH;col<=MAPHALFWIDTH-1;col++)
+        for (int row=-MAPHALFHEIGHT;row<=MAPHALFHEIGHT-1;row++)
         {
             place(col*16,row*16,16,16,"assets/assets/general/grid.png");      // x,y x-> column y-> row  
         }
