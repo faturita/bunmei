@@ -6,6 +6,7 @@
 #include "units/Unit.h"
 #include "Faction.h"
 #include "gamekernel.h"
+#include "messages.h"
 #include "hud.h"
 
 extern std::unordered_map<std::string, GLuint> maptextures;
@@ -16,6 +17,8 @@ extern int year;
 extern Controller controller;
 extern std::unordered_map<int, Unit*> units;
 extern std::vector<Faction*> factions;
+
+extern std::vector<Message> messages;
 
 
 void placeMark4(float x, float y, int size, const char* modelName)
@@ -150,6 +153,49 @@ void drawHUD()
     }
 
     placeMark4(10,-180,7*3,"assets/assets/city/bulb.png");
+
+
+    //sprintf (str, "Military Advisor: enemy units are coming from the south.");
+    //drawString(0,-700,1,str,0.1f);
+
+
+    static int mbrefresher = 1000;
+    // Message board
+    if (messages.size()>0)
+    {
+        int msgonboard=0;
+        for(size_t i=0;i<messages.size();i++)
+        {
+            if (messages[i].faction == controller.faction || messages[i].faction == -1)
+            {
+                std::string line = messages[i].msg;
+                if (msgonboard==0)
+                    drawString(0,-700-msgonboard*25,1,(char*)line.c_str(),0.1f,1.0f,1.0f,0.0f);
+                else
+                    drawString(0,-700-msgonboard*25,1,(char*)line.c_str(),0.1f);
+                msgonboard++;
+            }
+        }
+
+        if (mbrefresher--<=0)
+        {
+            while (messages.size()>5)
+            {
+                Message ms = messages.back();
+                if (ms.year==0)
+                {
+                    ms.year = year;
+                }
+                //msgboardfile << ms.faction <<  "|" << ms.timer << ":" << ms.msg <<  std::endl ;
+                //msgboardfile.flush();
+
+                messages.pop_back();
+                mbrefresher = 1000;
+            }
+        }
+
+    }
+
 
     glPopAttrib();
     glEnable(GL_DEPTH_TEST);
