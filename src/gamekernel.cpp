@@ -592,20 +592,21 @@ void initResources()
     resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
     resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
     resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
+    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            map(lat,lon).resource_production_rate.push_back(0);
-            map(lat,lon).resource_production_rate.push_back(0);
-            map(lat,lon).resource_production_rate.push_back(0);
-            map(lat,lon).resource_production_rate.push_back(0);
-            map(lat,lon).resource_production_rate.push_back(0);
+            for(auto &r:resources)
+            {
+                map(lat,lon).resource_production_rate.push_back(0);
+            }
 
             if (map(lat,lon).code==0)       // Water
             {
                 map(lat,lon).resource_production_rate[0] = 1;
                 map(lat,lon).resource_production_rate[2] = 1;
+
                 if (map(lat,lon).resource==0x106) map(lat,lon).resource_production_rate[0] = 3;
                 if (map(lat,lon).resource==0x10b) map(lat,lon).resource_production_rate[1] = 2;
             }
@@ -644,6 +645,13 @@ void initResources()
                 if (map(lat,lon).bioma/16==0x8) // Mountains
                 {
                     map(lat,lon).resource_production_rate[1] = 1;
+                }
+
+                if (map(lat,lon).resource==0x108) map(lat,lon).resource_production_rate[5] = 2;
+                if (map(lat,lon).resource==0x104) 
+                {
+                    map(lat,lon).resource_production_rate[3] = 2;
+                    map(lat,lon).resource_production_rate[5] = 1;
                 }
 
             }

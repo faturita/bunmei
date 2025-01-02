@@ -18,6 +18,7 @@ There are spetial resources around.
 
 * Arriving to the south and north pole (0,-24) (0,23).
 * Circumvent the world.
+* Ability to name landmarks, rivers, mountains, continents.
 
 ## More info
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/

@@ -19,7 +19,7 @@ class City
     std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
-    std::vector<int> resources;
+    std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
 
         City();
         int latitude;
