@@ -355,9 +355,12 @@ void worldStep(int value)
             controller.reset();
             controller.faction++;
             controller.controllingid=nextUnitId(controller.faction);
-            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-            c = map.to_fixed(c.lat,c.lon);
-            centermapinmap(c.lat, c.lon);            
+            if (units.find(controller.controllingid)!=units.end())
+            {
+                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+                c = map.to_fixed(c.lat,c.lon);
+                centermapinmap(c.lat, c.lon);   
+            }         
         }
         else
         {

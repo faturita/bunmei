@@ -5,6 +5,13 @@
 #include "math/yamathutil.h"
 #include "coordinate.h"
 
+
+#define MAPHALFWIDTH 36
+#define MAPHALFHEIGHT 24
+
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
+
 struct mapcell
 {
     mapcell(int code)
@@ -31,10 +38,10 @@ class Map
 
     public:
         int offsetlat, offsetlon;
-        int minlat = -20;
-        int maxlat = 20;
-        int minlon = -35;
-        int maxlon = 35;
+        int minlat = -MAPHALFHEIGHT;
+        int maxlat = MAPHALFHEIGHT;
+        int minlon = -MAPHALFWIDTH;
+        int maxlon = MAPHALFWIDTH;
 
         void init()
         {
