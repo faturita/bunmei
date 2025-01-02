@@ -18,8 +18,8 @@ std::unordered_map<std::string, GLuint> maptextures;
 extern std::unordered_map<int, std::string> tiles;
 extern Map map;
 
-int width = 1200;
-int height = 800;
+int width = SCREEN_WIDTH;
+int height = SCREEN_HEIGHT;
 int mapzoom=1;
 
 float cx;

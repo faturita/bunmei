@@ -9,6 +9,9 @@
 #define MAPHALFWIDTH 36
 #define MAPHALFHEIGHT 24
 
+#define SCREEN_WIDTH 1200
+#define SCREEN_HEIGHT 800
+
 struct mapcell
 {
     mapcell(int code)
