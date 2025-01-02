@@ -6,8 +6,8 @@
 #include "coordinate.h"
 
 
-#define MAPHALFWIDTH 35
-#define MAPHALFHEIGHT 20
+#define MAPHALFWIDTH 36
+#define MAPHALFHEIGHT 24
 
 struct mapcell
 {
