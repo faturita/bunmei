@@ -21,3 +21,4 @@ There are spetial resources around.
 
 ## More info
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/
+* https://civilization.fandom.com/wiki/Terrain_(Civ1)

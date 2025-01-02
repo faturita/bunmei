@@ -630,7 +630,14 @@ void initResources()
                 if (map(lat,lon).bioma/16==0x3) // Desert
                 {
                     map(lat,lon).resource_production_rate[0] = 1;
-
+                }
+                if (map(lat,lon).bioma/16==0x6) // Hills
+                {
+                    map(lat,lon).resource_production_rate[1] = 1;
+                }
+                if (map(lat,lon).bioma/16==0x4) // Hills
+                {
+                    map(lat,lon).resource_production_rate[1] = 2;
                 }
             }
         }
@@ -798,7 +805,8 @@ void adjustMovements()
 
         if (units[controller.controllingid]->availablemoves>0)
         {
-            if (map(lat,lon).code==1)
+            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LAND) || 
+                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEA))
             {
 
                 coordinate c = map.to_offset(lat,lon);
