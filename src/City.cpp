@@ -129,3 +129,35 @@ void City::setCapitalCity()
 {
     isCapital = true;
 }
+
+int City::getProductionRate(int r_id)
+{
+    int production_rate = 0;
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            if (workingOn(lat,lon))
+            {
+                production_rate += map(latitude+lat,longitude+lon).resource_production_rate[r_id];
+            }
+        }
+
+    return production_rate;
+}
+
+int City::getConsumptionRate(int r_id)
+{
+    // @FIXME: Add the consumption rate for each unit that belong to the city and so on.
+    int consumption_rate = 0;
+    switch (r_id)
+    {
+    case 0: // Food
+        consumption_rate = pop*2;
+        break;
+    
+    default:
+        break;
+    }
+
+    return consumption_rate;
+}

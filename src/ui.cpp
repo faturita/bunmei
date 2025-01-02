@@ -99,9 +99,30 @@ void drawCityScreen(int cla, int clo, City *city)
     }
     
     
+    {
+        /// Show the production rate for all the resources from the tiles of the city (@FIXME add the resources produced by buildings and units)
+        placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
+        drawBoundingBox(clo,cla,-10,-8,-4,-4);
 
-    placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
-    drawBoundingBox(clo,cla,-10,-8,-4,-4);
+        for(int i=0;i<resources.size();i++)
+        {
+            Resource* r = resources[i];
+            int consumptionrate = city->getConsumptionRate(r->id);
+            int productionrate = city->getProductionRate(r->id)-consumptionrate;
+            int colsepar = 7;
+            int j;
+            for(j=0;j<consumptionrate;j++)
+            {
+                place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,r->assetname);
+            }
+
+            for(;j<consumptionrate+productionrate;j++)
+            {
+                place((clo + (-10))*16-4+colsepar*(j+1)  ,(cla + (-7))*16-4+7*(i)  ,7,7,r->assetname);
+            }
+
+        }
+    }
 
     placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");
     drawBoundingBox(clo,cla,-10,-3,-4,9);

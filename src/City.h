@@ -41,6 +41,8 @@ class City
     void deAssigntWorkingTile();
     bool isCapitalCity();
     void setCapitalCity();
+    int getProductionRate(int r_id);
+    int getConsumptionRate(int r_id);
 
 
 };
