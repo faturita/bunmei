@@ -4,6 +4,13 @@
 #include <iostream>
 #include "../buildable.h"
 
+enum MOVEMENT_TYPE
+{
+    LAND,
+    SEA,
+    AIR
+};
+
 class Unit : public Buildable
 {
     protected:
@@ -23,6 +30,7 @@ class Unit : public Buildable
     bool virtual canBuildCity();
     int virtual cost(int r_id);
     BuildableType getType();
+    MOVEMENT_TYPE virtual getMovementType();
 
 };
 

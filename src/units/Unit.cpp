@@ -34,3 +34,8 @@ BuildableType Unit::getType()
 {
     return BuildableType::UNIT;
 }
+
+MOVEMENT_TYPE Unit::getMovementType()
+{
+    return LAND;
+}

@@ -74,6 +74,7 @@
 #include "units/Warrior.h"
 #include "units/Horseman.h"
 #include "units/Worker.h"
+#include "units/Trireme.h"
 #include "City.h"
 
 extern Controller controller;
@@ -180,6 +181,7 @@ inline void processCommandOrders()
         city->buildable.push_back(new WarriorFactory());
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new HorsemanFactory());
+        city->buildable.push_back(new TriremeFactory());
 
         // We add the Warrior as the first thing to build in the city.
         city->productionQueue.push(new WarriorFactory());
@@ -362,9 +364,12 @@ void worldStep(int value)
             controller.reset();
             controller.faction=0;  // Reset for the new year.
             controller.controllingid=nextUnitId(controller.faction);
-            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-            c = map.to_fixed(c.lat,c.lon);
-            centermapinmap(c.lat, c.lon);
+            if (units.find(controller.controllingid)!=units.end())
+            {
+                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+                c = map.to_fixed(c.lat,c.lon);
+                centermapinmap(c.lat, c.lon);
+            }
         }
     }
 
