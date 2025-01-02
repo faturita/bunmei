@@ -47,10 +47,13 @@ void handleKeypress(unsigned char key, int x, int y) {
         case ' ':controller.endofturn=true;break;
         case 'C':
         {
-            coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-            c = map.to_fixed(c.lat,c.lon);
-            centermapinmap(c.lat, c.lon);
-            resetzoom();
+            if (units.find(controller.controllingid) != units.end())
+            {
+                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+                c = map.to_fixed(c.lat,c.lon);
+                centermapinmap(c.lat, c.lon);
+                resetzoom();
+            }
         }
         break;
         case 9:
