@@ -11,6 +11,8 @@ class Faction {
         int id;
         int red, green, blue;
 
+        bool autoPlayer = true;
+
     Faction ()
     {
         doneThisTurn = false;

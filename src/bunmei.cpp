@@ -89,7 +89,6 @@ extern Map map;
 int year;
 
 
-
 void disclaimer()
 {
     char version[]="1.0.0";
@@ -106,6 +105,7 @@ void setupWorldModelling()
 
     controller.faction = factions[0]->id;
     controller.controllingid = nextUnitId(controller.faction);
+    factions[0]->autoPlayer = false;
     
     year = -4000;
 
@@ -311,6 +311,32 @@ void worldStep(int value)
         exit(0);
     }
 
+    if (factions[controller.faction]->autoPlayer)
+    {
+        if (getRandomInteger(0,1)==0)
+        {
+            controller.registers.roll = getRandomInteger(-1.0,1.0);
+        }
+        else
+        {
+            controller.registers.pitch = getRandomInteger(-1.0,1.0);
+        }
+
+        if (units.find(controller.controllingid)!=units.end())
+        {
+            if (units[controller.controllingid]->canBuildCity())
+            {
+                if (getRandomInteger(0,10)==0)
+                {
+                    CommandOrder co;
+                    co.command = Command::BuildCityOrder;
+                    controller.push(co);
+                }
+            }
+        }
+
+    }
+
     if (controller.endofturn)
     {
         controller.endofturn=false;
@@ -322,8 +348,9 @@ void worldStep(int value)
             if (u->faction == controller.faction) u->availablemoves = 0;
         }
 
-        if (controller.faction<2) 
+        if (controller.faction<factions.size()-1) 
         {
+            controller.reset();
             controller.faction++;
             controller.controllingid=nextUnitId(controller.faction);
             coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
@@ -332,7 +359,8 @@ void worldStep(int value)
         }
         else
         {
-            controller.faction=0;
+            controller.reset();
+            controller.faction=0;  // Reset for the new year.
             controller.controllingid=nextUnitId(controller.faction);
             coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
             c = map.to_fixed(c.lat,c.lon);
@@ -342,8 +370,7 @@ void worldStep(int value)
 
     if (endOfTurnForAllFactions())
     {
-        // Let all the other factions play.
-        
+        // Everybody played their turn, end of year, and start it over.....
         endOfYear();
     }
 
