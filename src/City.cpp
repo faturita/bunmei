@@ -16,6 +16,7 @@ City::City()
     resources.push_back(0);
     resources.push_back(0);
     resources.push_back(0);
+    resources.push_back(0);
 
 
     tiles[coordinate(0,0)] = 1;     // We are working on the city location.
