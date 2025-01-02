@@ -190,6 +190,11 @@ void drawCityScreen(int cla, int clo, City *city)
             int la= cla + lats;
             int lo = clo + lons;
 
+            if (city->occupied(lats,lons))
+            {
+                placeTile(lo,la,"assets/assets/general/occupied.png");
+            }
+
             if (city->workingOn(lats,lons))
             {
                 // @FIXME: Layout of resources per tile Needs to be better implemented

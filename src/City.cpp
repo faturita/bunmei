@@ -7,7 +7,7 @@
 extern std::vector<Faction*> factions;
 extern Map map;
 
-City::City()
+City::City(int pfaction, int pid, int platitude, int plongitude)
 {
     strncpy(name,"Kattegat",256);
 
@@ -18,11 +18,20 @@ City::City()
     resources.push_back(0);
     resources.push_back(0);
 
-
-    tiles[coordinate(0,0)] = 1;     // We are working on the city location.
-    assignWorkingTile();
-
     isCapital = false;
+    pop = 1;
+
+    id = pid;
+    faction = pfaction;
+    latitude = platitude;
+    longitude = plongitude;
+
+    // We are working on the city location and one more
+    // Assignment of the land to this city.
+    map(latitude+0, longitude+0).f_id_owner = faction;
+    map(latitude+0, longitude+0).c_id_owner = id;
+
+    assignWorkingTile();
 
 }
 
@@ -67,17 +76,18 @@ void City::draw()
     placeWord((lon-1),(lat+1),4,8, name);
 }
 
-void City::assignWorkingTile()
+int City::numberOfWorkingTiles()
 {
+    int workingTiles = 0;
     for(int lat=-3;lat<=3;lat++)
         for(int lon=-3;lon<=3;lon++)
         {
-            if (!workingOn(lat,lon))
+            if (workingOn(lat,lon))
             {
-                tiles[coordinate(lat,lon)] = 1;
-                return;   
+                workingTiles++;
             }
-        }    
+        }       
+    return workingTiles;
 }
 
 void City::deAssigntWorkingTile()
@@ -85,9 +95,25 @@ void City::deAssigntWorkingTile()
     for(int lat=-3;lat<=3;lat++)
         for(int lon=-3;lon<=3;lon++)
         {
-            if (workingOn(lat,lon) && lat!=0 && lon!=0 && tiles.size()>(pop+1))
+            if (workingOn(lat,lon) && lat!=0 && lon!=0 && numberOfWorkingTiles()>(pop+1))
             {
-                tiles.erase(coordinate(lat,lon));
+                map(latitude+lat, longitude+lon).f_id_owner = FREE_LAND;          // @FIXME: This has to due with politics and diplomatics.
+                map(latitude+lat, longitude+lon).c_id_owner = UNASSIGNED_LAND;
+                return;   
+            }
+        }    
+}
+
+void City::assignWorkingTile()
+{
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
+            {
+                map(latitude+lat, longitude+lon).f_id_owner = faction;
+                map(latitude+lat, longitude+lon).c_id_owner = id;
+
                 return;   
             }
         }    
@@ -100,26 +126,56 @@ void City::assignWorkingTile(coordinate c)
         return;
     }
 
-    if (!workingOn(c.lat,c.lon) && tiles.size()<(pop+1))        // Everybody can work on the fields (on the available fields)
-        tiles[c] = 1;
-    else
-        tiles.erase(c);
+    if (!occupied(c.lat, c.lon))
+    {
+        if (!workingOn(c.lat,c.lon) && numberOfWorkingTiles()<(pop+1))        // Everybody can work on the fields (on the available fields)
+        {
+            // Assignment of the land to this city.
+            map(latitude+c.lat, longitude+c.lon).f_id_owner = faction;
+            map(latitude+c.lat, longitude+c.lon).c_id_owner = id;
+        }
+        else
+        {
+            // Release of the land from this city
+            map(latitude+c.lat, longitude+c.lon).f_id_owner = FREE_LAND;          // @FIXME: This has to due with politics and diplomatics.
+            map(latitude+c.lat, longitude+c.lon).c_id_owner = UNASSIGNED_LAND;
+        }
+    }
 }
+
+// Lat Lon are RELATIVE to the city here.
+// bool City::workingOn(int lat, int lon)
+// {
+//     // @NOTE: Eventually we can add who is working (professions)
+//     coordinate c(lat,lon);
+
+//     if (tiles.find(c) != tiles.end())
+//     {
+//         return true;
+//     }
+
+//     return false;
+// }
 
 // Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
-    // @NOTE: Eventually we can add who is working (professions)
-    coordinate c(lat,lon);
-
-    if (tiles.find(c) != tiles.end())
-    {
-        return true;
-    }
-
-    return false;
-
+    if (    (map(latitude+lat,longitude+lon).f_id_owner == faction) &&
+            (map(latitude+lat,longitude+lon).c_id_owner == id) )
+            return true;
+    else
+        return false;
 }
+
+bool City::occupied(int lat, int lon)
+{
+    if (    (map(latitude+lat,longitude+lon).f_id_owner != FREE_LAND && map(latitude+lat,longitude+lon).f_id_owner != faction) ||
+            (map(latitude+lat,longitude+lon).c_id_owner != UNASSIGNED_LAND && map(latitude+lat,longitude+lon).c_id_owner != id) )
+            return true;
+    else
+        return false;
+}
+
 
 bool City::isCapitalCity()
 {

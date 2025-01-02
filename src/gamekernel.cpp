@@ -616,7 +616,7 @@ void initResources()
                 // @FIXME Adjust the basic production rate of each tile
                 map(lat,lon).resource_production_rate[0] = 1;
 
-                printf("Bioma %x\n",map(lat,lon).bioma);
+                //printf("Bioma %x\n",map(lat,lon).bioma);
                 if (map(lat,lon).code == 1 && map(lat,lon).bioma == 0x00) // Regular land
                 {
                     map(lat,lon).resource_production_rate[0] = 2;
@@ -829,7 +829,7 @@ void drawUnitsAndCities()
         }
     }
 
-    map.setCenter(0,controller.registers.yaw);
+    map.setCenter(0,factions[controller.faction]->mapoffset);
 }
 
 void adjustMovements()
@@ -870,9 +870,15 @@ void adjustMovements()
 
                 coordinate c = map.to_offset(lat,lon);
 
-                // Confirm the change if it is moving into land.
+                if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                    map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
+
+                // Confirm the change if the movement is allowed.
                 units[controller.controllingid]->latitude = c.lat;
                 units[controller.controllingid]->longitude = c.lon; 
+
+                if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                    map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
 
                 units[controller.controllingid]->availablemoves--;
             }
@@ -901,6 +907,12 @@ void adjustMovements()
 
         printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
     }    
+
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
+    {
+        factions[controller.faction]->mapoffset += controller.registers.yaw;
+        controller.registers.yaw = 0;
+    }
 }
 
 void openCityScreen()
