@@ -6,7 +6,7 @@
 #include "map.h"
 #include "resources.h"
 #include "City.h"
-#include "ui.h"
+#include "cityscreenui.h"
 
 extern float cx;
 extern float cy;

@@ -2,7 +2,7 @@
 #include "gamekernel.h"
 #include "usercontrols.h"
 #include "map.h"
-#include "ui.h"
+#include "cityscreenui.h"
 #include "City.h"
 #include "resources.h"
 

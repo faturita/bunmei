@@ -11,7 +11,7 @@
 #include "font/FontsBitmap.h"
 #include "units/Unit.h"
 #include "City.h"
-#include "ui.h"
+#include "cityscreenui.h"
 #include "map.h"
 
 std::unordered_map<std::string, GLuint> maptextures;
