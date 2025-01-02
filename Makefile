@@ -4,7 +4,7 @@ CC = g++
 CFLAGS = -std=c++17 -w -g -Wall $(ODEF) -I/usr/include -I/usr/include/GL -I/System/Library/Frameworks/OpenGL.framework/Headers -I../stk/include  -fpermissive
 PROG = bunmei
 
-SCS = src/City.cpp src/lodepng.cpp src/openglutils.cpp src/imageloader.cpp src/commandline.cpp src/profiling.cpp src/camera.cpp src/math/yamathutil.cpp src/math/vec3f.cpp src/font/FontsBitmap.cpp src/font/DrawFonts.cpp src/ui.cpp src/hud.cpp src/map.cpp src/usercontrols.cpp src/map.cpp $(shell ls src/units/*.cpp) $(shell ls src/buildings/*.cpp) src/gamekernel.cpp src/bunmei.cpp
+SCS = src/messages.cpp src/City.cpp src/lodepng.cpp src/openglutils.cpp src/imageloader.cpp src/commandline.cpp src/profiling.cpp src/camera.cpp src/math/yamathutil.cpp src/math/vec3f.cpp src/font/FontsBitmap.cpp src/font/DrawFonts.cpp src/ui.cpp src/hud.cpp src/map.cpp src/usercontrols.cpp src/map.cpp $(shell ls src/units/*.cpp) $(shell ls src/buildings/*.cpp) src/gamekernel.cpp src/bunmei.cpp
 
 SSRC = $(SCS)
 OBJS = $(SSRC:.cpp=.o)

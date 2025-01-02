@@ -12,7 +12,7 @@ std::ostream &dout = dev_null;
 #endif
 
 bool CLog::m_bInitialised;
-int  CLog::m_nLevel;
+int  CLog::m_nLevel; 
 
 void CLog::Write(int nLevel, const char *szFormat, ...)
 {

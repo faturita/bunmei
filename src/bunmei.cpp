@@ -63,6 +63,7 @@
 #include "resources.h"
 #include "Faction.h"
 #include "gamekernel.h"
+#include "messages.h"
 
 #include "buildings/Building.h"
 #include "buildings/Palace.h"
@@ -79,11 +80,13 @@
 
 extern Controller controller;
 
+std::unordered_map<int,std::queue<std::string>> citynames;
 
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
 std::vector<Resource*> resources;
+std::vector<Message> messages;
 
 extern Map map;
 
@@ -109,6 +112,13 @@ void setupWorldModelling()
     factions[0]->autoPlayer = false;
     
     year = -4000;
+
+    char msg[256];
+    Message mg;
+    mg.faction = controller.faction;
+    sprintf(msg, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
+    mg.msg = std::string(msg); mg.year = year;
+    messages.insert(messages.begin(), mg); 
 
     centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
     zoommapin();
@@ -154,12 +164,14 @@ void drawScene()
     glutSwapBuffers();
 }
 
+
 inline void processCommandOrders()
 {
     CommandOrder co = controller.pop();
     if (co.command == Command::BuildCityOrder)
     {
         City *city = new City();
+        city->setName(citynames[controller.faction].front().c_str());citynames[controller.faction].pop();
         city->latitude = units[controller.controllingid]->latitude;
         city->longitude = units[controller.controllingid]->longitude;
         city->faction = units[controller.controllingid]->faction;
@@ -190,12 +202,14 @@ inline void processCommandOrders()
         cities[city->id] = city;
 
         // @FIXME: Disband the settler unit.
-
         Unit *settler = units[controller.controllingid];
         units.erase(controller.controllingid);
         delete settler;
 
         controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
+
+        message(year, controller.faction, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
+
 
     }
     else if (co.command == Command::DisbandUnitOrder)

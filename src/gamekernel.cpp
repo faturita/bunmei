@@ -17,7 +17,7 @@ std::unordered_map<int, std::string> tiles;
 Map map;
 std::unordered_map<int, std::vector<int>> resourcesxbioma;
 
-
+extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
@@ -723,6 +723,50 @@ void initFactions()
 
         units[settler2->id] = settler2;
     }
+
+
+    citynames[0] = std::queue<std::string>();       // Vikings
+    citynames[1] = std::queue<std::string>();       // Romans
+    citynames[2] = std::queue<std::string>();       // Greeks
+
+    citynames[0].push("Kattegate");
+    citynames[0].push("Jorvik");
+    citynames[0].push("Hedeby");
+    citynames[0].push("Trondheim");
+    citynames[0].push("Bergen");
+    citynames[0].push("Stavanger");
+    citynames[0].push("Kristiansand");
+    citynames[0].push("Oslo");
+    citynames[0].push("Stockholm");
+    citynames[0].push("Copenhagen");
+    citynames[0].push("Helsinki");
+    citynames[0].push("Reykjavik");
+
+    citynames[1].push("Roma");
+    citynames[1].push("Milano");
+    citynames[1].push("Napoli");
+    citynames[1].push("Venezia");
+    citynames[1].push("Firenze");
+    citynames[1].push("Genova");
+    citynames[1].push("Palermo");
+    citynames[1].push("Torino");
+    citynames[1].push("Bologna");
+    citynames[1].push("Bari");
+    citynames[1].push("Catania");
+
+    citynames[2].push("Atenas");
+    citynames[2].push("Sparta");
+    citynames[2].push("Corinto");
+    citynames[2].push("Tevas");
+    citynames[2].push("Delfos");
+    citynames[2].push("Olimpia");
+    citynames[2].push("Micenas");
+    citynames[2].push("Tebas");
+    citynames[2].push("Argos");
+    citynames[2].push("Mileto");
+    citynames[2].push("Efeso");
+    citynames[2].push("Samos");
+    citynames[2].push("Rodas");
 
 }
 
