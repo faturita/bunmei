@@ -77,6 +77,10 @@
 #include "units/Horseman.h"
 #include "units/Worker.h"
 #include "units/Trireme.h"
+#include "units/Archer.h"
+#include "units/Swordman.h"
+#include "units/Spearman.h"
+#include "units/Axeman.h"
 #include "City.h"
 
 extern Controller controller;
@@ -179,6 +183,10 @@ inline void processCommandOrders()
         city->buildable.push_back(new SettlerFactory());
         city->buildable.push_back(new GranaryFactory());
         city->buildable.push_back(new WarriorFactory());
+        city->buildable.push_back(new ArcherFactory());
+        city->buildable.push_back(new SpearmanFactory());
+        city->buildable.push_back(new SwordmanFactory());
+        city->buildable.push_back(new AxemanFactory());
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new HorsemanFactory());
         city->buildable.push_back(new TriremeFactory());
@@ -314,6 +322,17 @@ void update(int value)
     {
         exit(0);
     }
+
+
+    // GoTo Function
+    if (units.find(controller.controllingid)!=units.end() && units[controller.controllingid]->isAuto())
+    {
+        controller.registers.roll = sgnz(units[controller.controllingid]->target.lon-units[controller.controllingid]->longitude );
+        controller.registers.pitch = sgnz(units[controller.controllingid]->target.lat-units[controller.controllingid]->latitude );
+
+        units[controller.controllingid]->arrived();
+    }
+
 
     if (factions[controller.faction]->autoPlayer)
     {

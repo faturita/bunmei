@@ -21,6 +21,8 @@ extern Map map;
 int _xoffset = 0;
 int _yoffset = 0;
 
+bool goToMode = false;
+
 
 void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
@@ -45,6 +47,13 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
         case ' ':controller.endofturn=true;break;
+        case 'G':
+        {
+             if (units.find(controller.controllingid) != units.end())
+            {
+                goToMode = true;
+            }           
+        }
         case 'C':
         {
             if (units.find(controller.controllingid) != units.end())
@@ -129,6 +138,19 @@ void processMouse(int button, int state, int x, int y)
                     //buttonState = 1;
                     CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
                     centermap(x,y);
+                    if (goToMode)
+                    {
+                        if (units.find(controller.controllingid) != units.end())
+                        {
+                            coordinate co = getCurrentCenter();
+                            units[controller.controllingid]->goTo(co.lat,co.lon);
+                        }
+                        goToMode = false;
+                    }
+                    else
+                    {
+                        centermap(x,y);
+                    }
 
                     if (specialKey == GLUT_ACTIVE_SHIFT)
                     {

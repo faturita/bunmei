@@ -197,6 +197,15 @@ float sgn(float val)
         return -1;
 }
 
+
+int sgnz(int val)
+{
+    if (val==0) return 0;
+    if (val>0) return 1;
+    return -1;
+}
+
+
 Vec3f getRandomCircularSpot(Vec3f origin, float radius)
 {
     float t = (rand() % 360 + 1);

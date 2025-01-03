@@ -36,6 +36,8 @@ float rotclipped(float val, float min, float max);
 float sgn(float val);
 float _acos(float val);
 
+int sgnz(int val);
+
 float max(float val1, float val2);
 float min(float val1, float val2);
 

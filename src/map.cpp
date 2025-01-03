@@ -387,7 +387,6 @@ void drawMap()
     glPopMatrix();
 }
 
-
 void drawUnitsAndCities()
 {
     static int count=0;
@@ -423,13 +422,15 @@ void drawUnitsAndCities()
         {
             if (controller.controllingid == u->id)
             {
-                if (count++ % 70 < 35)
+                if (count++ % factions[controller.faction]->blinkingrate < (factions[controller.faction]->blinkingrate/2))
                 {
                     u->draw();
                 }
             }
         }
     }
+
+    if (factions[controller.faction]->blinkingrate < 70) factions[controller.faction]->blinkingrate++;
 
     map.setCenter(0,factions[controller.faction]->mapoffset);
 }
@@ -483,6 +484,10 @@ void adjustMovements()
                     map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
 
                 units[controller.controllingid]->availablemoves--;
+            }
+            else
+            {
+                factions[controller.faction]->blinkingrate = 10;
             }
         } 
 
