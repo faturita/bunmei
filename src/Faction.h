@@ -13,9 +13,12 @@ class Faction {
 
         bool autoPlayer = true;
 
+        int mapoffset;
+
     Faction ()
     {
         doneThisTurn = false;
+        mapoffset = 0;
     };
 
     void done()

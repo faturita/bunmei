@@ -6,7 +6,7 @@
 #include "map.h"
 #include "resources.h"
 #include "City.h"
-#include "ui.h"
+#include "cityscreenui.h"
 
 extern float cx;
 extern float cy;
@@ -189,6 +189,11 @@ void drawCityScreen(int cla, int clo, City *city)
         {
             int la= cla + lats;
             int lo = clo + lons;
+
+            if (city->occupied(lats,lons))
+            {
+                placeTile(lo,la,"assets/assets/general/occupied.png");
+            }
 
             if (city->workingOn(lats,lons))
             {

@@ -66,7 +66,7 @@ void preloadFonts()
     {
         char modelName[256];
         sprintf(modelName,"assets/assets/general/%d.png",letter);
-        printf("Letter %c in %s\n",(char)letter, modelName);
+        //printf("Letter %c in %s\n",(char)letter, modelName);
         char letterName[256];
         sprintf(letterName,"%c",letter);
         preloadFontTexture(letterName, modelName);

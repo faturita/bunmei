@@ -7,7 +7,7 @@
 #include "map.h"
 #include "City.h"
 #include "units/Unit.h"
-#include "ui.h"
+#include "cityscreenui.h"
 #include "gamekernel.h"
 #include "usercontrols.h"
 
@@ -138,9 +138,9 @@ void processMouse(int button, int state, int x, int y)
                         for (auto& [k,c] : cities) 
                         {
                             coordinate co = getCurrentCenter();
-                            printf("City %d,%d\n",c->latitude, c->longitude);
                             if (co.lat == c->latitude && co.lon == c->longitude)
                             {
+                                printf("City %s %d %d,%d\n",c->name, c->id, c->latitude, c->longitude);
                                 controller.view = 2;
                                 controller.cityid = c->id;
                                 break;
@@ -155,7 +155,7 @@ void processMouse(int button, int state, int x, int y)
                 if (button == GLUT_LEFT_BUTTON) 
                 {
                     CLog::Write(CLog::Debug,"Mouse down %d,%d\n",x,y);
-                    printf("City %d\n",controller.cityid);
+                    printf("Clicked City %d\n",controller.cityid);
                     coordinate c = convertToMap(x,y,32);
                     printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
                     coordinate c2 = convertToMap(x,y,16);

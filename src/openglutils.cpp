@@ -960,7 +960,7 @@ GLuint preloadUnitTexture(const char* filename, const char* modelName, int red, 
 
         Image image((char *)img, w, h);
 
-        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
+        //printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
 
         for(int i=0;i<w;i++)
             for (int j=0;j<h;j++)
@@ -1013,12 +1013,12 @@ GLuint preloadCityTexture(const char* filename, const char* modelName, int red, 
 
         Image image((char *)img, w, h);
 
-        printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
+        //printf("Sizeof w=%d,h=%d, image: %d\n", w,h, sizeof(img));
 
         for(int i=0;i<w;i++)
             for (int j=0;j<h;j++)
             {
-                printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
+                //printf("Color of the unit %d,%d,%d\n",img[(i*h+j)*4+0],img[(i*h+j)*4+1],img[(i*h+j)*4+2] );
 
                 if (img[(i*h+j)*4+3]<255)
                 {

@@ -10,7 +10,7 @@
 class City
 {
     protected:
-    std::unordered_map<coordinate, int> tiles;
+    //std::unordered_map<coordinate, int> tiles;
 
     bool isCapital;
 
@@ -21,7 +21,7 @@ class City
 
     std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
 
-        City();
+        City(int faction, int id, int latitude, int longitude);
         int latitude;
         int longitude;
         int faction;
@@ -43,6 +43,8 @@ class City
     void setCapitalCity();
     int getProductionRate(int r_id);
     int getConsumptionRate(int r_id);
+    int numberOfWorkingTiles();
+    bool occupied(int lat, int lon);
 
 
 };

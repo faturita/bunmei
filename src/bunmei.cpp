@@ -170,13 +170,16 @@ inline void processCommandOrders()
     CommandOrder co = controller.pop();
     if (co.command == Command::BuildCityOrder)
     {
-        City *city = new City();
+        // You cannot build a city in a land CLAIMED already by another city.
+        if (map(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).c_id_owner != UNASSIGNED_LAND)
+        {
+            message(year, controller.faction, "City cannot be built here.  The land is already claimed by another city.");
+            return;
+        }
+
+
+        City *city = new City(units[controller.controllingid]->faction,getNextCityId(),units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
         city->setName(citynames[controller.faction].front().c_str());citynames[controller.faction].pop();
-        city->latitude = units[controller.controllingid]->latitude;
-        city->longitude = units[controller.controllingid]->longitude;
-        city->faction = units[controller.controllingid]->faction;
-        city->id = getNextCityId();
-        city->pop = 1;
 
         // @NOTE: When the population is zero, the first city is the capital city.
         if (factions[controller.faction]->pop==0)
@@ -372,6 +375,7 @@ void worldStep(int value)
             controller.controllingid=nextUnitId(controller.faction);
             if (units.find(controller.controllingid)!=units.end())
             {
+                map.setCenter(0,factions[controller.faction]->mapoffset);
                 coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
                 c = map.to_fixed(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);   
@@ -384,6 +388,7 @@ void worldStep(int value)
             controller.controllingid=nextUnitId(controller.faction);
             if (units.find(controller.controllingid)!=units.end())
             {
+                map.setCenter(0,factions[controller.faction]->mapoffset);
                 coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
                 c = map.to_fixed(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);

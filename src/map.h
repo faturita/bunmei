@@ -12,6 +12,9 @@
 #define SCREEN_WIDTH 1200
 #define SCREEN_HEIGHT 800
 
+#define UNASSIGNED_LAND -1
+#define FREE_LAND       -1
+
 struct mapcell
 {
     mapcell(int code)
@@ -27,7 +30,15 @@ struct mapcell
     int bioma;
     int resource;
 
+    int c_id_owner = UNASSIGNED_LAND;                        // Free land.
+    int f_id_owner = FREE_LAND;                             // Free land.
+
     std::vector<int> resource_production_rate;   // List of resource production per tile.
+
+    bool belongsToCity()
+    {
+        return c_id_owner != UNASSIGNED_LAND;
+    }
 };
 
 class Map
