@@ -9,6 +9,15 @@ Map size is 72x48.  Latitud determines the relation to the equator, increasing t
 
 There are spetial resources around.
 
+## Land ownership
+
+Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  And of course, armies can change that.
+
+
+## Combat
+
+The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack points, defense points and experience points.
+
 
 ## Resources
 * There are six resources: food, shields, trade, coins, science, and culture.
@@ -19,7 +28,10 @@ There are spetial resources around.
 * Arriving to the south and north pole (0,-24) (0,23).
 * Circumvent the world.
 * Ability to name landmarks, rivers, mountains, continents.
+* Buy and sell resources from ports (like in Colonization).  This generates trade routes.
+* Allow to form alliances with other factions and independence to arise from colonies.
 
 ## More info
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/
 * https://civilization.fandom.com/wiki/Terrain_(Civ1)
+* https://civilization.fandom.com/wiki/List_of_units_in_Civ4
