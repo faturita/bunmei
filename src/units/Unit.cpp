@@ -63,3 +63,8 @@ bool Unit::arrived()
 
     return false;
 }
+
+coordinate Unit::getCoordinate()
+{
+    return coordinate(latitude,longitude);
+}

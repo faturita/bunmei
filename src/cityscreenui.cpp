@@ -85,6 +85,7 @@ void drawCityScreen(int cla, int clo, City *city)
             }
         }
 
+
     drawBoundingBox(clo,cla,-10,-10,9,9);
     drawBoundingBox(clo,cla,-3,-3,3,3);
 

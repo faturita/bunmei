@@ -315,12 +315,128 @@ inline bool endOfTurnForAllFactions()
     return true;
 }
 
+void adjustMovements()
+{
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
+    {
+        // Receives real latitude and longitude (contained in the unit)
+        int lon = units[controller.controllingid]->longitude;
+        int lat = units[controller.controllingid]->latitude;
+
+        // Convert latitude and longitude into remaped coordinates
+        coordinate c = map.to_fixed(lat,lon);
+
+        lon = c.lon;
+        lat = c.lat;
+
+        int val = lat;
+        val = ((int)val+controller.registers.pitch);
+        lat = clipped(val,map.minlat,map.maxlat-1);
+
+        lon = lon + controller.registers.roll;
+
+        if (val>=map.maxlat) {
+            lon=lon*(-1);
+            lat=map.maxlat-1;
+        }
+
+        if ((val-lat)<0) {
+            lon=lon*(-1);
+            lat=map.minlat;
+        }
+
+        if (units[controller.controllingid]->availablemoves>0)
+        {
+            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LAND) || 
+                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEA))
+            {
+
+                if (map(lat,lon).f_id_owner == FREE_LAND || map(lat,lon).f_id_owner == units[controller.controllingid]->faction)
+                {
+
+                    coordinate c = map.to_offset(lat,lon);
+
+                    if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                        map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
+
+                    // Confirm the change if the movement is allowed.
+                    units[controller.controllingid]->latitude = c.lat;
+                    units[controller.controllingid]->longitude = c.lon; 
+
+                    if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                        map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
+
+                    units[controller.controllingid]->availablemoves--;
+                }
+                else
+                {
+                    factions[controller.faction]->blinkingrate = 10;
+                }
+            }
+            else
+            {
+                factions[controller.faction]->blinkingrate = 10;
+            }
+        } 
+
+
+        if (units[controller.controllingid]->availablemoves==0)
+        {
+            controller.endofturn = true;
+            for (auto& [k,u] : units)
+            {
+                if (u->faction == controller.faction)
+                {
+                    if (u->availablemoves>0)
+                    {
+                        controller.controllingid = u->id;
+                        controller.endofturn = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        controller.registers.pitch= controller.registers.roll = 0;     
+
+        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
+    }    
+
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
+    {
+        factions[controller.faction]->mapoffset += controller.registers.yaw;
+        controller.registers.yaw = 0;
+    }
+}
+
+// This runs continuosly....
 void update(int value)
 {
     // Derive the control to the correct object
     if (controller.isInterrupted())
     {
         exit(0);
+    }
+
+    for(auto& f:factions)
+    {
+        //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
+        f->pop = 0;
+    }
+
+    // Update all the time if the city is or not defended...
+    for(auto& [cid,c]:cities)
+    {
+        factions[c->faction]->pop += c->pop;
+        c->noDefense();
+        for(auto& [k, u] : units) 
+        {
+            if (u->latitude == c->latitude && u->longitude == c->longitude)
+            {
+                c->setDefense();
+            }
+        }
     }
 
 
@@ -359,6 +475,8 @@ void update(int value)
         }
 
     }
+
+    adjustMovements();
 
     if (controller.endofturn)
     {

@@ -147,10 +147,6 @@ void processMouse(int button, int state, int x, int y)
                         }
                         goToMode = false;
                     }
-                    else
-                    {
-                        centermap(x,y);
-                    }
 
                     if (specialKey == GLUT_ACTIVE_SHIFT)
                     {

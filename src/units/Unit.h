@@ -40,6 +40,8 @@ class Unit : public Buildable
     bool isAuto();
     bool arrived();
 
+    coordinate getCoordinate();
+
 };
 
 #endif
