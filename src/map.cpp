@@ -12,11 +12,20 @@
 #include "units/Unit.h"
 #include "City.h"
 #include "cityscreenui.h"
+#include "Faction.h"
+#include "resources.h"
 #include "map.h"
 
+extern Controller controller;
+
+extern std::unordered_map<int, Unit*> units;
+extern std::unordered_map<int, City*> cities;
+extern std::vector<Faction*> factions;
+extern std::vector<Resource*> resources;
+
+std::unordered_map<int, std::string> tiles;
+Map map;
 std::unordered_map<std::string, GLuint> maptextures;
-extern std::unordered_map<int, std::string> tiles;
-extern Map map;
 
 int width = SCREEN_WIDTH;
 int height = SCREEN_HEIGHT;
@@ -316,8 +325,8 @@ void drawMap()
                     }
                     else
                     {
-                        place(16*c.lon-8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_em1.png");    
-                        place(16*c.lon-8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_em2.png"); 
+                        place(16*c.lon-8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_em2.png");    
+                        place(16*c.lon-8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_em1.png"); 
                     }
                 }
 
@@ -333,8 +342,8 @@ void drawMap()
                     } 
                     else 
                     {
-                        place(16*c.lon+8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_wm2.png");    
-                        place(16*c.lon+8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_wm1.png"); 
+                        place(16*c.lon+8,   16*c.lat-4,8,8,"assets/assets/terrain/coast_wm1.png");    
+                        place(16*c.lon+8,   16*c.lat+4,8,8,"assets/assets/terrain/coast_wm2.png"); 
                     }
                 }
             }
@@ -377,3 +386,145 @@ void drawMap()
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
 }
+
+
+void drawUnitsAndCities()
+{
+    static int count=0;
+
+    for(auto& f:factions)
+    {
+        //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
+        f->pop = 0;
+    }
+
+    for (auto& [k, c] : cities) 
+    {
+        coordinate co = map.to_fixed(c->latitude,c->longitude);
+        if (map(co.lat,co.lon).visible)
+        {
+            c->draw();
+        }
+        factions[c->faction]->pop += c->pop;
+    }
+
+    for (auto& [k,u] : units) 
+    {
+        coordinate c = map.to_fixed(u->latitude,u->longitude);
+        unfog(c.lat,c.lon);
+        if (controller.controllingid != u->id)
+            u->draw();
+    }
+
+    // Draw last the unit that you want on top of the stack (selected unit)
+    for (auto& [k,u] : units) 
+    {
+        if (u->faction == controller.faction)
+        {
+            if (controller.controllingid == u->id)
+            {
+                if (count++ % 70 < 35)
+                {
+                    u->draw();
+                }
+            }
+        }
+    }
+
+    map.setCenter(0,factions[controller.faction]->mapoffset);
+}
+
+void adjustMovements()
+{
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
+    {
+        // Receives real latitude and longitude (contained in the unit)
+        int lon = units[controller.controllingid]->longitude;
+        int lat = units[controller.controllingid]->latitude;
+
+        // Convert latitude and longitude into remaped coordinates
+        coordinate c = map.to_fixed(lat,lon);
+
+        lon = c.lon;
+        lat = c.lat;
+
+        int val = lat;
+        val = ((int)val+controller.registers.pitch);
+        lat = clipped(val,map.minlat,map.maxlat-1);
+
+        lon = lon + controller.registers.roll;
+
+        if (val>=map.maxlat) {
+            lon=lon*(-1);
+            lat=map.maxlat-1;
+        }
+
+        if ((val-lat)<0) {
+            lon=lon*(-1);
+            lat=map.minlat;
+        }
+
+        if (units[controller.controllingid]->availablemoves>0)
+        {
+            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LAND) || 
+                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEA))
+            {
+
+                coordinate c = map.to_offset(lat,lon);
+
+                if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                    map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
+
+                // Confirm the change if the movement is allowed.
+                units[controller.controllingid]->latitude = c.lat;
+                units[controller.controllingid]->longitude = c.lon; 
+
+                if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                    map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
+
+                units[controller.controllingid]->availablemoves--;
+            }
+        } 
+
+
+        if (units[controller.controllingid]->availablemoves==0)
+        {
+            controller.endofturn = true;
+            for (auto& [k,u] : units)
+            {
+                if (u->faction == controller.faction)
+                {
+                    if (u->availablemoves>0)
+                    {
+                        controller.controllingid = u->id;
+                        controller.endofturn = false;
+                        break;
+                    }
+                }
+            }
+        }
+
+
+        controller.registers.pitch= controller.registers.roll = 0;     
+
+        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
+    }    
+
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
+    {
+        factions[controller.faction]->mapoffset += controller.registers.yaw;
+        controller.registers.yaw = 0;
+    }
+}
+
+void openCityScreen()
+{
+    if (controller.view == 2)
+    {
+        City *city = cities[controller.cityid];
+        coordinate co = getCurrentCenter();
+        coordinate c = map.to_fixed(city->latitude,city->longitude);
+        drawCityScreen(c.lat,c.lon,city);
+    }       
+}
+

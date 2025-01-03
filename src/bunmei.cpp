@@ -63,6 +63,7 @@
 #include "resources.h"
 #include "Faction.h"
 #include "gamekernel.h"
+#include "engine.h"
 #include "messages.h"
 
 #include "buildings/Building.h"
@@ -105,24 +106,7 @@ void setupWorldModelling()
 
     initResources();
 
-    initFactions();
-
-    controller.faction = factions[0]->id;
-    controller.controllingid = nextUnitId(controller.faction);
-    factions[0]->autoPlayer = false;
-    
-    year = -4000;
-
-    char msg[256];
-    Message mg;
-    mg.faction = controller.faction;
-    sprintf(msg, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
-    mg.msg = std::string(msg); mg.year = year;
-    messages.insert(messages.begin(), mg); 
-
-    centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-    zoommapin();
-
+    initWorldModelling();
 }
 
 void initRendering()
@@ -323,7 +307,7 @@ inline bool endOfTurnForAllFactions()
     return true;
 }
 
-void worldStep(int value)
+void update(int value)
 {
     // Derive the control to the correct object
     if (controller.isInterrupted())

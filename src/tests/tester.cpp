@@ -1,17 +1,29 @@
-#include "Faction.h"
-#include "gamekernel.h"
-#include "usercontrols.h"
-#include "map.h"
-#include "cityscreenui.h"
-#include "City.h"
-#include "resources.h"
+#include <iostream>
+#include <fstream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-#include "units/Unit.h"
-#include "units/Warrior.h"
-#include "units/Settler.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
-#include "messages.h"
-#include "engine.h"
+#include <stdarg.h>
+#include <math.h>
+
+#include <cassert>
+#include "../units/Unit.h"
+#include "../City.h"
+#include "../Faction.h"
+#include "../resources.h"
+#include "../map.h"
+#include "../units/Settler.h"
+#include "../engine.h"
+
+
+#include "../usercontrols.h"
+#include "../messages.h"
+#include "testcase.h"
 
 extern Controller controller;
 
@@ -25,6 +37,11 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 
+extern int year;
+
+TestCase *t = NULL;
+
+void update(int value);         // Will be linked with bunmei.update()
 
 void initMap()
 {
@@ -660,7 +677,7 @@ void initResources()
         }
 }
 
-void initFactions()
+void initWorldModelling()
 {
 
     Faction *faction = new Faction();
@@ -671,24 +688,6 @@ void initFactions()
     faction->blue = 0;
     
     factions.push_back(faction);
-
-    faction = new Faction();
-    faction->id = 1;
-    strcpy(faction->name,"Romans");
-    faction->red = 255;
-    faction->green = 255;
-    faction->blue = 255;
-    factions.push_back(faction);
-
-
-    faction = new Faction();
-    faction->id = 2;
-    strcpy(faction->name,"Greeks");
-    faction->red = 0;
-    faction->green = 0;
-    faction->blue = 255;
-    factions.push_back(faction);
-
 
     for (auto& f: factions)
     {
@@ -718,27 +717,6 @@ void initFactions()
 
         units[settler->id] = settler;
 
-
-        Warrior *warrior = new Warrior();
-        warrior->longitude = c.lon;
-        warrior->latitude = c.lat;
-        warrior->id = getNextUnitId();
-        warrior->faction = f->id;
-        warrior->availablemoves = warrior->getUnitMoves();
-
-
-        units[warrior->id] = warrior;
-
-
-        Settler *settler2 = new Settler();
-        settler2->longitude = c.lon;
-        settler2->latitude = c.lat;
-        settler2->id = getNextUnitId();
-        settler2->faction = f->id;
-        settler2->availablemoves = settler2->getUnitMoves();
-
-
-        units[settler2->id] = settler2;
     }
 
 
@@ -785,30 +763,45 @@ void initFactions()
     citynames[2].push("Samos");
     citynames[2].push("Rodas");
 
+
+    t = pickTestCase(0);
+
+    t->init();
+
+    controller.faction = 0;
+    controller.view = 1;
+
 }
 
-void update(int value);
-//void replayupdate(int value);
+long unsigned timer = 0;
 
 void worldStep(int value)
 {
+    timer++;
     update(value);
-}
 
-extern int year;
+    long unsigned starttime = 200;
 
-void initWorldModelling()
-{
-    initFactions();   
+    if (timer == starttime)
+    {
+        message(year, -1, "TC%03d: %s", t->number(), t->title().c_str());
+    }
 
-    controller.faction = factions[0]->id;
-    controller.controllingid = nextUnitId(controller.faction);
-    factions[0]->autoPlayer = false;
-    
-    year = -4000;
+    t->check(timer);
 
-    message(year, controller.faction, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
-
-    centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-    zoommapin();     
+    if (t->done())
+    {
+        if (t->passed())
+        {
+            printf("Test Passed\n");
+            exit(1);
+        }
+        else
+        {
+            char msg[256];
+            sprintf(msg, "Test Failed: %s\n", t->failedMessage().c_str());
+            printf(msg);
+            exit(0);
+        }
+    }
 }

@@ -4,9 +4,8 @@
 void initMap();
 void initFactions();
 void initResources();
-int getNextCityId();
-int getNextUnitId();
-int nextUnitId(int faction);
-int nextMovableUnitId(int faction, int currentid=0);
+
+void initWorldModelling();
+void worldStep(int value);
 
 #endif // GAMEKERNEL_H

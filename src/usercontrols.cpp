@@ -8,7 +8,7 @@
 #include "City.h"
 #include "units/Unit.h"
 #include "cityscreenui.h"
-#include "gamekernel.h"
+#include "engine.h"
 #include "usercontrols.h"
 
 

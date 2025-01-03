@@ -6,3 +6,4 @@ src/**/*.o
 bunmei
 .vscode/*
 src/*.o
+testcase
