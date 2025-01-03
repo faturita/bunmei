@@ -9,28 +9,29 @@
 
 class City
 {
-    protected:
+protected:
     //std::unordered_map<coordinate, int> tiles;
 
     bool isCapital;
+    bool isDefended=false;
 
-    public:
+public:
     std::queue<BuildableFactory*> productionQueue;              // List of things that are currently being built within THIS particular city.
     std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
     std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
 
-        City(int faction, int id, int latitude, int longitude);
-        int latitude;
-        int longitude;
-        int faction;
-        int id;
-        int pop;
-        char name[256];
+    City(int faction, int id, int latitude, int longitude);
+    int latitude;
+    int longitude;
+    int faction;
+    int id;
+    int pop;
+    char name[256];
 
-        int shields;
-        int food;
+    int shields;
+    int food;
 
     void setName(const char* name);
     void virtual draw();
@@ -45,6 +46,9 @@ class City
     int getConsumptionRate(int r_id);
     int numberOfWorkingTiles();
     bool occupied(int lat, int lon);
+    void setDefense();
+    void noDefense();
+    coordinate getCoordinate();
 
 
 };

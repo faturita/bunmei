@@ -15,6 +15,8 @@ class Faction {
 
         int mapoffset;
 
+        int blinkingrate = 70;
+
     Faction ()
     {
         doneThisTurn = false;

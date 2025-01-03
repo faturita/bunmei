@@ -186,7 +186,6 @@ coordinate convertToMap(int ccx, int ccy, int gridsize);
 void unfog(int lat, int lon);
 
 void drawUnitsAndCities();
-void adjustMovements();
 void openCityScreen();
 
 void place(int x, int y, int sizex, int sizey, const char* modelName);

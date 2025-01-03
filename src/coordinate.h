@@ -16,6 +16,12 @@ struct coordinate
     {
         return lat == c.lat && lon == c.lon;
     }
+
+    // Overload the != operator
+    bool operator!=(const coordinate& c) const
+    {
+        return lat != c.lat || lon != c.lon;
+    }
 };
 
 // Extend the coordinate class to include a hash function

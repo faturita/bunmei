@@ -48,6 +48,11 @@ void City::draw()
     
     placeThisCity(latitude,longitude, red,green,blue);
 
+    if (isDefended)
+    {
+        placeTile(longitude,latitude,"assets/assets/map/defended.png");
+    }
+
     coordinate c = map.to_fixed(latitude,longitude);
 
     int lon = c.lon;
@@ -217,4 +222,19 @@ int City::getConsumptionRate(int r_id)
     }
 
     return consumption_rate;
+}
+
+void City::setDefense()
+{
+    isDefended = true;
+}
+
+void City::noDefense()
+{
+    isDefended = false;
+}
+
+coordinate City::getCoordinate()
+{
+    return coordinate(latitude,longitude);
 }

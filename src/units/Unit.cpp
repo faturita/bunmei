@@ -8,6 +8,7 @@ Unit::Unit()
 {
     strcpy(name,"Unit");
     moves = 1;
+    target = coordinate(0,0);
 }
 
 void Unit::draw()
@@ -38,4 +39,32 @@ BuildableType Unit::getType()
 MOVEMENT_TYPE Unit::getMovementType()
 {
     return LAND;
+}
+
+void Unit::goTo(int lat, int lon)
+{
+    printf("Target Lat Lon %d, %d\n",lat,lon);
+    autoMode = true;
+    target = coordinate(lat,lon);
+}
+
+bool Unit::isAuto()
+{
+    return autoMode;
+}
+
+bool Unit::arrived()
+{
+    if (latitude == target.lat && longitude == target.lon)
+    {
+        autoMode = false;
+        return true;
+    }
+
+    return false;
+}
+
+coordinate Unit::getCoordinate()
+{
+    return coordinate(latitude,longitude);
 }
