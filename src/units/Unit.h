@@ -7,9 +7,9 @@
 
 enum MOVEMENT_TYPE
 {
-    LAND,
-    SEA,
-    AIR
+    LANDTYPE,
+    SEATYPE,
+    AIRTYPE
 };
 
 class Unit : public Buildable

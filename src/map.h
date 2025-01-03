@@ -193,6 +193,7 @@ void place(int x, int y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int size, const char* modelName);
 void placeTile(int x, int y, const char* modelName);
 void placeTile(int x, int y, int size, const char* modelName);
+void placeThisTile(int lat, int lon, int size, const char* filename);
 void placeThisUnit(int lat, int lon, int size, const char* modelName, int red=255, int green=0, int blue=0);
 void placeThisCity(int lat, int lon, int red, int green, int blue);
 

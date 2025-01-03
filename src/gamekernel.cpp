@@ -25,28 +25,78 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 
+void update(int value);
+//void replayupdate(int value);
+
+extern int year;
+
+enum TERRAIN
+{
+    OCEAN = 0,
+    LAND = 1
+};
+
+enum BIOMAS
+{
+    ARCTIC = 0x20,
+    DESERT = 0x30,
+    FOREST = 0x40,
+    GRASSLAND = 0x50,
+    HILLS = 0x60,
+    JUNGLE = 0x70,
+    MOUNTAINS = 0x80,
+    PLAINS = 0x90,
+    RIVER = 0xa0,
+    SWAMP = 0xb0,
+    TUNDRA = 0xc0,
+    OCEANBIOMA = 0xd0,
+    LANDBIOMA = 0x01,
+    RIVER_MOUTH_W = 0x02,
+    RIVER_MOUTH_S = 0x03,
+    RIVER_MOUTH_E = 0x04,
+    RIVER_MOUTH_N = 0x05
+};
+
+enum SPECIALRESOURCES
+{
+    MARBLE = 0x100,
+    COAL = 0x101,
+    IRON = 0x102,
+    COPPER = 0x103,
+    GOLD = 0x104,
+    DOE = 0x105,
+    FISH = 0x106,
+    GAME = 0x107,
+    GEMS = 0x108,
+    HORSE = 0x109,
+    OASIS = 0x10a,
+    OIL = 0x10b,
+    SEAL = 0x10c,
+    SHIELD = 0x10d
+};
 
 void initMap()
 {
-    tiles[0] = "assets/assets/terrain/ocean.png";
-    tiles[1] = "assets/assets/terrain/land.png";
+    tiles[OCEAN] = "assets/assets/terrain/ocean.png";
+    tiles[LAND] = "assets/assets/terrain/land.png";
 
-    tiles[2] = "assets/assets/terrain/river_mouth_w.png";
-    tiles[3] = "assets/assets/terrain/river_mouth_s.png";
-    tiles[4] = "assets/assets/terrain/river_mouth_e.png";
-    tiles[5] = "assets/assets/terrain/river_mouth_n.png";
+    tiles[RIVER_MOUTH_W] = "assets/assets/terrain/river_mouth_w.png";
+    tiles[RIVER_MOUTH_S] = "assets/assets/terrain/river_mouth_s.png";
+    tiles[RIVER_MOUTH_E] = "assets/assets/terrain/river_mouth_e.png";
+    tiles[RIVER_MOUTH_N] = "assets/assets/terrain/river_mouth_n.png";
 
-    tiles[0x20] = "assets/assets/terrain/arctic.png";
-    tiles[0x30] = "assets/assets/terrain/desert.png";
-    tiles[0x40] = "assets/assets/terrain/forest.png";
-    tiles[0x50] = "assets/assets/terrain/grassland.png";
-    tiles[0x60] = "assets/assets/terrain/hills.png";
-    tiles[0x70] = "assets/assets/terrain/jungle.png";
-    tiles[0x80] = "assets/assets/terrain/mountains.png";
-    tiles[0x90] = "assets/assets/terrain/plains.png";
-    tiles[0xa0] = "assets/assets/terrain/river.png";
-    tiles[0xb0] = "assets/assets/terrain/swamp.png";
-    tiles[0xc0] = "assets/assets/terrain/tundra.png";
+    tiles[ARCTIC] = "assets/assets/terrain/arctic.png";
+    tiles[DESERT] = "assets/assets/terrain/desert.png";
+    tiles[FOREST] = "assets/assets/terrain/forest.png";
+    tiles[GRASSLAND] = "assets/assets/terrain/grassland.png";
+    tiles[HILLS] = "assets/assets/terrain/hills.png";
+    tiles[JUNGLE] = "assets/assets/terrain/jungle.png";
+    tiles[MOUNTAINS] = "assets/assets/terrain/mountains.png";
+    tiles[PLAINS] = "assets/assets/terrain/plains.png";
+    tiles[RIVER] = "assets/assets/terrain/river.png";
+    tiles[SWAMP] = "assets/assets/terrain/swamp.png";
+    tiles[TUNDRA] = "assets/assets/terrain/tundra.png";
+    tiles[OCEANBIOMA] = "assets/assets/terrain/ocean.png";
 
     tiles[0x20] = "assets/assets/terrain/arctic.png";
     tiles[0x21] = "assets/assets/terrain/arctic_w.png";
@@ -237,34 +287,33 @@ void initMap()
 
     tiles[0xd0] = "assets/assets/terrain/ocean.png";
 
-    tiles[0x100] = "assets/assets/terrain/marble.png"; 
-    tiles[0x101] = "assets/assets/terrain/coal.png"; 
-    tiles[0x102] = "assets/assets/terrain/iron.png";
-    tiles[0x103] = "assets/assets/terrain/copper.png";
-    tiles[0x104] = "assets/assets/terrain/gold.png";
-    tiles[0x105] = "assets/assets/terrain/doe.png";
-    tiles[0x106] = "assets/assets/terrain/fish.png";
-    tiles[0x107] = "assets/assets/terrain/game.png";
-    tiles[0x108] = "assets/assets/terrain/gems.png";
-    tiles[0x109] = "assets/assets/terrain/horse.png";
-    tiles[0x10a] = "assets/assets/terrain/oasis.png";
-    tiles[0x10b] = "assets/assets/terrain/oil.png";
-    tiles[0x10c] = "assets/assets/terrain/seal.png";
-    tiles[0x10d] = "assets/assets/terrain/shield.png";
+    tiles[MARBLE] = "assets/assets/terrain/marble.png"; 
+    tiles[COAL] = "assets/assets/terrain/coal.png"; 
+    tiles[IRON] = "assets/assets/terrain/iron.png";
+    tiles[COPPER] = "assets/assets/terrain/copper.png";
+    tiles[GOLD] = "assets/assets/terrain/gold.png";
+    tiles[DOE] = "assets/assets/terrain/doe.png";
+    tiles[FISH] = "assets/assets/terrain/fish.png";
+    tiles[GAME] = "assets/assets/terrain/game.png";
+    tiles[GEMS] = "assets/assets/terrain/gems.png";
+    tiles[HORSE] = "assets/assets/terrain/horse.png";
+    tiles[OASIS] = "assets/assets/terrain/oasis.png";
+    tiles[OIL] = "assets/assets/terrain/oil.png";
+    tiles[SEAL] = "assets/assets/terrain/seal.png";
+    tiles[SHIELD] = "assets/assets/terrain/shield.png";
 
-    resourcesxbioma[0xd0] = {0x106,0x10b};
-    resourcesxbioma[0x20] = {0x100,0x108,0x10b,0x10c};
-    resourcesxbioma[0x30] = {0x10a,0x10b};
-    resourcesxbioma[0x40] = {0x107};
-    resourcesxbioma[0x50] = {0x100,0x101,0x102,0x103,0x104,0x105,0x107,0x109,0x10b,0x10d};
-    resourcesxbioma[0x60] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
-    resourcesxbioma[0x70] = {0x102,0x104,0x108,0x10b};
-    resourcesxbioma[0x80] = {0x100,0x101,0x102,0x103,0x104,0x108,0x10b,0x10d};
-    resourcesxbioma[0x90] = {0x105,0x107,0x109,0x10b,0x10d};
-    resourcesxbioma[0xa0] = {0x106};
-    resourcesxbioma[0xb0] = {0x104,0x108,0x10b};
-    resourcesxbioma[0xc0] = {0x100,0x103,0x104,0x108,0x10b,0x10c};
-
+    resourcesxbioma[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
+    resourcesxbioma[DESERT]     = {OASIS,OIL};
+    resourcesxbioma[FOREST]     = {GAME};
+    resourcesxbioma[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,SHIELD};
+    resourcesxbioma[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,SHIELD};
+    resourcesxbioma[JUNGLE]     = {IRON,GOLD,GEMS,OIL};
+    resourcesxbioma[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,SHIELD};
+    resourcesxbioma[PLAINS]     = {DOE,GAME,HORSE,OIL,SHIELD};
+    resourcesxbioma[RIVER]      = {FISH};
+    resourcesxbioma[SWAMP]      = {GOLD,GEMS,OIL};
+    resourcesxbioma[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
+    resourcesxbioma[OCEANBIOMA] = {FISH,OIL};
 
 
     map.init();
@@ -272,7 +321,7 @@ void initMap()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            map.set(lat,lon) = mapcell(0);
+            map.set(lat,lon) = mapcell(OCEAN);
         }
 
     // for(int lat=-3;lat<=3;lat++)
@@ -315,8 +364,8 @@ void initMap()
 
         while (getRandomInteger(0,100)>2)
         {
-            map.set(lat,lon) = mapcell(1);
-            map.set(lat,lon).bioma = 1;
+            map.set(lat,lon) = mapcell(LAND);
+            map.set(lat,lon).bioma = LANDBIOMA;
             int dir=getRandomInteger(0,3);
             if (dir==0) lat-=1;
             if (dir==1) lat+=1;
@@ -341,7 +390,7 @@ void initMap()
 
         if (energy>0) if ((south+north+east+west)>=1)
         {
-            map.set(lat,lon) = mapcell(1);
+            map.set(lat,lon) = mapcell(LAND);
             energy--;
         }
     }
@@ -358,7 +407,7 @@ void initMap()
 
             if (energy>0) if ((south+north+east+west)>=3)
             {
-                map.set(lat,lon) = mapcell(1);
+                map.set(lat,lon) = mapcell(LAND);
             }
         }
 
@@ -368,13 +417,13 @@ void initMap()
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        int biomalist[] = {0x20,0x30,0x40,0x50,0x60,0x70,0x80,0x90,0xb0,0xc0};
+        int biomalist[] = {ARCTIC,DESERT,FOREST,GRASSLAND,HILLS,JUNGLE,MOUNTAINS,PLAINS,SWAMP,TUNDRA};
 
         int bioma = biomalist[getRandomInteger(0,9)];
 
         while (getRandomInteger(0,100)>2)
         {
-            if (map(lat,lon).code==1)
+            if (map(lat,lon).code==LAND)
             {
                 map.set(lat,lon).bioma = bioma;
                 int dir=getRandomInteger(0,3);
@@ -391,9 +440,9 @@ void initMap()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map(lat,lon).code==0)
+            if (map(lat,lon).code==OCEAN)
             {
-                map.set(lat,lon).bioma = 0xd0;
+                map.set(lat,lon).bioma = OCEANBIOMA;
             }
         }
 
@@ -405,7 +454,7 @@ void initMap()
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        if (map(lat,lon).code==1)
+        if (map(lat,lon).code==LAND)
         {
             riversources.push_back(coordinate(lat,lon));
         }
@@ -419,26 +468,26 @@ void initMap()
         int lon = river.lon;
         //printf("River upstream %d,%d\n",lat,lon) ;
 
-        int bioma = 0xa0;
+        int bioma = RIVER;
 
         int dir=0;
 
         int counter = 0;
 
-        while (map(lat,lon).code==1)
+        while (map(lat,lon).code==LAND)
         {
             map.set(lat,lon).bioma = bioma;
 
-            if (map.north(lat,lon).code==0)
+            if (map.north(lat,lon).code==OCEAN)
             {
                 dir=0;
-            } else if (map.south(lat,lon).code==0)
+            } else if (map.south(lat,lon).code==OCEAN)
             {
                 dir=1;
-            } else if (map.east(lat,lon).code==0)
+            } else if (map.east(lat,lon).code==OCEAN)
             {
                 dir=2;
-            } else if (map.west(lat,lon).code==0)
+            } else if (map.west(lat,lon).code==OCEAN)
             {
                 dir=3;
             } else {
@@ -453,6 +502,7 @@ void initMap()
                     if (dir==2) llon+=1;
                     if (dir==3) llon-=1;
                     
+                    // RIVER is 0xa0
                     int west = (map.west(llat,llon).bioma & 0xf0 ^ 0xa0)>0;west=west?0:1;
                     int south = (map.south(llat,llon).bioma & 0xf0 ^ 0xa0)>0;south=south?0:1;
                     int east = (map.east(llat,llon).bioma & 0xf0 ^ 0xa0)>0;east=east?0:1;
@@ -475,9 +525,9 @@ void initMap()
             if (dir==3) lon-=1;
             //if (counter++==4) break;
 
-            if (map(lat,lon).code==0) 
+            if (map(lat,lon).code==OCEAN) 
             {
-                map.set(lat,lon).bioma = 0xa0;
+                map.set(lat,lon).bioma = RIVER;
             }
         }
     }
@@ -490,7 +540,7 @@ void initMap()
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        if (map(lat,lon).code==1)
+        if (map(lat,lon).code==LAND)
         {
             resourcelocations.push_back(coordinate(lat,lon));
             
@@ -503,7 +553,7 @@ void initMap()
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
-        if (map(lat,lon).code==0)
+        if (map(lat,lon).code==OCEAN)
         {
             resourcelocations.push_back(coordinate(lat,lon));
             
@@ -539,7 +589,7 @@ void initMap()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map(lat,lon).code==1 && map(lat,lon).bioma>5)       // Skip all the first biomas which are river mouths
+            if (map(lat,lon).code==LAND && map(lat,lon).bioma>5)       // Skip all the first biomas which are river mouths
             {
                 int bioma = map(lat,lon).bioma;
 
@@ -566,9 +616,9 @@ void initMap()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map(lat,lon).code==0 && map(lat,lon).bioma==0xa0)
+            if (map(lat,lon).code==OCEAN && map(lat,lon).bioma==RIVER)
             {
-                int biom = 0xa0;
+                int biom = 0xa0;  // 0xa0 is RIVER
                 int b1 = (map.west(lat,lon).bioma & 0xf0 ^ biom)>0;b1=b1?0:1;
                 int b2 = (map.south(lat,lon).bioma & 0xf0 ^ biom)>0;b2=b2?0:1;
                 int b3 = (map.east(lat,lon).bioma & 0xf0 ^ biom)>0;b3=b3?0:1;
@@ -578,10 +628,10 @@ void initMap()
 
                 int val = (b4<<3 | b3<<2 | b2<<1 | b1);
 
-                if (b1) map.set(lat,lon).bioma = 2;
-                if (b2) map.set(lat,lon).bioma = 3;
-                if (b3) map.set(lat,lon).bioma = 4;
-                if (b4) map.set(lat,lon).bioma = 5;
+                if (b1) map.set(lat,lon).bioma = RIVER_MOUTH_W;
+                if (b2) map.set(lat,lon).bioma = RIVER_MOUTH_S;
+                if (b3) map.set(lat,lon).bioma = RIVER_MOUTH_E;
+                if (b4) map.set(lat,lon).bioma = RIVER_MOUTH_N;
 
             }
         }
@@ -589,12 +639,12 @@ void initMap()
 
 void initResources()
 {
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
+    resources.push_back(new Resource(FOOD,0,"assets/assets/city/food.png","Food"));
+    resources.push_back(new Resource(SHIELD,0,"assets/assets/city/production.png","Shields"));
+    resources.push_back(new Resource(TRADE,0,"assets/assets/city/trade.png","Trade"));
+    resources.push_back(new Resource(COINS,0,"assets/assets/city/gold.png","Coins"));
+    resources.push_back(new Resource(SCIENCE,0,"assets/assets/city/bulb.png","Science"));
+    resources.push_back(new Resource(CULTURE,0,"assets/assets/city/culture.png","Culture"));
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
@@ -604,58 +654,57 @@ void initResources()
                 map(lat,lon).resource_production_rate.push_back(0);
             }
 
-            if (map(lat,lon).code==0)       // Water
+            if (map(lat,lon).code==OCEAN)       // Water
             {
-                map(lat,lon).resource_production_rate[0] = 1;
-                map(lat,lon).resource_production_rate[2] = 1;
+                map(lat,lon).resource_production_rate[FOOD]     = 1;
+                map(lat,lon).resource_production_rate[TRADE]    = 1;
 
-                if (map(lat,lon).resource==0x106) map(lat,lon).resource_production_rate[0] = 3;
-                if (map(lat,lon).resource==0x10b) map(lat,lon).resource_production_rate[1] = 2;
+                if (map(lat,lon).resource==FISH) map(lat,lon).resource_production_rate[0] = 3;
+                if (map(lat,lon).resource==OIL)  map(lat,lon).resource_production_rate[1] = 2;
             }
             else
-            if (map(lat,lon).code==1)       // Land
+            if (map(lat,lon).code==LAND)       // Land
             {
                 // @FIXME Adjust the basic production rate of each tile
-                map(lat,lon).resource_production_rate[0] = 1;
+                map(lat,lon).resource_production_rate[FOOD] = 1;
 
                 //printf("Bioma %x\n",map(lat,lon).bioma);
-                if (map(lat,lon).code == 1 && map(lat,lon).bioma == 0x00) // Regular land
+                if (map(lat,lon).code == LAND && map(lat,lon).bioma == 0) // Regular land
                 {
-                    map(lat,lon).resource_production_rate[0] = 2;
+                    map(lat,lon).resource_production_rate[FOOD] = 2;
                 }
-                if (map(lat,lon).bioma/16==0x5) // Grassland
+                if (map(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
-                    map(lat,lon).resource_production_rate[0] = 3;
+                    map(lat,lon).resource_production_rate[FOOD] = 3;
                 }
-                if (map(lat,lon).bioma/16==0xa) // River
+                if (map(lat,lon).bioma/16==RIVER/16) // River
                 {
-                    map(lat,lon).resource_production_rate[0] = 4;
-                    map(lat,lon).resource_production_rate[2] = 1;
+                    map(lat,lon).resource_production_rate[FOOD]  = 4;
+                    map(lat,lon).resource_production_rate[TRADE] = 1;
                 }
-                if (map(lat,lon).bioma/16==0x3) // Desert
+                if (map(lat,lon).bioma/16==DESERT/16) // Desert
                 {
-                    map(lat,lon).resource_production_rate[0] = 1;
+                    map(lat,lon).resource_production_rate[FOOD] = 1;
                 }
-                if (map(lat,lon).bioma/16==0x6) // Hills
+                if (map(lat,lon).bioma/16==HILLS/16) // Hills
                 {
-                    map(lat,lon).resource_production_rate[1] = 1;
+                    map(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
-                if (map(lat,lon).bioma/16==0x4) // Forests
+                if (map(lat,lon).bioma/16==FOREST/16) // Forests
                 {
-                    map(lat,lon).resource_production_rate[1] = 2;
+                    map(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
-                if (map(lat,lon).bioma/16==0x8) // Mountains
+                if (map(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
                 {
-                    map(lat,lon).resource_production_rate[1] = 1;
-                }
-
-                if (map(lat,lon).resource==0x108) map(lat,lon).resource_production_rate[5] = 2;
-                if (map(lat,lon).resource==0x104) 
-                {
-                    map(lat,lon).resource_production_rate[3] = 2;
-                    map(lat,lon).resource_production_rate[5] = 1;
+                    map(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
 
+                if (map(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
+                if (map(lat,lon).resource==GOLD) 
+                {
+                    map(lat,lon).resource_production_rate[COINS]    = 2;
+                    map(lat,lon).resource_production_rate[CULTURE]  = 1;
+                }
             }
         }
 }
@@ -696,7 +745,7 @@ void initFactions()
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                if (map(lat,lon).code==1)
+                if (map(lat,lon).code==LAND)
                 {
                     list.push_back(coordinate(lat,lon));
                 }
@@ -787,15 +836,12 @@ void initFactions()
 
 }
 
-void update(int value);
-//void replayupdate(int value);
-
 void worldStep(int value)
 {
     update(value);
 }
 
-extern int year;
+
 
 void initWorldModelling()
 {
