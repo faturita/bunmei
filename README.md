@@ -9,12 +9,12 @@ Map size is 72x48.  Latitud determines the relation to the equator, increasing t
 
 There are spetial resources around.
 
-## Land ownership
+## Land Ownership
 
-Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  And of course, armies can change that.
+Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.
 
 
-## Combat
+## Combat
 
 The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack points, defense points and experience points.
 
@@ -30,6 +30,7 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Ability to name landmarks, rivers, mountains, continents.
 * Buy and sell resources from ports (like in Colonization).  This generates trade routes.
 * Allow to form alliances with other factions and independence to arise from colonies.
+* Deal with the problem of founding cities everywhere on the map: when cities are very close to each other, the one that produces more culture absorbs the other city, and one of them is destroyed, or refounded in the middle.
 
 ## More info
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/

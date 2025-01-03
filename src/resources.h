@@ -3,6 +3,16 @@
 
 #include <string.h>
 
+enum RESOURCE_TYPES {
+    FOOD,
+    SHIELDS,
+    TRADE,
+    COINS,
+    SCIENCE,
+    CULTURE
+};
+
+
 class Resource {
     public:
     int id;

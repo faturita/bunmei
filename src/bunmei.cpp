@@ -347,8 +347,8 @@ void adjustMovements()
 
         if (units[controller.controllingid]->availablemoves>0)
         {
-            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LAND) || 
-                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEA))
+            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
+                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEATYPE))
             {
 
                 if (map(lat,lon).f_id_owner == FREE_LAND || map(lat,lon).f_id_owner == units[controller.controllingid]->faction)

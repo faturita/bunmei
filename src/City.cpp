@@ -50,7 +50,7 @@ void City::draw()
 
     if (isDefended)
     {
-        placeTile(longitude,latitude,"assets/assets/map/defended.png");
+        placeThisTile(latitude,longitude,16,"assets/assets/map/defended.png");
     }
 
     coordinate c = map.to_fixed(latitude,longitude);

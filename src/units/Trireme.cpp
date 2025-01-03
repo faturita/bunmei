@@ -27,7 +27,7 @@ bool Trireme::canBuildCity()
 
 MOVEMENT_TYPE Trireme::getMovementType()
 {
-    return SEA;
+    return SEATYPE;
 }
 
 // ----------------------------

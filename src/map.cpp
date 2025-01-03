@@ -177,6 +177,13 @@ void placeTile(int x, int y, int size, const char* modelName)
     place(x*16,y*16,size,size,modelName);      // x,y x-> column y-> row  
 }
 
+// Lat, lon are the real lat,lon coordinates of the map, and they will be converted to FIXED parameters on the screen.
+void placeThisTile(int lat, int lon, int size, const char* filename)
+{
+    coordinate c = map.to_fixed(lat,lon);
+    place(c.lon*16,c.lat*16,size,size,filename);      // x,y x-> column y-> row  
+}
+
 void placeThisUnit(int lat, int lon, int size, const char* filename, int red, int green, int blue)
 {
     char modelName[256];

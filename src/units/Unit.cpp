@@ -38,7 +38,7 @@ BuildableType Unit::getType()
 
 MOVEMENT_TYPE Unit::getMovementType()
 {
-    return LAND;
+    return LANDTYPE;
 }
 
 void Unit::goTo(int lat, int lon)
