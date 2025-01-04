@@ -354,7 +354,7 @@ void initMap()
     // map.set(0,0).bioma = 0xa0;
 
 
-    // Pick a random number of land masses seeds.
+    // Pick a random number and use it to seed the land masses.
     int r=getRandomInteger(2,15);
 
     for(int i=0;i<r;i++)
@@ -365,7 +365,6 @@ void initMap()
         while (getRandomInteger(0,100)>2)
         {
             map.set(lat,lon) = mapcell(LAND);
-            map.set(lat,lon).bioma = LANDBIOMA;
             int dir=getRandomInteger(0,3);
             if (dir==0) lat-=1;
             if (dir==1) lat+=1;
@@ -532,6 +531,18 @@ void initMap()
         }
     }
 
+    // For all the land, set the default bioma to LANDBIOMA (0x01) which is the green base land.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map(lat,lon).code==LAND && map(lat,lon).bioma==0)       // Skip all the first biomas which are river mouths
+            {
+                map.set(lat,lon).bioma = LANDBIOMA;
+            }
+        }
+        
+    // @NOTE: ---- At this point all the BIOMAS from all the cells have been decided. @FIXME add asserts to check this.
+
     // Now, pick several places where to put special resources.
     std::vector<coordinate> resourcelocations;
 
@@ -651,59 +662,59 @@ void initResources()
         {
             for(auto &r:resources)
             {
-                map(lat,lon).resource_production_rate.push_back(0);
+                map.set(lat,lon).resource_production_rate.push_back(0);
             }
 
-            if (map(lat,lon).code==OCEAN)       // Water
+            if (map.set(lat,lon).code==OCEAN)       // Water
             {
-                map(lat,lon).resource_production_rate[FOOD]     = 1;
-                map(lat,lon).resource_production_rate[TRADE]    = 1;
+                map.set(lat,lon).resource_production_rate[FOOD]     = 1;
+                map.set(lat,lon).resource_production_rate[TRADE]    = 1;
 
-                if (map(lat,lon).resource==FISH) map(lat,lon).resource_production_rate[0] = 3;
-                if (map(lat,lon).resource==OIL)  map(lat,lon).resource_production_rate[1] = 2;
+                if (map.set(lat,lon).resource==FISH) map.set(lat,lon).resource_production_rate[0] = 3;
+                if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[1] = 2;
             }
             else
-            if (map(lat,lon).code==LAND)       // Land
+            if (map.set(lat,lon).code==LAND)       // Land
             {
                 // @FIXME Adjust the basic production rate of each tile
-                map(lat,lon).resource_production_rate[FOOD] = 1;
+                map.set(lat,lon).resource_production_rate[FOOD] = 1;
 
                 //printf("Bioma %x\n",map(lat,lon).bioma);
-                if (map(lat,lon).code == LAND && map(lat,lon).bioma == 0) // Regular land
+                if (map.set(lat,lon).code == LAND && map.set(lat,lon).bioma == LANDBIOMA) // Regular land
                 {
-                    map(lat,lon).resource_production_rate[FOOD] = 2;
+                    map.set(lat,lon).resource_production_rate[FOOD] = 2;
                 }
-                if (map(lat,lon).bioma/16==GRASSLAND/16) // Grassland
+                if (map.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
-                    map(lat,lon).resource_production_rate[FOOD] = 3;
+                    map.set(lat,lon).resource_production_rate[FOOD] = 3;
                 }
-                if (map(lat,lon).bioma/16==RIVER/16) // River
+                if (map.set(lat,lon).bioma/16==RIVER/16) // River
                 {
-                    map(lat,lon).resource_production_rate[FOOD]  = 4;
-                    map(lat,lon).resource_production_rate[TRADE] = 1;
+                    map.set(lat,lon).resource_production_rate[FOOD]  = 4;
+                    map.set(lat,lon).resource_production_rate[TRADE] = 1;
                 }
-                if (map(lat,lon).bioma/16==DESERT/16) // Desert
+                if (map.set(lat,lon).bioma/16==DESERT/16) // Desert
                 {
-                    map(lat,lon).resource_production_rate[FOOD] = 1;
+                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
                 }
-                if (map(lat,lon).bioma/16==HILLS/16) // Hills
+                if (map.set(lat,lon).bioma/16==HILLS/16) // Hills
                 {
-                    map(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
-                if (map(lat,lon).bioma/16==FOREST/16) // Forests
+                if (map.set(lat,lon).bioma/16==FOREST/16) // Forests
                 {
-                    map(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
-                if (map(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
+                if (map.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
                 {
-                    map(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
 
-                if (map(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
-                if (map(lat,lon).resource==GOLD) 
+                if (map.set(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
+                if (map.set(lat,lon).resource==GOLD) 
                 {
-                    map(lat,lon).resource_production_rate[COINS]    = 2;
-                    map(lat,lon).resource_production_rate[CULTURE]  = 1;
+                    map.set(lat,lon).resource_production_rate[COINS]    = 2;
+                    map.set(lat,lon).resource_production_rate[CULTURE]  = 1;
                 }
             }
         }
@@ -745,7 +756,7 @@ void initFactions()
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                if (map(lat,lon).code==LAND)
+                if (map.set(lat,lon).code==LAND)
                 {
                     list.push_back(coordinate(lat,lon));
                 }

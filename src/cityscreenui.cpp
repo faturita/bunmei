@@ -105,6 +105,7 @@ void drawCityScreen(int cla, int clo, City *city)
         placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
         drawBoundingBox(clo,cla,-10,-8,-4,-4);
 
+        printf("------------- City %s Lat %d  Lon %d\n",city->name, city->latitude, city->longitude);
         for(int i=0;i<resources.size();i++)
         {
             Resource* r = resources[i];
@@ -112,6 +113,9 @@ void drawCityScreen(int cla, int clo, City *city)
             int productionrate = city->getProductionRate(r->id)-consumptionrate;
             int colsepar = 7;
             int j;
+
+            printf("Resource %s Consumption %d Production %d\n",r->name,consumptionrate,productionrate);
+
             for(j=0;j<consumptionrate;j++)
             {
                 place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,r->assetname);
@@ -123,6 +127,7 @@ void drawCityScreen(int cla, int clo, City *city)
             }
 
         }
+
     }
 
     placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");

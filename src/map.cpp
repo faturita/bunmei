@@ -80,7 +80,7 @@ void centermap(int ccx, int ccy)  // lon,lat
     int lon = (int)(dcx/16) - MAPHALFWIDTH;
     int lat = (int)(dcy/16) - MAPHALFHEIGHT;
 
-    coordinate c = map.to_offset(lat,lon);
+    coordinate c = map.to_real(lat,lon);
 
     //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
 }
@@ -98,7 +98,7 @@ coordinate getCurrentCenter()
     int lon = (int)(dcx/16) - MAPHALFWIDTH;
     int lat = (int)(dcy/16) - MAPHALFHEIGHT;
 
-    coordinate c = map.to_offset(lat,lon);
+    coordinate c = map.to_real(lat,lon);
 
     //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);    
 
@@ -121,7 +121,7 @@ coordinate convertToMap(int ccx, int ccy, int gridsize)
     int lon = (int)(dcx/gridsize) - MAPHALFWIDTH;
     int lat = (int)(dcy/gridsize) - MAPHALFHEIGHT;
 
-    //coordinate c = map.to_offset(lat,lon);            // With offset
+    //coordinate c = map.to_real(lat,lon);            // With offset
     coordinate c(lat,lon);                              // Without offset
 
     return c;
@@ -180,7 +180,7 @@ void placeTile(int x, int y, int size, const char* modelName)
 // Lat, lon are the real lat,lon coordinates of the map, and they will be converted to FIXED parameters on the screen.
 void placeThisTile(int lat, int lon, int size, const char* filename)
 {
-    coordinate c = map.to_fixed(lat,lon);
+    coordinate c = map.to_screen(lat,lon);
     place(c.lon*16,c.lat*16,size,size,filename);      // x,y x-> column y-> row  
 }
 
@@ -189,7 +189,7 @@ void placeThisUnit(int lat, int lon, int size, const char* filename, int red, in
     char modelName[256];
     sprintf(modelName,"%s_%d_%d_%d", filename, red, green, blue);
     GLuint _texture = preloadUnitTexture(filename, modelName,red,green,blue);
-    coordinate c = map.to_fixed(lat,lon);
+    coordinate c = map.to_screen(lat,lon);
     place(c.lon*16,c.lat*16,size,size,_texture);      // x,y x-> column y-> row  
 }
 
@@ -198,7 +198,7 @@ void placeThisCity(int lat, int lon, int red, int green, int blue)
     char modelName[256];
     sprintf(modelName,"%s_%d_%d_%d", "assets/assets/map/city_r.png_%d_%d_%d", red, green, blue);
     GLuint _texture = preloadCityTexture("assets/assets/map/city_r.png",modelName, red,green,blue);
-    coordinate c = map.to_fixed(lat,lon);
+    coordinate c = map.to_screen(lat,lon);
     place(c.lon*16,c.lat*16,16,16,_texture);      // x,y x-> column y-> row  
 }
 
@@ -398,7 +398,7 @@ void drawUnitsAndCities()
 
     for (auto& [k,u] : units) 
     {
-        coordinate c = map.to_fixed(u->latitude,u->longitude);
+        coordinate c = map.to_screen(u->latitude,u->longitude);
         unfog(c.lat,c.lon);
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
@@ -408,7 +408,7 @@ void drawUnitsAndCities()
 
     for (auto& [k, c] : cities) 
     {
-        coordinate co = map.to_fixed(c->latitude,c->longitude);
+        coordinate co = map.to_screen(c->latitude,c->longitude);
         if (map(co.lat,co.lon).visible)
         {
             c->draw();
@@ -442,7 +442,7 @@ void openCityScreen()
     {
         City *city = cities[controller.cityid];
         coordinate co = getCurrentCenter();
-        coordinate c = map.to_fixed(city->latitude,city->longitude);
+        coordinate c = map.to_screen(city->latitude,city->longitude);
         drawCityScreen(c.lat,c.lon,city);
     }       
 }

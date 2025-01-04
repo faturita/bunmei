@@ -59,7 +59,7 @@ void handleKeypress(unsigned char key, int x, int y) {
             if (units.find(controller.controllingid) != units.end())
             {
                 coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-                c = map.to_fixed(c.lat,c.lon);
+                c = map.to_screen(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);
                 resetzoom();
             }

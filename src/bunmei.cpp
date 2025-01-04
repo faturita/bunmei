@@ -159,7 +159,7 @@ inline void processCommandOrders()
     if (co.command == Command::BuildCityOrder)
     {
         // You cannot build a city in a land CLAIMED already by another city.
-        if (map(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).c_id_owner != UNASSIGNED_LAND)
+        if (map.set(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).c_id_owner != UNASSIGNED_LAND)
         {
             message(year, controller.faction, "City cannot be built here.  The land is already claimed by another city.");
             return;
@@ -324,7 +324,7 @@ void adjustMovements()
         int lat = units[controller.controllingid]->latitude;
 
         // Convert latitude and longitude into remaped coordinates
-        coordinate c = map.to_fixed(lat,lon);
+        coordinate c = map.to_screen(lat,lon);
 
         lon = c.lon;
         lat = c.lat;
@@ -347,24 +347,24 @@ void adjustMovements()
 
         if (units[controller.controllingid]->availablemoves>0)
         {
-            if ((map(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
-                (map(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEATYPE))
+            if ((map.set(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
+                (map.set(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEATYPE))
             {
 
-                if (map(lat,lon).f_id_owner == FREE_LAND || map(lat,lon).f_id_owner == units[controller.controllingid]->faction)
+                if (map.set(lat,lon).f_id_owner == FREE_LAND || map.set(lat,lon).f_id_owner == units[controller.controllingid]->faction)
                 {
 
-                    coordinate c = map.to_offset(lat,lon);
+                    coordinate c = map.to_real(lat,lon);
 
-                    if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
-                        map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
+                    if (!map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
 
                     // Confirm the change if the movement is allowed.
                     units[controller.controllingid]->latitude = c.lat;
                     units[controller.controllingid]->longitude = c.lon; 
 
-                    if (!map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
-                        map(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
+                    if (!map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
+                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
 
                     units[controller.controllingid]->availablemoves--;
                 }
@@ -400,7 +400,7 @@ void adjustMovements()
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
-        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map(lat,lon).code, map(lat,lon).bioma);   
+        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map.set(lat,lon).code, map.set(lat,lon).bioma);   
     }    
 
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
@@ -498,7 +498,7 @@ void update(int value)
             {
                 map.setCenter(0,factions[controller.faction]->mapoffset);
                 coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-                c = map.to_fixed(c.lat,c.lon);
+                c = map.to_screen(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);   
             }         
         }
@@ -511,7 +511,7 @@ void update(int value)
             {
                 map.setCenter(0,factions[controller.faction]->mapoffset);
                 coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-                c = map.to_fixed(c.lat,c.lon);
+                c = map.to_screen(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);
             }
         }

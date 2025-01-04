@@ -30,8 +30,8 @@ struct mapcell
     int bioma;
     int resource;
 
-    int c_id_owner = UNASSIGNED_LAND;                        // Free land.
-    int f_id_owner = FREE_LAND;                             // Free land.
+    int c_id_owner = UNASSIGNED_LAND;                           // Free land.
+    int f_id_owner = FREE_LAND;                                 // Free land.
 
     std::vector<int> resource_production_rate;   // List of resource production per tile.
 
@@ -71,6 +71,7 @@ class Map
             offsetlon = lon;
         }
 
+        // Get the map cell at the SCREEN coordinates lat, lon.  For instance (zero,zero) is what should be at the center of the screen.
         mapcell &operator()(int lat, int lon)
         {
             int row=lat+abs(minlat)+offsetlat,col=lon+abs(minlon)+offsetlon;
@@ -79,6 +80,7 @@ class Map
             return map[row][col];
         }
 
+        // Set/Get the value of the map cell at the given lat,lon using REAL lat,lon (of the map)
         mapcell &set(int lat, int lon)
         {
             int row=lat+abs(minlat),col=lon+abs(minlon);
@@ -141,7 +143,7 @@ class Map
         }
 
         // Convert offset lat,lon (zero,zero can be shifted) to screen fixed lat,lon (zero,zero is the center of the screen)
-        coordinate to_fixed(int lat, int lon)
+        coordinate to_screen(int lat, int lon)
         {
             lat = lat - offsetlat;
             lon = lon - offsetlon;
@@ -155,8 +157,8 @@ class Map
             return coordinate(lat,lon);
         }
 
-        // Convert fixed lat, lon (zero,zero is the center of the screen) to offset lat, lon (zero,zero can be shifted)
-        coordinate to_offset(int lat, int lon)
+        // Convert SCREEN lat,lon (zero,zero is the center of the screen) to REAL lat,lon
+        coordinate to_real(int lat, int lon)
         {
             lat = lat + offsetlat;
             lon = lon + offsetlon;
