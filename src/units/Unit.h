@@ -8,7 +8,7 @@
 enum MOVEMENT_TYPE
 {
     LANDTYPE,
-    SEATYPE,
+    OCEANTYPE,
     AIRTYPE
 };
 

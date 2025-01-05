@@ -30,51 +30,6 @@ void update(int value);
 
 extern int year;
 
-enum TERRAIN
-{
-    OCEAN = 0,
-    LAND = 1
-};
-
-enum BIOMAS
-{
-    ARCTIC = 0x20,
-    DESERT = 0x30,
-    FOREST = 0x40,
-    GRASSLAND = 0x50,
-    HILLS = 0x60,
-    JUNGLE = 0x70,
-    MOUNTAINS = 0x80,
-    PLAINS = 0x90,
-    RIVER = 0xa0,
-    SWAMP = 0xb0,
-    TUNDRA = 0xc0,
-    OCEANBIOMA = 0xd0,
-    LANDBIOMA = 0x01,
-    RIVER_MOUTH_W = 0x02,
-    RIVER_MOUTH_S = 0x03,
-    RIVER_MOUTH_E = 0x04,
-    RIVER_MOUTH_N = 0x05
-};
-
-enum SPECIALRESOURCES
-{
-    MARBLE = 0x100,
-    COAL = 0x101,
-    IRON = 0x102,
-    COPPER = 0x103,
-    GOLD = 0x104,
-    DOE = 0x105,
-    FISH = 0x106,
-    GAME = 0x107,
-    GEMS = 0x108,
-    HORSE = 0x109,
-    OASIS = 0x10a,
-    OIL = 0x10b,
-    SEAL = 0x10c,
-    SHIELD = 0x10d
-};
-
 void initMap()
 {
     tiles[OCEAN] = "assets/assets/terrain/ocean.png";
@@ -300,16 +255,16 @@ void initMap()
     tiles[OASIS] = "assets/assets/terrain/oasis.png";
     tiles[OIL] = "assets/assets/terrain/oil.png";
     tiles[SEAL] = "assets/assets/terrain/seal.png";
-    tiles[SHIELD] = "assets/assets/terrain/shield.png";
+    tiles[GEOSHIELD] = "assets/assets/terrain/shield.png";
 
     resourcesxbioma[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
     resourcesxbioma[DESERT]     = {OASIS,OIL};
     resourcesxbioma[FOREST]     = {GAME};
-    resourcesxbioma[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,SHIELD};
-    resourcesxbioma[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,SHIELD};
+    resourcesxbioma[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,GEOSHIELD};
+    resourcesxbioma[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
     resourcesxbioma[JUNGLE]     = {IRON,GOLD,GEMS,OIL};
-    resourcesxbioma[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,SHIELD};
-    resourcesxbioma[PLAINS]     = {DOE,GAME,HORSE,OIL,SHIELD};
+    resourcesxbioma[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
+    resourcesxbioma[PLAINS]     = {DOE,GAME,HORSE,OIL,GEOSHIELD};
     resourcesxbioma[RIVER]      = {FISH};
     resourcesxbioma[SWAMP]      = {GOLD,GEMS,OIL};
     resourcesxbioma[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
@@ -651,7 +606,7 @@ void initMap()
 void initResources()
 {
     resources.push_back(new Resource(FOOD,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(SHIELD,0,"assets/assets/city/production.png","Shields"));
+    resources.push_back(new Resource(SHIELDS,0,"assets/assets/city/production.png","Shields"));
     resources.push_back(new Resource(TRADE,0,"assets/assets/city/trade.png","Trade"));
     resources.push_back(new Resource(COINS,0,"assets/assets/city/gold.png","Coins"));
     resources.push_back(new Resource(SCIENCE,0,"assets/assets/city/bulb.png","Science"));
@@ -670,8 +625,8 @@ void initResources()
                 map.set(lat,lon).resource_production_rate[FOOD]     = 1;
                 map.set(lat,lon).resource_production_rate[TRADE]    = 1;
 
-                if (map.set(lat,lon).resource==FISH) map.set(lat,lon).resource_production_rate[0] = 3;
-                if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[1] = 2;
+                if (map.set(lat,lon).resource==FISH) map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
             }
             else
             if (map.set(lat,lon).code==LAND)       // Land

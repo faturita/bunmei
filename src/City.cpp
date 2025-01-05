@@ -204,6 +204,8 @@ int City::getProductionRate(int r_id)
             }
         }
 
+    //printf("Resource: %d Production Rate: %d\n",r_id,production_rate);
+
     return production_rate;
 }
 

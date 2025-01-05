@@ -81,6 +81,8 @@
 #include "units/Swordman.h"
 #include "units/Spearman.h"
 #include "units/Axeman.h"
+#include "units/Horsearcher.h"
+#include "units/Galley.h"
 #include "City.h"
 
 extern Controller controller;
@@ -190,6 +192,9 @@ inline void processCommandOrders()
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new HorsemanFactory());
         city->buildable.push_back(new TriremeFactory());
+        city->buildable.push_back(new GalleyFactory());
+        city->buildable.push_back(new HorsearcherFactory());
+
 
         // We add the Warrior as the first thing to build in the city.
         city->productionQueue.push(new WarriorFactory());
@@ -243,6 +248,7 @@ inline void endOfYear()
         {
             c->resources[r->id] -= c->getConsumptionRate(r->id);
         }
+        
 
 
         // Peek the production queue.
@@ -347,8 +353,8 @@ void adjustMovements()
 
         if (units[controller.controllingid]->availablemoves>0)
         {
-            if ((map.set(lat,lon).code==1 && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
-                (map.set(lat,lon).code==0 && units[controller.controllingid]->getMovementType()==SEATYPE))
+            if ((map.set(lat,lon).code==LAND && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
+                (map.set(lat,lon).code==OCEAN && units[controller.controllingid]->getMovementType()==OCEANTYPE))
             {
 
                 if (map.set(lat,lon).f_id_owner == FREE_LAND || map.set(lat,lon).f_id_owner == units[controller.controllingid]->faction)
@@ -366,6 +372,8 @@ void adjustMovements()
                     if (!map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
                         map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
 
+
+                    // @FIXME: It should consider the terrain.
                     units[controller.controllingid]->availablemoves--;
                 }
                 else
