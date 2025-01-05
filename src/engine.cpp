@@ -47,19 +47,23 @@ int nextUnitId(int faction)
     return id;
 }
 
-int nextMovableUnitId(int faction, int currentid)
+// This function returns the next unit that can be moved.
+int nextMovableUnitId(int faction)
 {
-    // @FIXME: Implement a circular queue to manage this
-    int id = 0;
+    static int p=0;
+
+    std::vector<int> ids;
     for (auto& [k, c] : units) 
     {
-        if (c->faction==faction && c->availablemoves>0 && (currentid != c->id)) 
+        if (c->faction==faction && c->availablemoves>0) 
         {
-            id = c->id;
-            return id;
+            ids.push_back(c->id);
         }
     }
-    return id;
+
+    if (ids.size()==0) return CONTROLLING_NONE;
+    return ids[p++ % ids.size()];
+
 }
 
 

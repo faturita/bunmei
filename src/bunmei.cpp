@@ -207,7 +207,7 @@ inline void processCommandOrders()
         units.erase(controller.controllingid);
         delete settler;
 
-        controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
+        controller.controllingid = nextMovableUnitId(controller.faction);
 
         message(year, controller.faction, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
 
@@ -219,7 +219,7 @@ inline void processCommandOrders()
         units.erase(controller.controllingid);
         delete unit;
 
-        controller.controllingid = nextMovableUnitId(controller.faction,controller.controllingid);  //@FIXME: There could be the case that there are no more units.
+        controller.controllingid = nextMovableUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
     }    
 }
 
@@ -385,22 +385,19 @@ void adjustMovements()
                 factions[controller.faction]->blinkingrate = 10;
             }
         } 
-
+ 
 
         if (units[controller.controllingid]->availablemoves==0)
         {
-            controller.endofturn = true;
-            for (auto& [k,u] : units)
+        
+            int cid = nextMovableUnitId(controller.faction);
+            if (cid != CONTROLLING_NONE)
             {
-                if (u->faction == controller.faction)
-                {
-                    if (u->availablemoves>0)
-                    {
-                        controller.controllingid = u->id;
-                        controller.endofturn = false;
-                        break;
-                    }
-                }
+                controller.controllingid = cid;
+            }
+            else
+            {
+                controller.endofturn = true;
             }
         }
 
