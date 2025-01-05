@@ -775,16 +775,21 @@ void initFactions()
     citynames[0].push("Reykjavik");
 
     citynames[1].push("Roma");
-    citynames[1].push("Milano");
-    citynames[1].push("Napoli");
-    citynames[1].push("Venezia");
-    citynames[1].push("Firenze");
-    citynames[1].push("Genova");
-    citynames[1].push("Palermo");
-    citynames[1].push("Torino");
-    citynames[1].push("Bologna");
-    citynames[1].push("Bari");
-    citynames[1].push("Catania");
+    citynames[1].push("Caesarea");
+    citynames[1].push("Carthage");
+    citynames[1].push("Nicopolis");
+    citynames[1].push("Byzantium");
+    citynames[1].push("Brundisium");
+    citynames[1].push("Camulodunum");
+    citynames[1].push("Syracuse");
+    citynames[1].push("Antioch");
+    citynames[1].push("Palmyra");
+    citynames[1].push("Cyrene");
+    citynames[1].push("Alexandria");
+    citynames[1].push("Gordion");
+    citynames[1].push("Jerusalem");
+    citynames[1].push("Ravenna");
+    citynames[1].push("Artaxata");
 
     citynames[2].push("Atenas");
     citynames[2].push("Sparta");

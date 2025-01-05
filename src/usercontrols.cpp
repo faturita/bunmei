@@ -67,7 +67,7 @@ void handleKeypress(unsigned char key, int x, int y) {
         break;
         case 9:
         {
-            controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
+            controller.controllingid = nextMovableUnitId(controller.faction);
             printf("Controlling %d\n",controller.controllingid);
         }
         break;

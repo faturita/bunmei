@@ -161,7 +161,7 @@ inline void processCommandOrders()
     if (co.command == Command::BuildCityOrder)
     {
         // You cannot build a city in a land CLAIMED already by another city.
-        if (map.set(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).c_id_owner != UNASSIGNED_LAND)
+        if (!map.set(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).isUnassignedLand())
         {
             message(year, controller.faction, "City cannot be built here.  The land is already claimed by another city.");
             return;
@@ -207,7 +207,7 @@ inline void processCommandOrders()
         units.erase(controller.controllingid);
         delete settler;
 
-        controller.controllingid = nextMovableUnitId(controller.faction, controller.controllingid);
+        controller.controllingid = nextMovableUnitId(controller.faction);
 
         message(year, controller.faction, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
 
@@ -219,7 +219,7 @@ inline void processCommandOrders()
         units.erase(controller.controllingid);
         delete unit;
 
-        controller.controllingid = nextMovableUnitId(controller.faction,controller.controllingid);  //@FIXME: There could be the case that there are no more units.
+        controller.controllingid = nextMovableUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
     }    
 }
 
@@ -357,20 +357,19 @@ void adjustMovements()
                 (map.set(lat,lon).code==OCEAN && units[controller.controllingid]->getMovementType()==OCEANTYPE))
             {
 
-                if (map.set(lat,lon).f_id_owner == FREE_LAND || map.set(lat,lon).f_id_owner == units[controller.controllingid]->faction)
+                if (map.set(lat,lon).isFreeLand() || map.set(lat,lon).isOwnedBy(units[controller.controllingid]->faction))
                 {
-
                     coordinate c = map.to_real(lat,lon);
 
                     if (!map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
-                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = FREE_LAND;
+                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).setAsFreeLand();
 
                     // Confirm the change if the movement is allowed.
                     units[controller.controllingid]->latitude = c.lat;
                     units[controller.controllingid]->longitude = c.lon; 
 
                     if (!map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).belongsToCity())
-                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).f_id_owner = units[controller.controllingid]->faction;
+                        map.set(units[controller.controllingid]->latitude, units[controller.controllingid]->longitude).setOwnedBy(units[controller.controllingid]->faction);
 
 
                     // @FIXME: It should consider the terrain.
@@ -386,22 +385,19 @@ void adjustMovements()
                 factions[controller.faction]->blinkingrate = 10;
             }
         } 
-
+ 
 
         if (units[controller.controllingid]->availablemoves==0)
         {
-            controller.endofturn = true;
-            for (auto& [k,u] : units)
+        
+            int cid = nextMovableUnitId(controller.faction);
+            if (cid != CONTROLLING_NONE)
             {
-                if (u->faction == controller.faction)
-                {
-                    if (u->availablemoves>0)
-                    {
-                        controller.controllingid = u->id;
-                        controller.endofturn = false;
-                        break;
-                    }
-                }
+                controller.controllingid = cid;
+            }
+            else
+            {
+                controller.endofturn = true;
             }
         }
 

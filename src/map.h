@@ -17,6 +17,11 @@
 
 struct mapcell
 {
+    private:
+    int c_id_owner = UNASSIGNED_LAND;                           // Free land.
+    int f_id_owner = FREE_LAND;                                 // Free land.
+
+    public:
     mapcell(int code)
     {
         this->code = code;
@@ -30,14 +35,59 @@ struct mapcell
     int bioma;
     int resource;
 
-    int c_id_owner = UNASSIGNED_LAND;                           // Free land.
-    int f_id_owner = FREE_LAND;                                 // Free land.
-
     std::vector<int> resource_production_rate;   // List of resource production per tile.
 
     bool belongsToCity()
     {
         return c_id_owner != UNASSIGNED_LAND;
+    }
+
+    bool belongsToCity(int f_id, int c_id)
+    {
+        return (f_id_owner == f_id && c_id_owner == c_id );    
+    }
+
+    void setCityOwnership(int f_id, int c_id)
+    {
+        c_id_owner = c_id;
+        f_id_owner = f_id;
+    }
+
+    void releaseCityOwnership()
+    {
+        c_id_owner = UNASSIGNED_LAND;
+        f_id_owner = FREE_LAND;
+    }
+
+    bool isOccupied(int f_id, int c_id)
+    {
+        return  (   (f_id_owner != FREE_LAND        && f_id_owner != f_id) ||
+                    (c_id_owner != UNASSIGNED_LAND  && c_id_owner != c_id) );
+    }
+
+    bool isUnassignedLand()
+    {
+        return c_id_owner == UNASSIGNED_LAND;
+    }
+
+    bool isFreeLand()
+    {
+        return f_id_owner == FREE_LAND;
+    }
+
+    void setAsFreeLand()
+    {
+        f_id_owner = FREE_LAND;
+    }
+
+    bool isOwnedBy(int f_id)
+    {
+        return f_id_owner == f_id;
+    }
+
+    void setOwnedBy(int f_id)
+    {
+        f_id_owner = f_id;
     }
 };
 
