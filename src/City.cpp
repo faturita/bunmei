@@ -28,9 +28,7 @@ City::City(int pfaction, int pid, int platitude, int plongitude)
 
     // We are working on the city location and one more
     // Assignment of the land to this city.
-    map.set(latitude+0, longitude+0).f_id_owner = faction;
-    map.set(latitude+0, longitude+0).c_id_owner = id;
-
+    map.set(latitude+0, longitude+0).setCityOwnership(faction, id);
     assignWorkingTile();
 
 }
@@ -102,8 +100,8 @@ void City::deAssigntWorkingTile()
         {
             if (workingOn(lat,lon) && lat!=0 && lon!=0 && numberOfWorkingTiles()>(pop+1))
             {
-                map.set(latitude+lat, longitude+lon).f_id_owner = FREE_LAND;          // @FIXME: This has to due with politics and diplomatics.
-                map.set(latitude+lat, longitude+lon).c_id_owner = UNASSIGNED_LAND;
+                map.set(latitude+lat, longitude+lon).releaseCityOwnership();
+
                 return;   
             }
         }    
@@ -116,9 +114,7 @@ void City::assignWorkingTile()
         {
             if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
             {
-                map.set(latitude+lat, longitude+lon).f_id_owner = faction;
-                map.set(latitude+lat, longitude+lon).c_id_owner = id;
-
+                map.set(latitude+lat, longitude+lon).setCityOwnership(faction, id);
                 return;   
             }
         }    
@@ -136,14 +132,12 @@ void City::assignWorkingTile(coordinate c)
         if (!workingOn(c.lat,c.lon) && numberOfWorkingTiles()<(pop+1))        // Everybody can work on the fields (on the available fields)
         {
             // Assignment of the land to this city.
-            map.set(latitude+c.lat, longitude+c.lon).f_id_owner = faction;
-            map.set(latitude+c.lat, longitude+c.lon).c_id_owner = id;
+            map.set(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
         }
         else
         {
             // Release of the land from this city
-            map.set(latitude+c.lat, longitude+c.lon).f_id_owner = FREE_LAND;          // @FIXME: This has to due with politics and diplomatics.
-            map.set(latitude+c.lat, longitude+c.lon).c_id_owner = UNASSIGNED_LAND;
+            map.set(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
         }
     }
 }
@@ -165,20 +159,14 @@ void City::assignWorkingTile(coordinate c)
 // Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
-    if (    (map.set(latitude+lat,longitude+lon).f_id_owner == faction) &&
-            (map.set(latitude+lat,longitude+lon).c_id_owner == id) )
-            return true;
-    else
-        return false;
+    return map.set(latitude+lat,longitude+lon).belongsToCity(faction, id);
 }
 
 bool City::occupied(int lat, int lon)
 {
-    if (    (map.set(latitude+lat,longitude+lon).f_id_owner != FREE_LAND && map.set(latitude+lat,longitude+lon).f_id_owner != faction) ||
-            (map.set(latitude+lat,longitude+lon).c_id_owner != UNASSIGNED_LAND && map.set(latitude+lat,longitude+lon).c_id_owner != id) )
-            return true;
-    else
-        return false;
+
+    return map.set(latitude+lat,longitude+lon).isOccupied(faction,id);
+
 }
 
 
