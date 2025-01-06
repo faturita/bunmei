@@ -587,10 +587,20 @@ void adjustMovemendts()
     }
 }
 
-void moveUnit(Unit* unit, int latitude, int longitude)
+void moveUnit(Unit* unit, int lat, int lon)
 {
-    unit->latitude = latitude;
-    unit->longitude = longitude;
+        if (unit->availablemoves>0)
+        {
+            if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
+                (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE))
+            {
+                unit->latitude = lat;
+                unit->longitude = lon;
+
+                // @FIXME: It should consider the terrain.
+                unit->availablemoves--;
+            }
+        }
 }
 
 void adjustMovements()
@@ -601,6 +611,7 @@ void adjustMovements()
         int lon = units[controller.controllingid]->longitude;
         int lat = units[controller.controllingid]->latitude;
 
+        // Affect the coordinates according to the desired movement.
         coordinate s = map.spheroid_displacement(lat,lon,controller.registers.pitch,controller.registers.roll);
         lat = s.lat;
         lon = s.lon;
@@ -610,6 +621,7 @@ void adjustMovements()
 
         printf("Lat %d Lon %d  -> (%d,%d) -> (%d,%d) Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, lat,lon,c.lat, c.lon, map.set(c.lat,c.lon).code, map.set(c.lat,c.lon).bioma); 
 
+        // Now move the unit if it is possible.
         moveUnit(units[controller.controllingid],c.lat,c.lon);  
     }  
 
