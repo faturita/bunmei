@@ -222,6 +222,21 @@ class Map
             return coordinate(lat,lon);
         }
 
+        // Convert SCREEN lat,lon (zero,zero is the center of the screen) to REAL lat,lon
+        coordinate to_real_without_offset(int lat, int lon)
+        {
+            lat = lat;
+            lon = lon;
+
+            lon += abs(minlon);
+
+            lon = rotclipped(lon,0,maxlon-minlon-1);
+
+            lon -= abs(minlon);
+
+            return coordinate(lat,lon);
+        }
+
 };
 
 void drawMap();

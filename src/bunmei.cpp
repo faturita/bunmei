@@ -355,7 +355,11 @@ inline bool endOfTurnForAllFactions()
 
 bool war = true;
 
-void adjustMovements()
+
+
+
+
+void adjustMovemendts()
 {
     std::vector<int> unitstodelete;
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
@@ -565,7 +569,7 @@ void adjustMovements()
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
-        printf("Lat %d Lon %d   Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map.set(lat,lon).code, map.set(lat,lon).bioma);   
+        printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, lat,lon,map.set(lat,lon).code, map.set(lat,lon).bioma);   
     }    
 
     for(auto& uid:unitstodelete)
@@ -581,6 +585,39 @@ void adjustMovements()
         factions[controller.faction]->mapoffset += controller.registers.yaw;
         controller.registers.yaw = 0;
     }
+}
+
+void moveUnit(Unit* unit, int latitude, int longitude)
+{
+    unit->latitude = latitude;
+    unit->longitude = longitude;
+}
+
+void adjustMovements()
+{
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
+    {
+        // Receives real latitude and longitude (contained in the unit)
+        int lon = units[controller.controllingid]->longitude;
+        int lat = units[controller.controllingid]->latitude;
+
+        lat += controller.registers.pitch;
+        lon += controller.registers.roll;
+
+        coordinate c = map.to_real_without_offset(lat,lon);
+
+        controller.registers.pitch= controller.registers.roll = 0;     
+
+        printf("Lat %d Lon %d  -> (%d,%d) -> (%d,%d) Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, lat,lon,c.lat, c.lon, map.set(c.lat,c.lon).code, map.set(c.lat,c.lon).bioma); 
+
+        moveUnit(units[controller.controllingid],c.lat,c.lon);  
+    }  
+
+    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
+    {
+        factions[controller.faction]->mapoffset += controller.registers.yaw;
+        controller.registers.yaw = 0;
+    }      
 }
 
 // This runs continuosly....

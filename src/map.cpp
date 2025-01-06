@@ -438,7 +438,7 @@ void drawUnitsAndCities()
         unfog(c.lat,c.lon);
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
-        if (controller.controllingid != u->id && (controller.controllingid == CONTROLLING_NONE || units[controller.controllingid]->getCoordinate() != c))
+        if (controller.controllingid != u->id && (controller.controllingid == CONTROLLING_NONE || units[controller.controllingid]->getCoordinate() != u->getCoordinate()))
             u->draw();
     }
 
