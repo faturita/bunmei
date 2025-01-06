@@ -178,3 +178,8 @@ void intro()
 {
     playthissound( "sounds/babayetu.wav");
 }
+
+void march()
+{
+    playthissound( "sounds/march.wav");
+}

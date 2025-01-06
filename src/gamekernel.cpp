@@ -642,6 +642,7 @@ void initResources()
                 if (map.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
                     map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                    if (map.set(lat,lon).resource==GEOSHIELD) map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
                 if (map.set(lat,lon).bioma/16==RIVER/16) // River
                 {
@@ -660,9 +661,17 @@ void initResources()
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
+                if (map.set(lat,lon).bioma/16==DESERT/16)   // Deserts
+                {
+                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                    if (map.set(lat,lon).resource==OASIS) {map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                                                            map.set(lat,lon).resource_production_rate[TRADE] = 1;}
+                }
                 if (map.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
 
                 if (map.set(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;

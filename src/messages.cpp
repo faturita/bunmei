@@ -16,7 +16,7 @@ void message(int year, int faction, const char *szFormat, ...)
     va_end(args);
 
     Message mg;
-    mg.faction = faction;
+    mg.faction = faction;// @FIXME:  Allow the posibility of adding two factions particularly when messages concern two warring factions.
     mg.msg = std::string(msg); mg.year = year;
     messages.insert(messages.begin(), mg);     
 }

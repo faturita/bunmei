@@ -21,6 +21,7 @@ void explosion(Vec3f source);
 void blocked();
 void win();
 void lose();
+void march();
 
 void intro();
 

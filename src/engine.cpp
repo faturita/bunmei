@@ -63,7 +63,19 @@ int nextMovableUnitId(int faction)
 
     if (ids.size()==0) return CONTROLLING_NONE;
     return ids[p++ % ids.size()];
+}
 
+City* findCityAt(int lat, int lon)
+{
+    City* city = nullptr;
+    for (auto& [k, c] : cities) 
+    {
+        if (c->latitude == lat && c->longitude == lon)
+        {
+            city = c;
+        }
+    }    
+    return city;
 }
 
 
