@@ -144,9 +144,19 @@ void drawScene()
     // Sets the camera and that changes the floor position.
     //Camera.setPos(pos);
 
-    drawMap();
-
-    drawHUD();
+    switch (controller.view)
+    {
+    case 1:case 2:
+        drawMap();
+        drawHUD();
+        break;
+    case 5:
+        drawIntro();
+        break;
+    
+    default:
+        break;
+    }
 
     glDisable(GL_TEXTURE_2D);
 
@@ -231,11 +241,13 @@ inline void endOfYear()
     }
     controller.controllingid=nextUnitId(controller.faction);
 
+    std::vector<int> todelete;
     for (auto& [k, c] : cities) 
     {
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
+        printf("City%s\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
         // Go through all the map locations and gather all the resources.
         for(auto &r:resources)
         {
@@ -299,11 +311,32 @@ inline void endOfYear()
             {
                 c->pop--;
                 c->deAssigntWorkingTile();
+            } else if (c->pop == 1)
+            {
+                // The city is abandoned.
+                todelete.push_back(c->id);
             }
 
         }
 
     }
+
+    for(auto& cid:todelete)
+    {
+        City* c = cities[cid];
+        // The city is abandoned.
+        message(year, c->faction, "%s has been abandoned.",c->name);
+
+        c->pop = 0;
+        c->deAssigntWorkingTile();
+        map.set(c->latitude, c->longitude).releaseCityOwnership();
+        cities.erase(c->id);
+        delete c;
+
+        // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
+    }
+
+
     for(auto& f:factions)
     {
         f->ready();
@@ -320,8 +353,11 @@ inline bool endOfTurnForAllFactions()
     return true;
 }
 
+bool war = true;
+
 void adjustMovements()
 {
+    std::vector<int> unitstodelete;
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
     {
         // Receives real latitude and longitude (contained in the unit)
@@ -355,8 +391,132 @@ void adjustMovements()
             if ((map.set(lat,lon).code==LAND && units[controller.controllingid]->getMovementType()==LANDTYPE) || 
                 (map.set(lat,lon).code==OCEAN && units[controller.controllingid]->getMovementType()==OCEANTYPE))
             {
+                // Move into an empty city.
+                if (war && map.set(lat,lon).belongsToCity())
+                {
+                    // Find the city located there
+                    Unit *invader = units[controller.controllingid];
+                    City *city = nullptr;
+                    for (auto& [k, c] : cities) 
+                    {
+                        if (c->latitude == lat && c->longitude == lon)
+                        {
+                            city = c;
+                        }
+                    }
 
-                if (map.set(lat,lon).isFreeLand() || map.set(lat,lon).isOwnedBy(units[controller.controllingid]->faction))
+                    if (city!=nullptr)
+                    {
+                        // Check if the city is not defended.
+                        if (city->faction != invader->faction && !city->isDefendedCity())
+                        {
+                            coordinate c = map.to_real(lat,lon);
+
+                            if (!map.set(invader->latitude, invader->longitude).belongsToCity())
+                                map.set(invader->latitude, invader->longitude).setAsFreeLand();
+
+                            // Confirm the change if the movement is allowed.
+                            invader->latitude = c.lat;
+                            invader->longitude = c.lon; 
+
+                            map.set(invader->latitude, invader->longitude).setOwnedBy(invader->faction);
+
+                            invader->availablemoves=0;   
+
+                            // Perhaps we should do some form of cleaning first, and a reassignment.
+                            city->reAssignWorkingTiles(invader->faction);
+                            city->faction = invader->faction;
+                            city->setDefense();              
+
+                            win();
+                            message(year, invader->faction, "City %s has been conquered by %s.",city->name, factions[invader->faction]->name);      
+                        }
+                    }
+
+                }
+
+                // War movement towards an enemy unit
+                if (war && !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(units[controller.controllingid]->faction))
+                {
+                    // Find the enemy unit located there
+                    Unit *me = units[controller.controllingid];
+                    Unit *enemy = nullptr;
+                    int numberofdefenders = 0;
+                    for (auto& [k, u] : units) 
+                    {
+                        if (u->latitude == lat && u->longitude == lon && u->faction != controller.faction)
+                        {
+                            enemy = u;
+                            numberofdefenders++;
+                        }
+                    }
+
+                    Unit *winner = nullptr;
+                    Unit *loser = nullptr;
+                    if (enemy!=nullptr)
+                    {
+                        // Coordinate who wins the battle.
+                        if (enemy->getDefense()>me->getAttack())
+                        {
+                            lose();
+                            winner = enemy;
+                            loser = me;
+                        }
+                        else if (enemy->getDefense()<me->getAttack())
+                        {
+                            win();
+                            winner = me;
+                            loser = enemy;
+                        }
+                        else if (getRandomInteger(0,1)==0)
+                        {
+                            lose();
+                            winner = enemy;
+                            loser = me;
+                        }
+                        else
+                        {
+                            win();
+                            winner = me;
+                            loser = enemy;
+                        }
+                    }
+
+                    if (winner == me && numberofdefenders==1)
+                    {
+                        coordinate c = map.to_real(lat,lon);
+
+                        if (!map.set(winner->latitude, winner->longitude).belongsToCity())
+                            map.set(winner->latitude, winner->longitude).setAsFreeLand();
+
+                        // Confirm the change if the movement is allowed.
+                        winner->latitude = c.lat;
+                        winner->longitude = c.lon; 
+
+                        map.set(winner->latitude, winner->longitude).setOwnedBy(winner->faction);
+
+                        // @FIXME: It should consider the terrain.
+                        winner->availablemoves=0;
+                    }
+
+                    if (loser)
+                    {
+                        // Check what happens with All the other loosers.
+
+                        unitstodelete.push_back(loser->id);
+
+                        if (loser == me)
+                        {
+                            controller.controllingid = nextMovableUnitId(controller.faction);
+                        } 
+
+                    }
+
+                }
+
+
+                // Peace movement (or not movement if it is not possible)
+                if (map.set(lat,lon).isFreeLand() || (controller.controllingid != CONTROLLING_NONE && map.set(lat,lon).isOwnedBy(units[controller.controllingid]->faction)))
                 {
                     coordinate c = map.to_real(lat,lon);
 
@@ -374,7 +534,7 @@ void adjustMovements()
                     // @FIXME: It should consider the terrain.
                     units[controller.controllingid]->availablemoves--;
                 }
-                else
+                else if (!war)
                 {
                     factions[controller.faction]->blinkingrate = 10;
                     blocked();
@@ -405,8 +565,16 @@ void adjustMovements()
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
-        printf("Lat %d Lon %d   Land %d  Bioma  %d  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map.set(lat,lon).code, map.set(lat,lon).bioma);   
+        printf("Lat %d Lon %d   Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, map.set(lat,lon).code, map.set(lat,lon).bioma);   
     }    
+
+    for(auto& uid:unitstodelete)
+    {
+        Unit* u = units[uid];
+        units.erase(u->id);
+        delete u;
+    }
+
 
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
     {
@@ -595,7 +763,8 @@ int main(int argc, char** argv) {
     initSound();
 
     preloadFonts();
-    intro();
+    if (!isPresentCommandLineParameter(argc,argv,"-nointro") && !isPresentCommandLineParameter(argc,argv,"-test"))
+        {intro();controller.view = 5;}
 
     // OpenGL callback functions.
     glutDisplayFunc(drawScene);

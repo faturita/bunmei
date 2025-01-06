@@ -9,6 +9,7 @@ Horseman::Horseman()
 {
     strcpy(name,"Horseman");
     moves = 4;
+    aw = 2;
 }
 
 void Horseman::draw()

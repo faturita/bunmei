@@ -9,6 +9,7 @@ Horsearcher::Horsearcher()
 {
     strcpy(name,"Horsearcher");
     moves = 4;
+    aw = 2;
 }
 
 void Horsearcher::draw()

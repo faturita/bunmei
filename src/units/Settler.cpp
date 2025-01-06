@@ -10,6 +10,8 @@ Settler::Settler()
 {
     strcpy(name,"Settler");
     moves = 2;
+    dw = 0;
+    aw = 0;
 }
 
 void Settler::draw()

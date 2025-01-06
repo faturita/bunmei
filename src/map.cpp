@@ -221,6 +221,42 @@ void drawGrid()
         }
 }
 
+
+void drawIntro()
+{
+    // This will make things dark.
+
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, 1200, 800, 0, -1, 1);            // @NOTE: This is the size of the HUD screen (FIXED), it goes from x=[0,1200] , y=[-400,400]
+    glMatrixMode(GL_MODELVIEW);                 //  the HUD screen is independent of the map screen.  It is an overly on top of it.
+    glPushMatrix();
+    glLoadIdentity();
+
+    glPushAttrib(GL_CURRENT_BIT);
+    glColor4f(1.0f, 1.0f, 1.0f, 1);
+    glDisable(GL_DEPTH_TEST);
+    glRotatef(180.0f,0,0,1);
+    glRotatef(180.0f,0,1,0);
+
+    int aimc=0,crossc=0;
+
+    char str[256];
+
+
+    sprintf (str, "Bunmei: Craddle of civilization.");
+    drawString(0,-700,1,str,0.1f);
+
+
+    glPopAttrib();
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+}
+
 void drawMap()
 {
     // This will make things dark.

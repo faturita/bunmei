@@ -36,6 +36,7 @@ void handleKeypress(unsigned char key, int x, int y) {
             }
         }
         break;
+        case '!':controller.view = 1;break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch-=1.0;break;

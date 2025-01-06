@@ -9,6 +9,7 @@ Spearman::Spearman()
 {
     strcpy(name,"Spearman");
     moves = 1;
+    dw = 3;
 }
 
 void Spearman::draw()

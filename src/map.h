@@ -225,6 +225,7 @@ class Map
 };
 
 void drawMap();
+void drawIntro();
 
 void resetzoom();
 void zoommapin();

@@ -164,7 +164,15 @@ void blocked()
     playthissound(Vec3f(0,0,0),"sounds/blocked.wav");
 }
 
+void win()
+{
+    playthissound(Vec3f(0,0,0),"sounds/win.wav");
+}
 
+void lose()
+{
+    playthissound(Vec3f(0,0,0),"sounds/lose.wav");
+}
 
 void intro()
 {

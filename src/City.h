@@ -40,6 +40,7 @@ public:
     void assignWorkingTile();
     void assignWorkingTile(coordinate c);
     void deAssigntWorkingTile();
+    void reAssignWorkingTiles(int new_f_id);
     bool isCapitalCity();
     void setCapitalCity();
     int getProductionRate(int r_id);
@@ -48,6 +49,7 @@ public:
     bool occupied(int lat, int lon);
     void setDefense();
     void noDefense();
+    bool isDefendedCity();
     coordinate getCoordinate();
 
 

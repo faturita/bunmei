@@ -9,6 +9,7 @@ Swordman::Swordman()
 {
     strcpy(name,"Swordman");
     moves = 1;
+    aw = 4;
 }
 
 void Swordman::draw()

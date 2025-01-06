@@ -9,6 +9,8 @@ Worker::Worker()
 {
     strcpy(name,"Worker");
     moves = 2;
+    aw = 0;
+    dw = 0;
 }
 
 void Worker::draw()

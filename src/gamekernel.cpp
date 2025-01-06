@@ -732,6 +732,7 @@ void initFactions()
         settler->availablemoves = settler->getUnitMoves();
 
         units[settler->id] = settler;
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
 
 
         Warrior *warrior = new Warrior();
@@ -743,7 +744,7 @@ void initFactions()
 
 
         units[warrior->id] = warrior;
-
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
 
         Settler *settler2 = new Settler();
         settler2->longitude = c.lon;
@@ -754,6 +755,7 @@ void initFactions()
 
 
         units[settler2->id] = settler2;
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
     }
 
 

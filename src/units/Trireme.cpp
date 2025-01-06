@@ -9,6 +9,7 @@ Trireme::Trireme()
 {
     strcpy(name,"Trireme");
     moves = 4;
+    aw = 2;
 }
 
 void Trireme::draw()

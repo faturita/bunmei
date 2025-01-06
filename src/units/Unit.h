@@ -18,6 +18,12 @@ class Unit : public Buildable
         int moves;
 
         bool autoMode = false;
+
+        float e[5] = {1.0,1.0,1.0,1.0,1.0};
+        float aw = 1.0;
+        float dw = 1.0;
+        float utw = 1.0;
+        
     public:
     Unit();
 
@@ -41,6 +47,9 @@ class Unit : public Buildable
     bool arrived();
 
     coordinate getCoordinate();
+
+    float getAttack();
+    float getDefense();
 
 };
 

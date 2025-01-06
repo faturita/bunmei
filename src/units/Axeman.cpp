@@ -9,6 +9,8 @@ Axeman::Axeman()
 {
     strcpy(name,"Axeman");
     moves = 1;
+    dw = 1;
+    aw = 3;
 }
 
 void Axeman::draw()

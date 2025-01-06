@@ -68,3 +68,13 @@ coordinate Unit::getCoordinate()
 {
     return coordinate(latitude,longitude);
 }
+
+float Unit::getAttack()
+{
+    return aw;
+}
+
+float Unit::getDefense()
+{
+    return dw;
+}

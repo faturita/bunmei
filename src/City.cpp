@@ -93,6 +93,18 @@ int City::numberOfWorkingTiles()
     return workingTiles;
 }
 
+void City::reAssignWorkingTiles(int new_f_id)
+{
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            if (workingOn(lat,lon))
+            {
+                map.set(latitude+lat, longitude+lon).setCityOwnership(new_f_id, id);
+            }
+        }       
+}
+
 void City::deAssigntWorkingTile()
 {
     for(int lat=-3;lat<=3;lat++)
@@ -222,6 +234,11 @@ void City::setDefense()
 void City::noDefense()
 {
     isDefended = false;
+}
+
+bool City::isDefendedCity()
+{
+    return isDefended;
 }
 
 coordinate City::getCoordinate()

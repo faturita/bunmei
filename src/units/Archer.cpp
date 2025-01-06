@@ -9,6 +9,7 @@ Archer::Archer()
 {
     strcpy(name,"Archer");
     moves = 1;
+    dw = 2;
 }
 
 void Archer::draw()
