@@ -10,7 +10,6 @@ class Settler : public Unit
     public:
     Settler();
 
-    void draw();
     bool canBuildCity();
 };
 

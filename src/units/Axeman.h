@@ -10,7 +10,6 @@ class Axeman : public Unit
     public:
     Axeman();
 
-    void draw();
     bool canBuildCity();
 };
 

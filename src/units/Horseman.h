@@ -10,7 +10,6 @@ class Horseman : public Unit
     public:
     Horseman();
 
-    void draw();
     bool canBuildCity();
 };
 

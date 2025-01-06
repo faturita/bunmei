@@ -8,17 +8,9 @@ extern std::vector<Faction*> factions;
 Archer::Archer()
 {
     strcpy(name,"Archer");
+    strcpy(assetname,"assets/assets/units/archer.png");
     moves = 1;
     dw = 2;
-}
-
-void Archer::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/archer.png", red, green, blue);
 }
 
 bool Archer::canBuildCity()

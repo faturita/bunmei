@@ -594,8 +594,8 @@ void moveUnit(Unit* unit, int lat, int lon)
             if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
                 (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE))
             {
-                unit->latitude = lat;
-                unit->longitude = lon;
+
+                unit->update(lat,lon);  
 
                 // @FIXME: It should consider the terrain.
                 unit->availablemoves--;

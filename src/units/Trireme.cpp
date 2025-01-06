@@ -8,18 +8,11 @@ extern std::vector<Faction*> factions;
 Trireme::Trireme()
 {
     strcpy(name,"Trireme");
+    strcpy(assetname,"assets/assets/units/trireme.png");
     moves = 4;
     aw = 2;
 }
 
-void Trireme::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,15,"assets/assets/units/trireme.png", red, green, blue);
-}
 
 bool Trireme::canBuildCity()
 {

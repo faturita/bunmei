@@ -23,6 +23,13 @@ class Unit : public Buildable
         float aw = 1.0;
         float dw = 1.0;
         float utw = 1.0;
+
+        int oldlatitude;
+        int oldlongitude;
+
+        float completion=1;
+
+        char assetname[256];
         
     public:
     Unit();
@@ -46,10 +53,14 @@ class Unit : public Buildable
     bool isAuto();
     bool arrived();
 
+    void update(int newlat, int newlon);
+
     coordinate getCoordinate();
 
     float getAttack();
     float getDefense();
+
+    bool movementCompleted();
 
 };
 

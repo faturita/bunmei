@@ -1,8 +1,10 @@
 #include "../openglutils.h"
 #include "../map.h"
+#include "../Faction.h"
 #include "Unit.h"
 
 extern Map map;
+extern std::vector<Faction*> factions;
 
 Unit::Unit()
 {
@@ -13,7 +15,15 @@ Unit::Unit()
 
 void Unit::draw()
 {
-    placeThisUnit(longitude,latitude,16,"assets/assets/units/tank.png");
+    int red = factions[faction]->red;
+    int green = factions[faction]->green;
+    int blue = factions[faction]->blue;
+    
+    placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,assetname, red, green, blue);
+
+    if (completion < 1)
+        completion += 0.1;
+
 }
 
 int Unit::getUnitMoves()
@@ -77,4 +87,20 @@ float Unit::getAttack()
 float Unit::getDefense()
 {
     return dw;
+}
+
+void Unit::update(int newlat, int newlon)
+{
+    oldlatitude = latitude;
+    oldlongitude = longitude;
+
+    latitude = newlat;
+    longitude = newlon;
+
+    completion = 0;
+}
+
+bool Unit::movementCompleted()
+{
+    return completion >= 1;
 }

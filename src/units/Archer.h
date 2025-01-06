@@ -10,7 +10,6 @@ class Archer : public Unit
     public:
     Archer();
 
-    void draw();
     bool canBuildCity();
 };
 

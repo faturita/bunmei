@@ -10,7 +10,6 @@ class Swordman : public Unit
     public:
     Swordman();
 
-    void draw();
     bool canBuildCity();
 };
 

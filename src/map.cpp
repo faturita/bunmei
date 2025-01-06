@@ -160,6 +160,11 @@ void place(int x, int y, int sizex, int sizey, GLuint _texture)
     placeMark((width/2)+x,-y,sizex,sizey,_texture);      // x,y x-> column y-> row  
 }
 
+void placeFloat(float x, float y, int sizex, int sizey, GLuint _texture)
+{
+    placeMark((width/2)+x,-y,sizex,sizey,_texture);      // x,y x-> column y-> row  
+}
+
 // --------
 
 void place(int x, int y, int size, const char* modelName)
@@ -184,13 +189,20 @@ void placeThisTile(int lat, int lon, int size, const char* filename)
     place(c.lon*16,c.lat*16,size,size,filename);      // x,y x-> column y-> row  
 }
 
-void placeThisUnit(int lat, int lon, int size, const char* filename, int red, int green, int blue)
+void placeThisUnit(float flat, float flon, int size, const char* filename, int red, int green, int blue)
 {
     char modelName[256];
     sprintf(modelName,"%s_%d_%d_%d", filename, red, green, blue);
     GLuint _texture = preloadUnitTexture(filename, modelName,red,green,blue);
+
+    int lat = flat;
+    int lon = flon;
     coordinate c = map.to_screen(lat,lon);
-    place(c.lon*16,c.lat*16,size,size,_texture);      // x,y x-> column y-> row  
+
+    flat = c.lat + (flat - lat);
+    flon = c.lon + (flon - lon);
+
+    placeFloat(flon*16,flat*16,size,size,_texture);      // x,y x-> column y-> row  
 }
 
 void placeThisCity(int lat, int lon, int red, int green, int blue)
@@ -458,6 +470,9 @@ void drawUnitsAndCities()
         {
             if (controller.controllingid == u->id)
             {
+                if (!u->movementCompleted())
+                    u->draw();
+                else
                 if (count++ % factions[controller.faction]->blinkingrate < (factions[controller.faction]->blinkingrate/2))
                 {
                     u->draw();

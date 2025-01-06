@@ -8,18 +8,10 @@ extern std::vector<Faction*> factions;
 Axeman::Axeman()
 {
     strcpy(name,"Axeman");
+    strcpy(assetname,"assets/assets/units/axeman.png");
     moves = 1;
     dw = 1;
     aw = 3;
-}
-
-void Axeman::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/axeman.png", red, green, blue);
 }
 
 bool Axeman::canBuildCity()
