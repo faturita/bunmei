@@ -66,6 +66,8 @@
 #include "engine.h"
 #include "messages.h"
 
+#include "sounds/sounds.h"
+
 #include "buildings/Building.h"
 #include "buildings/Palace.h"
 #include "buildings/Barracks.h"
@@ -99,6 +101,8 @@ extern Map map;
 
 int year;
 
+bool mute;
+
 
 void disclaimer()
 {
@@ -116,11 +120,6 @@ void setupWorldModelling()
 }
 
 void initRendering()
-{
-
-}
-
-void initSound()
 {
 
 }
@@ -378,11 +377,13 @@ void adjustMovements()
                 else
                 {
                     factions[controller.faction]->blinkingrate = 10;
+                    blocked();
                 }
             }
             else
             {
                 factions[controller.faction]->blinkingrate = 10;
+                blocked();
             }
         } 
  
@@ -573,6 +574,11 @@ int main(int argc, char** argv) {
     else
         glutFullScreen();
 
+    if (isPresentCommandLineParameter(argc,argv,"-mute"))
+        mute = true;
+    else
+        mute = false;
+
 
     // OpenGL Configuration information
     /* get version info */
@@ -589,6 +595,7 @@ int main(int argc, char** argv) {
     initSound();
 
     preloadFonts();
+    intro();
 
     // OpenGL callback functions.
     glutDisplayFunc(drawScene);
