@@ -237,6 +237,32 @@ class Map
             return coordinate(lat,lon);
         }
 
+        coordinate to_real_without_offset(coordinate c)
+        {
+            return to_real_without_offset(c.lat,c.lon);
+        }
+
+        coordinate spheroid_displacement(int lat, int lon, int pitch, int roll)
+        {
+            int val = lat;
+            val = ((int)val+pitch);
+            lat = clipped(val,minlat,maxlat-1);
+
+            lon = lon + roll;
+
+            if (val>=maxlat) {
+                lon=lon*(-1);
+                lat=maxlat-1;
+            }
+
+            if ((val-lat)<0) {
+                lon=lon*(-1);
+                lat=minlat;
+            }     
+
+            return coordinate(lat,lon);       
+        }
+
 };
 
 void drawMap();

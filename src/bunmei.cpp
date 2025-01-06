@@ -601,10 +601,10 @@ void adjustMovements()
         int lon = units[controller.controllingid]->longitude;
         int lat = units[controller.controllingid]->latitude;
 
-        lat += controller.registers.pitch;
-        lon += controller.registers.roll;
-
-        coordinate c = map.to_real_without_offset(lat,lon);
+        coordinate s = map.spheroid_displacement(lat,lon,controller.registers.pitch,controller.registers.roll);
+        lat = s.lat;
+        lon = s.lon;
+        coordinate c = map.to_real_without_offset(s);
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
