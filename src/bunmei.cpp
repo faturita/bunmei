@@ -377,11 +377,13 @@ void adjustMovements()
                 else
                 {
                     factions[controller.faction]->blinkingrate = 10;
+                    blocked();
                 }
             }
             else
             {
                 factions[controller.faction]->blinkingrate = 10;
+                blocked();
             }
         } 
  

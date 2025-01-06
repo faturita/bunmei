@@ -159,9 +159,14 @@ void explosion(Vec3f source)
     playthissound(source,"sounds/explosion.wav");
 }
 
+void blocked()
+{
+    playthissound(Vec3f(0,0,0),"sounds/blocked.wav");
+}
+
 
 
 void intro()
 {
-    playthissound( "sounds/evolution.wav");
+    playthissound( "sounds/babayetu.wav");
 }
