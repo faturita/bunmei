@@ -603,6 +603,22 @@ void moveUnit(Unit* unit, int lat, int lon)
         }
 }
 
+void switchUnitIfNoMovesLeft()
+{
+    if (units[controller.controllingid]->availablemoves==0)
+    {
+        int cid = nextMovableUnitId(controller.faction);
+        if (cid != CONTROLLING_NONE)
+        {
+            controller.controllingid = cid;
+        }
+        else
+        {
+            controller.endofturn = true;
+        }
+    }
+}
+
 void adjustMovements()
 {
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
@@ -623,6 +639,8 @@ void adjustMovements()
 
         // Now move the unit if it is possible.
         moveUnit(units[controller.controllingid],c.lat,c.lon);  
+
+        switchUnitIfNoMovesLeft();
     }  
 
     if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.yaw !=0) )
