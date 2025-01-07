@@ -660,6 +660,8 @@ void initResources()
                 if (map.set(lat,lon).bioma/16==FOREST/16) // Forests
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[FOOD] = 2;
+                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
                 }
                 if (map.set(lat,lon).bioma/16==DESERT/16)   // Deserts
                 {

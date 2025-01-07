@@ -86,7 +86,6 @@ struct mapcell
         }
         else if (owners>1)
             owners--;
-        printf("Owner %d\n", owners);
     }
 
     bool isOwnedBy(int f_id)
@@ -105,7 +104,6 @@ struct mapcell
             f_id_owner = f_id;
             owners = 1;
         }
-        printf("Owner %d\n", owners);
     }
 };
 

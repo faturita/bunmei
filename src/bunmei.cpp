@@ -504,7 +504,6 @@ bool moveForward(Unit* unit, int lat, int lon)
 {
 
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
-    printf("Is free land %d\n", map.set(lat,lon).isFreeLand());
     if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)))
     {
         map.set(unit->latitude, unit->longitude).releaseOwner();
