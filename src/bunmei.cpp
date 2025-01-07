@@ -54,6 +54,7 @@
 #include "camera.h"
 #include "openglutils.h"
 #include "lodepng.h"
+#include "tiles.h"
 #include "usercontrols.h"
 #include "map.h"
 #include "hud.h"

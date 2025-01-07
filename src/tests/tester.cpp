@@ -43,6 +43,7 @@ TestCase *t = NULL;
 
 void update(int value);         // Will be linked with bunmei.update()
 
+/** 
 void initMap()
 {
     tiles[0] = "assets/assets/terrain/ocean.png";
@@ -772,6 +773,31 @@ void initWorldModelling()
     controller.view = 1;
 
 }
+
+**/
+
+
+void initMap()
+{
+
+}
+
+void initResources()
+{
+
+}
+
+void initWorldModelling()
+{
+    t = pickTestCase(0);
+
+    t->init();
+
+    controller.faction = 0;
+    controller.view = 1;
+}
+
+
 
 long unsigned timer = 0;
 
