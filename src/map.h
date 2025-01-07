@@ -146,7 +146,21 @@ class Map
             return map[row][col];
         }
 
-        // Set/Get the value of the map cell at the given lat,lon using REAL lat,lon (of the map)
+
+        // Set/Get the value of the map cell at the given lat,lon using lat,lon arithmetics without screen OFFSET.
+        //   (you can use this function when you can have lat,lon arithmetics that span the spheroid map)
+        mapcell &peek(int lat, int lon)
+        {
+            int row=lat+abs(minlat),col=lon+abs(minlon);
+            row = rotclipped(row,0,maxlat-minlat-1);
+            col = rotclipped(col,0,maxlon-minlon-1);
+            return map[row][col];
+        }
+
+
+        // Set/Get the value of the map cell at the given lat,lon using REAL lat,lon (of the map data structure)
+        //    These are CLIPPED, so if you move away from the boundaries, you are affecting the last value.
+        //    LAT,LON need always to be clipped.
         mapcell &set(int lat, int lon)
         {
             int row=lat+abs(minlat),col=lon+abs(minlon);
