@@ -171,11 +171,21 @@ void City::assignWorkingTile(coordinate c)
 // Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
+    // @FIXME: Workaround to avoid issues in the north and south.
+    if (latitude+lat < map.minlat || latitude+lat > map.maxlat-1)
+    {
+        return false;
+    }
     return map.set(latitude+lat,longitude+lon).belongsToCity(faction, id);
 }
 
 bool City::occupied(int lat, int lon)
 {
+    // @FIXME: Workaround to avoid issues in the north and south.
+    if (latitude+lat < map.minlat || latitude+lat > map.maxlat-1)
+    {
+        return true;
+    }
 
     return map.set(latitude+lat,longitude+lon).isOccupied(faction,id);
 

@@ -366,7 +366,7 @@ void initMap()
         }
 
     // Pick the land biomas.
-    for(int i=0;i<100;i++)
+    for(int i=0;i<1000;i++)
     {
         int lat = getRandomInteger(map.minlat,map.maxlat-1);
         int lon = getRandomInteger(map.minlon,map.maxlon-1);

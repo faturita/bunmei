@@ -637,6 +637,14 @@ void update(int value)
                 c->setDefense();
             }
         }
+
+        // @FIXME: This is a workaround
+        if (!c->workingOn(0,0))
+        {
+            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
+        }
+        c->deAssigntWorkingTile();
+
     }
 
 
@@ -650,26 +658,111 @@ void update(int value)
     }
 
 
+    // Autoplayer
     if (factions[controller.faction]->autoPlayer)
     {
-        if (getRandomInteger(0,1)==0)
-        {
-            controller.registers.roll = getRandomInteger(-1.0,1.0);
-        }
-        else
-        {
-            controller.registers.pitch = getRandomInteger(-1.0,1.0);
-        }
 
         if (units.find(controller.controllingid)!=units.end())
         {
-            if (units[controller.controllingid]->canBuildCity())
+            Unit *unit = units[controller.controllingid];
+            if(Settler* s = dynamic_cast<Settler*>(units[controller.controllingid]))
             {
-                if (getRandomInteger(0,10)==0)
+                // Find the nearest city, and move AWAY from it as far as possible, 
+                //    and if there is no city, build it here.
+                City* nc = nullptr;
+                int distance = 5;
+                for(auto& [cid,c]:cities)
                 {
-                    CommandOrder co;
-                    co.command = Command::BuildCityOrder;
-                    controller.push(co);
+                    int d = abs(c->latitude-s->latitude)+abs(c->longitude-s->longitude);  // Manhattan distance
+                    if (d<distance)
+                    {
+                        distance = d;
+                        nc = c;
+                    }
+                }
+
+                if (nc!=nullptr)
+                {
+                    int counter = 0;
+                    do {
+                        controller.registers.roll = (-1)*sgnz(nc->longitude-s->longitude );
+                        controller.registers.pitch = (-1)*sgnz(nc->latitude-s->latitude );
+
+                        if (controller.registers.roll == 0 && controller.registers.pitch == 0)
+                        {
+
+                            // Pick a random direction to trigger the escape rule (an affordable one)
+                            controller.registers.roll = getRandomInteger(-1.0,1.0);
+                            controller.registers.pitch = getRandomInteger(-1.0,1.0);
+
+                        }
+
+                        coordinate c = map.spheroid_displacement(s->latitude,s->longitude,controller.registers.pitch,controller.registers.roll);
+
+                        if (map.set(c.lat, c.lon).code == LAND && map.set(c.lat,c.lon).isFreeLand())
+                        {
+                            break;
+                        }
+                        counter++;
+                    } while (counter<10000);
+
+                    if (counter==10000) unit->availablemoves = 0; // Give up
+
+                }
+                else
+                {
+                    if (s->canBuildCity())
+                    {
+                        CommandOrder co;
+                        co.command = Command::BuildCityOrder;
+                        controller.push(co);
+                    }
+                }
+
+            }
+            else
+            {
+                City* nc = nullptr;
+                for(auto& [cid,c]:cities)
+                {
+                    if (c->faction == unit->faction && c->getCoordinate()==unit->getCoordinate())
+                    {
+                        nc = c;
+                        CommandOrder co;
+                        co.command = Command::FortifyUnitOrder;
+                        controller.push(co);
+                    }
+                }
+                
+                if (nc == nullptr)
+                {
+                    // Boludeo
+                    controller.registers.roll = getRandomInteger(-1.0,1.0);
+                    controller.registers.pitch = getRandomInteger(-1.0,1.0);
+
+                    if (controller.registers.roll==0 && controller.registers.pitch==0)
+                    {
+                        unit->availablemoves = 0;
+                    }
+                }
+            }
+
+        }
+
+        for(auto& [k,c]:cities)
+        {
+            if (c->faction == controller.faction)
+            {
+                if (c->pop==1)
+                {
+                    c->productionQueue.push(new WarriorFactory());    
+                } else
+                if (c->pop>1)
+                {
+                    if (c->resources[SHIELDS]>30)
+                    {
+                        c->productionQueue.push(new SettlerFactory());
+                    }
                 }
             }
         }
