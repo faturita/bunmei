@@ -231,7 +231,15 @@ inline void processCommandOrders()
         delete unit;
 
         controller.controllingid = nextMovableUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
-    }    
+    }
+    else if (co.command == Command::FortifyUnitOrder)
+    {
+        Unit *unit = units[controller.controllingid];
+        unit->fortify();
+        unit->availablemoves = 0;
+
+        controller.controllingid = nextMovableUnitId(controller.faction);
+    }
 }
 
 inline void endOfYear()

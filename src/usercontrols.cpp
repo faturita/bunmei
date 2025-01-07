@@ -88,6 +88,12 @@ void handleKeypress(unsigned char key, int x, int y) {
             co.command = Command::DisbandUnitOrder;
             controller.push(co);
         }
+        case 'F':
+        {
+            CommandOrder co;
+            co.command = Command::FortifyUnitOrder;
+            controller.push(co);
+        }
     default:break;
     }
 }

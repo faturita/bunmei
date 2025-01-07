@@ -21,6 +21,11 @@ void Unit::draw()
     
     placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,assetname, red, green, blue);
 
+    if (fortified)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/fortify.png", red, green, blue);
+    }
+
     if (completion < 1)
         completion += 0.1;
 
@@ -98,9 +103,20 @@ void Unit::update(int newlat, int newlon)
     longitude = newlon;
 
     completion = 0;
+    fortified = false;
 }
 
 bool Unit::movementCompleted()
 {
     return completion >= 1;
+}
+
+void Unit::fortify()
+{
+    fortified = true;
+}
+
+bool Unit::isFortified()
+{
+    return fortified;
 }

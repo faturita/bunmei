@@ -470,7 +470,7 @@ void drawUnitsAndCities()
         {
             if (controller.controllingid == u->id)
             {
-                if (!u->movementCompleted())
+                if (!u->movementCompleted() || u->isFortified())
                     u->draw();
                 else
                 if (count++ % factions[controller.faction]->blinkingrate < (factions[controller.faction]->blinkingrate/2))

@@ -30,6 +30,8 @@ class Unit : public Buildable
         float completion=1;
 
         char assetname[256];
+
+        bool fortified = false;
         
     public:
     Unit();
@@ -61,6 +63,9 @@ class Unit : public Buildable
     float getDefense();
 
     bool movementCompleted();
+
+    void fortify();
+    bool isFortified();
 
 };
 
