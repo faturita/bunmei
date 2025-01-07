@@ -8,17 +8,11 @@ extern std::vector<Faction*> factions;
 Horsearcher::Horsearcher()
 {
     strcpy(name,"Horsearcher");
+    strcpy(assetname,"assets/assets/units/horsearcher.png");
     moves = 4;
+    aw = 2;
 }
 
-void Horsearcher::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/horsearcher.png", red, green, blue);
-}
 
 bool Horsearcher::canBuildCity()
 {

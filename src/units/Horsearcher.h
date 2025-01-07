@@ -10,7 +10,6 @@ class Horsearcher : public Unit
     public:
     Horsearcher();
 
-    void draw();
     bool canBuildCity();
 };
 

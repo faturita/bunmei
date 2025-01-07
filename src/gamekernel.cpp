@@ -642,6 +642,7 @@ void initResources()
                 if (map.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
                     map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                    if (map.set(lat,lon).resource==GEOSHIELD) map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
                 if (map.set(lat,lon).bioma/16==RIVER/16) // River
                 {
@@ -659,10 +660,20 @@ void initResources()
                 if (map.set(lat,lon).bioma/16==FOREST/16) // Forests
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[FOOD] = 2;
+                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                }
+                if (map.set(lat,lon).bioma/16==DESERT/16)   // Deserts
+                {
+                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                    if (map.set(lat,lon).resource==OASIS) {map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                                                            map.set(lat,lon).resource_production_rate[TRADE] = 1;}
                 }
                 if (map.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
 
                 if (map.set(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
@@ -732,6 +743,7 @@ void initFactions()
         settler->availablemoves = settler->getUnitMoves();
 
         units[settler->id] = settler;
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
 
 
         Warrior *warrior = new Warrior();
@@ -743,7 +755,7 @@ void initFactions()
 
 
         units[warrior->id] = warrior;
-
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
 
         Settler *settler2 = new Settler();
         settler2->longitude = c.lon;
@@ -754,6 +766,7 @@ void initFactions()
 
 
         units[settler2->id] = settler2;
+        map.set(c.lat,c.lon).setOwnedBy(f->id);
     }
 
 

@@ -8,17 +8,12 @@ extern std::vector<Faction*> factions;
 Worker::Worker()
 {
     strcpy(name,"Worker");
+    strcpy(assetname,"assets/assets/units/worker.png");
     moves = 2;
+    aw = 0;
+    dw = 0;
 }
 
-void Worker::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/worker.png", red, green, blue);
-}
 
 bool Worker::canBuildCity()
 {

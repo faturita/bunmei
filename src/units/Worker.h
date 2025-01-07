@@ -10,7 +10,6 @@ class Worker : public Unit
     public:
     Worker();
 
-    void draw();
     bool canBuildCity();
 };
 

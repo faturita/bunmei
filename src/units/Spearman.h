@@ -10,7 +10,6 @@ class Spearman : public Unit
     public:
     Spearman();
 
-    void draw();
     bool canBuildCity();
 };
 

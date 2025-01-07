@@ -8,16 +8,9 @@ extern std::vector<Faction*> factions;
 Spearman::Spearman()
 {
     strcpy(name,"Spearman");
+    strcpy(assetname,"assets/assets/units/spearman.png");
     moves = 1;
-}
-
-void Spearman::draw()
-{
-    int red = factions[faction]->red;
-    int green = factions[faction]->green;
-    int blue = factions[faction]->blue;
-    
-    placeThisUnit(latitude,longitude,16,"assets/assets/units/spearman.png", red, green, blue);
+    dw = 3;
 }
 
 bool Spearman::canBuildCity()

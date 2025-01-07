@@ -36,6 +36,7 @@ void handleKeypress(unsigned char key, int x, int y) {
             }
         }
         break;
+        case '!':controller.view = 1;break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch-=1.0;break;
@@ -85,6 +86,12 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::DisbandUnitOrder;
+            controller.push(co);
+        }
+        case 'F':
+        {
+            CommandOrder co;
+            co.command = Command::FortifyUnitOrder;
             controller.push(co);
         }
     default:break;
@@ -152,16 +159,20 @@ void processMouse(int button, int state, int x, int y)
                     {
                         zoommapin();
                     } else {
-                        //controller.view = 2;
                         for (auto& [k,c] : cities) 
                         {
                             coordinate co = getCurrentCenter();
                             if (co.lat == c->latitude && co.lon == c->longitude)
                             {
-                                printf("City %s %d %d,%d\n",c->name, c->id, c->latitude, c->longitude);
-                                controller.view = 2;
-                                controller.cityid = c->id;
-                                break;
+                                if (controller.faction == c->faction)
+                                {
+                                    printf("City %s %d %d,%d\n",c->name, c->id, c->latitude, c->longitude);
+                                    controller.view = 2;
+                                    controller.cityid = c->id;
+                                    break;
+                                } else {
+                                    printf("This is not your city\n"); //@FIXME debug message
+                                }
                             }
                         }
                     }

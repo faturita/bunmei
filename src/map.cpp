@@ -160,6 +160,11 @@ void place(int x, int y, int sizex, int sizey, GLuint _texture)
     placeMark((width/2)+x,-y,sizex,sizey,_texture);      // x,y x-> column y-> row  
 }
 
+void placeFloat(float x, float y, int sizex, int sizey, GLuint _texture)
+{
+    placeMark((width/2)+x,-y,sizex,sizey,_texture);      // x,y x-> column y-> row  
+}
+
 // --------
 
 void place(int x, int y, int size, const char* modelName)
@@ -184,13 +189,20 @@ void placeThisTile(int lat, int lon, int size, const char* filename)
     place(c.lon*16,c.lat*16,size,size,filename);      // x,y x-> column y-> row  
 }
 
-void placeThisUnit(int lat, int lon, int size, const char* filename, int red, int green, int blue)
+void placeThisUnit(float flat, float flon, int size, const char* filename, int red, int green, int blue)
 {
     char modelName[256];
     sprintf(modelName,"%s_%d_%d_%d", filename, red, green, blue);
     GLuint _texture = preloadUnitTexture(filename, modelName,red,green,blue);
+
+    int lat = flat;
+    int lon = flon;
     coordinate c = map.to_screen(lat,lon);
-    place(c.lon*16,c.lat*16,size,size,_texture);      // x,y x-> column y-> row  
+
+    flat = c.lat + (flat - lat);
+    flon = c.lon + (flon - lon);
+
+    placeFloat(flon*16,flat*16,size,size,_texture);      // x,y x-> column y-> row  
 }
 
 void placeThisCity(int lat, int lon, int red, int green, int blue)
@@ -219,6 +231,42 @@ void drawGrid()
         {
             place(col*16,row*16,16,16,"assets/assets/general/grid.png");      // x,y x-> column y-> row  
         }
+}
+
+
+void drawIntro()
+{
+    // This will make things dark.
+
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, 1200, 800, 0, -1, 1);            // @NOTE: This is the size of the HUD screen (FIXED), it goes from x=[0,1200] , y=[-400,400]
+    glMatrixMode(GL_MODELVIEW);                 //  the HUD screen is independent of the map screen.  It is an overly on top of it.
+    glPushMatrix();
+    glLoadIdentity();
+
+    glPushAttrib(GL_CURRENT_BIT);
+    glColor4f(1.0f, 1.0f, 1.0f, 1);
+    glDisable(GL_DEPTH_TEST);
+    glRotatef(180.0f,0,0,1);
+    glRotatef(180.0f,0,1,0);
+
+    int aimc=0,crossc=0;
+
+    char str[256];
+
+
+    sprintf (str, "Bunmei: Craddle of civilization.");
+    drawString(0,-700,1,str,0.1f);
+
+
+    glPopAttrib();
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
 }
 
 void drawMap()
@@ -402,7 +450,7 @@ void drawUnitsAndCities()
         unfog(c.lat,c.lon);
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
-        if (controller.controllingid != u->id && (controller.controllingid == CONTROLLING_NONE || units[controller.controllingid]->getCoordinate() != c))
+        if (controller.controllingid != u->id && (controller.controllingid == CONTROLLING_NONE || units[controller.controllingid]->getCoordinate() != u->getCoordinate()))
             u->draw();
     }
 
@@ -422,6 +470,9 @@ void drawUnitsAndCities()
         {
             if (controller.controllingid == u->id)
             {
+                if (!u->movementCompleted() || u->isFortified())
+                    u->draw();
+                else
                 if (count++ % factions[controller.faction]->blinkingrate < (factions[controller.faction]->blinkingrate/2))
                 {
                     u->draw();

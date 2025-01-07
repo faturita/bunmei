@@ -21,6 +21,8 @@ struct mapcell
     int c_id_owner = UNASSIGNED_LAND;                           // Free land.
     int f_id_owner = FREE_LAND;                                 // Free land.
 
+    int owners = 0;
+
     public:
     mapcell(int code)
     {
@@ -50,13 +52,13 @@ struct mapcell
     void setCityOwnership(int f_id, int c_id)
     {
         c_id_owner = c_id;
-        f_id_owner = f_id;
+        setOwnedBy(f_id);
     }
 
     void releaseCityOwnership()
     {
         c_id_owner = UNASSIGNED_LAND;
-        f_id_owner = FREE_LAND;
+        releaseOwner();
     }
 
     bool isOccupied(int f_id, int c_id)
@@ -75,9 +77,15 @@ struct mapcell
         return f_id_owner == FREE_LAND;
     }
 
-    void setAsFreeLand()
+    void releaseOwner()
     {
-        f_id_owner = FREE_LAND;
+        if (owners==1) 
+        {
+            f_id_owner = FREE_LAND;
+            owners = 0;
+        }
+        else if (owners>1)
+            owners--;
     }
 
     bool isOwnedBy(int f_id)
@@ -87,7 +95,15 @@ struct mapcell
 
     void setOwnedBy(int f_id)
     {
-        f_id_owner = f_id;
+        if (f_id_owner == f_id) 
+        {
+            owners++;
+        }
+        else
+        {
+            f_id_owner = f_id;
+            owners = 1;
+        }
     }
 };
 
@@ -222,9 +238,51 @@ class Map
             return coordinate(lat,lon);
         }
 
+        // Convert SCREEN lat,lon (zero,zero is the center of the screen) to REAL lat,lon
+        coordinate to_real_without_offset(int lat, int lon)
+        {
+            lat = lat;
+            lon = lon;
+
+            lon += abs(minlon);
+
+            lon = rotclipped(lon,0,maxlon-minlon-1);
+
+            lon -= abs(minlon);
+
+            return coordinate(lat,lon);
+        }
+
+        coordinate to_real_without_offset(coordinate c)
+        {
+            return to_real_without_offset(c.lat,c.lon);
+        }
+
+        coordinate spheroid_displacement(int lat, int lon, int pitch, int roll)
+        {
+            int val = lat;
+            val = ((int)val+pitch);
+            lat = clipped(val,minlat,maxlat-1);
+
+            lon = lon + roll;
+
+            if (val>=maxlat) {
+                lon=lon*(-1);
+                lat=maxlat-1;
+            }
+
+            if ((val-lat)<0) {
+                lon=lon*(-1);
+                lat=minlat;
+            }     
+
+            return coordinate(lat,lon);       
+        }
+
 };
 
 void drawMap();
+void drawIntro();
 
 void resetzoom();
 void zoommapin();
@@ -240,13 +298,14 @@ void unfog(int lat, int lon);
 void drawUnitsAndCities();
 void openCityScreen();
 
+void placeFloat(float x, float y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int sizex, int sizey, const char* modelName);
 void place(int x, int y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int size, const char* modelName);
 void placeTile(int x, int y, const char* modelName);
 void placeTile(int x, int y, int size, const char* modelName);
 void placeThisTile(int lat, int lon, int size, const char* filename);
-void placeThisUnit(int lat, int lon, int size, const char* modelName, int red=255, int green=0, int blue=0);
+void placeThisUnit(float flat, float flon, int size, const char* modelName, int red=255, int green=0, int blue=0);
 void placeThisCity(int lat, int lon, int red, int green, int blue);
 
 #endif   // MAP_H

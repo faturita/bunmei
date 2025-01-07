@@ -10,7 +10,6 @@ class Trireme : public Unit
     public:
     Trireme();
 
-    void draw();
     bool canBuildCity();
     MOVEMENT_TYPE virtual getMovementType();
 };

@@ -31,8 +31,10 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Buy and sell resources from ports (like in Colonization).  This generates trade routes.
 * Allow to form alliances with other factions and independence to arise from colonies.
 * Deal with the problem of founding cities everywhere on the map: when cities are very close to each other, the one that produces more culture absorbs the other city, and one of them is destroyed, or refounded in the middle.
+* Increase traderoutes: cities that create wagons or ships if they end up selling or buying something from other cities, automatically trade routes are established, that gives to the building (or supporting city) more trade resources.  This eliminates caravans.
 
-## More info
+## More info and Resources
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/
 * https://civilization.fandom.com/wiki/Terrain_(Civ1)
 * https://civilization.fandom.com/wiki/List_of_units_in_Civ4
+* https://artlist.io/
