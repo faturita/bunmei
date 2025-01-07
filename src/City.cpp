@@ -28,7 +28,7 @@ City::City(int pfaction, int pid, int platitude, int plongitude)
 
     // We are working on the city location and one more
     // Assignment of the land to this city.
-    map.set(latitude+0, longitude+0).setCityOwnership(faction, id);
+    map.peek(latitude+0, longitude+0).setCityOwnership(faction, id);
     assignWorkingTile();
 
 }
@@ -100,7 +100,7 @@ void City::reAssignWorkingTiles(int new_f_id)
         {
             if (workingOn(lat,lon))
             {
-                map.set(latitude+lat, longitude+lon).setCityOwnership(new_f_id, id);
+                map.peek(latitude+lat, longitude+lon).setCityOwnership(new_f_id, id);
             }
         }       
 }
@@ -112,7 +112,7 @@ void City::deAssigntWorkingTile()
         {
             if (workingOn(lat,lon) && lat!=0 && lon!=0 && numberOfWorkingTiles()>(pop+1))
             {
-                map.set(latitude+lat, longitude+lon).releaseCityOwnership();
+                map.peek(latitude+lat, longitude+lon).releaseCityOwnership();
 
                 return;   
             }
@@ -126,7 +126,7 @@ void City::assignWorkingTile()
         {
             if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
             {
-                map.set(latitude+lat, longitude+lon).setCityOwnership(faction, id);
+                map.peek(latitude+lat, longitude+lon).setCityOwnership(faction, id);
                 return;   
             }
         }    
@@ -144,12 +144,12 @@ void City::assignWorkingTile(coordinate c)
         if (!workingOn(c.lat,c.lon) && numberOfWorkingTiles()<(pop+1))        // Everybody can work on the fields (on the available fields)
         {
             // Assignment of the land to this city.
-            map.set(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
+            map.peek(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
         }
         else
         {
             // Release of the land from this city
-            map.set(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
+            map.peek(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
         }
     }
 }
@@ -171,13 +171,13 @@ void City::assignWorkingTile(coordinate c)
 // Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
-    return map.set(latitude+lat,longitude+lon).belongsToCity(faction, id);
+    return map.peek(latitude+lat,longitude+lon).belongsToCity(faction, id);
 }
 
 bool City::occupied(int lat, int lon)
 {
 
-    return map.set(latitude+lat,longitude+lon).isOccupied(faction,id);
+    return map.peek(latitude+lat,longitude+lon).isOccupied(faction,id);
 
 }
 
@@ -200,7 +200,7 @@ int City::getProductionRate(int r_id)
         {
             if (workingOn(lat,lon))
             {
-                production_rate += map.set(latitude+lat,longitude+lon).resource_production_rate[r_id];
+                production_rate += map.peek(latitude+lat,longitude+lon).resource_production_rate[r_id];
             }
         }
 
