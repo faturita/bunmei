@@ -213,6 +213,7 @@ inline void processCommandOrders()
 
         // @FIXME: Disband the settler unit.
         Unit *settler = units[controller.controllingid];
+        map.set(settler->latitude,settler->longitude).releaseOwner();
         units.erase(controller.controllingid);
         delete settler;
 
@@ -225,6 +226,7 @@ inline void processCommandOrders()
     else if (co.command == Command::DisbandUnitOrder)
     {
         Unit *unit = units[controller.controllingid];
+        map.set(unit->latitude,unit->longitude).releaseOwner();
         units.erase(controller.controllingid);
         delete unit;
 
@@ -331,7 +333,7 @@ inline void endOfYear()
 
         c->pop = 0;
         c->deAssigntWorkingTile();
-        map.set(c->latitude, c->longitude).releaseCityOwnership();
+        map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
         cities.erase(c->id);
         delete c;
 
@@ -413,8 +415,7 @@ bool attack(Unit* attacker, int lat, int lon)
                 // Move the unit into the tile if there are no more units left AND if the tile is not a city.
                 coordinate c = map.to_real(lat,lon);
 
-                if (!map.set(winner->latitude, winner->longitude).belongsToCity())
-                    map.set(winner->latitude, winner->longitude).setAsFreeLand();
+                map.set(winner->latitude, winner->longitude).releaseOwner();
 
                 // Confirm the change if the movement is allowed.
                 attacker->update(lat,lon);
@@ -448,6 +449,9 @@ bool attack(Unit* attacker, int lat, int lon)
     for(auto& uid:unitstodelete)
     {
         Unit* u = units[uid];
+
+        map.set(u->latitude, u->longitude).releaseOwner();
+
         units.erase(u->id);
         delete u;
     } 
@@ -470,8 +474,7 @@ bool captureCity(Unit* invader, int lat, int lon)
             if (city->faction != invader->faction && !city->isDefendedCity())
             {
 
-                if (!map.set(invader->latitude, invader->longitude).belongsToCity())
-                    map.set(invader->latitude, invader->longitude).setAsFreeLand();
+                map.set(invader->latitude, invader->longitude).releaseOwner();
 
                 invader->update(lat,lon);
 
@@ -501,10 +504,10 @@ bool moveForward(Unit* unit, int lat, int lon)
 {
 
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
+    printf("Is free land %d\n", map.set(lat,lon).isFreeLand());
     if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)))
     {
-        if (!map.set(unit->latitude, unit->longitude).belongsToCity())
-            map.set(unit->latitude, unit->longitude).setAsFreeLand();
+        map.set(unit->latitude, unit->longitude).releaseOwner();
 
         // Normal, regular movement....
         unit->update(lat,lon);  
@@ -512,8 +515,7 @@ bool moveForward(Unit* unit, int lat, int lon)
         // @FIXME: It should consider the terrain.
         unit->availablemoves--;
 
-        if (!map.set(unit->latitude, unit->longitude).belongsToCity())
-            map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
+        map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
 
         printf("Move forward condition\n");
         return true;

@@ -21,6 +21,8 @@ struct mapcell
     int c_id_owner = UNASSIGNED_LAND;                           // Free land.
     int f_id_owner = FREE_LAND;                                 // Free land.
 
+    int owners = 0;
+
     public:
     mapcell(int code)
     {
@@ -50,13 +52,13 @@ struct mapcell
     void setCityOwnership(int f_id, int c_id)
     {
         c_id_owner = c_id;
-        f_id_owner = f_id;
+        setOwnedBy(f_id);
     }
 
     void releaseCityOwnership()
     {
         c_id_owner = UNASSIGNED_LAND;
-        f_id_owner = FREE_LAND;
+        releaseOwner();
     }
 
     bool isOccupied(int f_id, int c_id)
@@ -75,9 +77,16 @@ struct mapcell
         return f_id_owner == FREE_LAND;
     }
 
-    void setAsFreeLand()
+    void releaseOwner()
     {
-        f_id_owner = FREE_LAND;
+        if (owners==1) 
+        {
+            f_id_owner = FREE_LAND;
+            owners = 0;
+        }
+        else if (owners>1)
+            owners--;
+        printf("Owner %d\n", owners);
     }
 
     bool isOwnedBy(int f_id)
@@ -87,7 +96,16 @@ struct mapcell
 
     void setOwnedBy(int f_id)
     {
-        f_id_owner = f_id;
+        if (f_id_owner == f_id) 
+        {
+            owners++;
+        }
+        else
+        {
+            f_id_owner = f_id;
+            owners = 1;
+        }
+        printf("Owner %d\n", owners);
     }
 };
 
