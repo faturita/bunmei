@@ -261,6 +261,8 @@ void drawIntro()
     sprintf (str, "Bunmei: Craddle of civilization.");
     drawString(0,-700,1,str,0.1f);
 
+    placeMark(600,-400,800,"assets/art/opening.png");
+
 
     glPopAttrib();
     glEnable(GL_DEPTH_TEST);
