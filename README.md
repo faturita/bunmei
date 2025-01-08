@@ -35,7 +35,7 @@ sudo apt-get install python3-pip
 STK
 ---
 
-First you need to copy the stk file from dependencies into the parent directory where you cloned wakuseiboukan.  Then you need
+First you need to copy the stk file from dependencies into the parent directory where you cloned the project.  Then you need
 to compile this sound library.
 
 ```bash
@@ -91,6 +91,10 @@ There are spetial resources around.
 
 Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.
 
+## Population
+
+Population represents humans, so they are handled like human population.
+
 
 ## Combat
 
@@ -125,6 +129,19 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Allow to form alliances with other factions and independence to arise from colonies.
 * Deal with the problem of founding cities everywhere on the map: when cities are very close to each other, the one that produces more culture absorbs the other city, and one of them is destroyed, or refounded in the middle.
 * Increase traderoutes: cities that create wagons or ships if they end up selling or buying something from other cities, automatically trade routes are established, that gives to the building (or supporting city) more trade resources.  This eliminates caravans.
+* Population now represent head count, humans, people.  
+* Each city has a exponential growth model that allows the **population** to increase based on current population and the availability of food.  * The **pop** value on each city is that value quantified.  Food existence allows population to growth. 
+* Units also have **soldiers**.  
+* Settlers are moving population, and the city that is built starts with the number of citizens.  
+* Same for workers, their strength is derived from the size of the group.
+* **Units**: members determine a stepped factor for the fighting equation.  The shape of this function depends on the unit.
+* **Units**: the **personnel** factor is stepped.
+* Hence, in battles, people die.  The stochastic factor determines how many casualties each unit have on each battle.
+* Units require access to population to recover from battles.
+* Units also require **Line Of Sight** to the capital city, by having a continuos line of access (or free land in the middle).  
+* Roads keep ownership.  This allows to increase the line of sight regardless of culture.
+* Food can be shipped.  This allows to cities without any harvesting to increase if they manage to import food.
+
 
 ## More info and Resources
 * https://forums.civfanatics.com/threads/civ1-map-generation-explained.498630/

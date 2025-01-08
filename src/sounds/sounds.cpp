@@ -183,3 +183,8 @@ void march()
 {
     playthissound( "sounds/march.wav");
 }
+
+void built()
+{
+    playthissound( "sounds/built.wav");
+}

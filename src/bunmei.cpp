@@ -302,6 +302,9 @@ inline void endOfYear()
                     Building *building = (Building*)b;
                     building->faction = c->faction;
                     c->buildings.push_back(building);
+
+                    message(year, c->faction, "City %s has built %s.",c->name,building->name);
+                    built();                
                 }
 
             }
@@ -416,24 +419,27 @@ bool attack(Unit* attacker, int lat, int lon)
 
         City* city = findCityAt(lat,lon);
 
-        if (city == nullptr && winner == attacker)
+        if (winner == attacker)
         {
             winner->availablemoves--;
-
-            if (numberofdefenders==1)
+            if (city == nullptr)
             {
-                // Move the unit into the tile if there are no more units left AND if the tile is not a city.
-                coordinate c = map.to_real(lat,lon);
 
-                map.set(winner->latitude, winner->longitude).releaseOwner();
+                if (numberofdefenders==1)
+                {
+                    // Move the unit into the tile if there are no more units left AND if the tile is not a city.
+                    coordinate c = map.to_real(lat,lon);
 
-                // Confirm the change if the movement is allowed.
-                attacker->update(lat,lon);
+                    map.set(winner->latitude, winner->longitude).releaseOwner();
 
-                map.set(winner->latitude, winner->longitude).setOwnedBy(winner->faction);
+                    // Confirm the change if the movement is allowed.
+                    attacker->update(lat,lon);
 
-                winner->availablemoves=0;
-                
+                    map.set(winner->latitude, winner->longitude).setOwnedBy(winner->faction);
+
+                    winner->availablemoves=0;
+                    
+                }
             }
         }
 
@@ -832,7 +838,7 @@ void setUpFaction()
     }      
 }
 
-// This runs continuosly....
+// GAME Model Update
 void update(int value)
 {
     // Derive the control to the correct object

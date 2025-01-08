@@ -22,6 +22,7 @@ void blocked();
 void win();
 void lose();
 void march();
+void built();
 
 void intro();
 
