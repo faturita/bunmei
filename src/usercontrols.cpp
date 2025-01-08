@@ -177,6 +177,28 @@ void processMouse(int button, int state, int x, int y)
                                 }
                             }
                         }
+
+                        for (auto& [k,u] : units) 
+                        {
+                            coordinate co = getCurrentCenter();
+                            if (co.lat == u->latitude && co.lon == u->longitude)
+                            {
+                                if (controller.faction == u->faction && u->availablemoves>0)
+                                {
+                                    printf("Unit %s %d %d,%d\n",u->name, u->id, u->latitude, u->longitude);
+                                    controller.controllingid = u->id;
+
+                                    if (u->isFortified())
+                                    {
+                                        u->packUp();
+                                    }
+                                    break;
+                                } else {
+                                    printf("This is not your unit\n"); //@FIXME debug message
+                                }
+                            }
+                        }
+
                     }
                 }
                 break;

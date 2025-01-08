@@ -132,6 +132,11 @@ bool Unit::isFortified()
     return fortified;
 }
 
+void Unit::packUp()
+{
+    fortified = false;
+}
+
 void Unit::sentry()
 {
     sentried = true;

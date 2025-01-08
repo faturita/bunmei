@@ -27,7 +27,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = true;      // make it a vector per faction
+        this->visible = false;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;  // This is a special resource that can be obtained from the map.
     }

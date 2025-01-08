@@ -68,6 +68,7 @@ class Unit : public Buildable
 
     void fortify();
     bool isFortified();
+    void packUp();
 
     void sentry();
     bool isSentry();
