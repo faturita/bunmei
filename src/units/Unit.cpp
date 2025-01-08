@@ -26,6 +26,11 @@ void Unit::draw()
         placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/fortify.png", red, green, blue);
     }
 
+    if (sentried)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/sentry.png", red, green, blue);
+    }
+
     if (completion < 1)
         completion += 0.1;
 
@@ -126,3 +131,21 @@ bool Unit::isFortified()
 {
     return fortified;
 }
+
+void Unit::sentry()
+{
+    sentried = true;
+}
+
+bool Unit::isSentry()
+{
+    return sentried;
+}
+
+void Unit::wakeUp()
+{
+    sentried = false;
+}
+
+
+

@@ -432,6 +432,16 @@ void initResources()
                 {
                     map.set(lat,lon).resource_production_rate[FOOD] = 1;
                 }
+                if (map.set(lat,lon).bioma/16==SWAMP/16) // Swamps
+                {
+                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    map.set(lat,lon).resource_production_rate[TRADE] = 1;
+                }
+                if (map.set(lat,lon).bioma/16==PLAINS/16) // Plains
+                {
+                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                }
                 if (map.set(lat,lon).bioma/16==HILLS/16) // Hills
                 {
                     map.set(lat,lon).resource_production_rate[SHIELDS] = 1;

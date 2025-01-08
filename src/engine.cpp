@@ -55,7 +55,7 @@ int nextMovableUnitId(int faction)
     std::vector<int> ids;
     for (auto& [k, c] : units) 
     {
-        if (c->faction==faction && c->availablemoves>0) 
+        if (c->faction==faction && c->availablemoves>0 && c->isSentry()==false) 
         {
             ids.push_back(c->id);
         }

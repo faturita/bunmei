@@ -536,18 +536,97 @@ bool moveForward(Unit* unit, int lat, int lon)
  
 }
 
+bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
+{
+    if (navalunit!=nullptr)
+    {
+        if (navalunit->board(passenger))
+        {
+            map.set(passenger->latitude, passenger->longitude).releaseOwner();
 
+            passenger->update(lat,lon);
+            passenger->sentry();
+
+            // @FIXME: Check what is the meaning of this here....
+            //map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+            passenger->availablemoves=0;
+
+            printf("Move onto naval unit condition\n");
+            return true;
+        } 
+        else
+        {
+            printf("The boat is full.\n");
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool land(Unit* navalunit, int lat, int lon)
+{
+    // Chek if navalunit is actually a boat, and that we are moving towards a place where is land.
+    if (map.set(lat,lon).code == LAND)
+    {
+        if(Trireme* trireme = dynamic_cast<Trireme*>(units[controller.controllingid]))
+        {
+            // @FIXME: Check that there are no enemy units and that there are cities and there are no places controlled by cities.
+            if (!map.set(lat,lon).isFreeLand() || !map.set(lat,lon).isOwnedBy(trireme->faction))
+                return false;
+
+            if (trireme->manifest()>0)
+            {
+                Unit* passenger = trireme->unboard();
+
+                //map.set(passenger->latitude, passenger->longitude).releaseOwner();
+
+                passenger->wakeUp();
+                passenger->update(lat,lon);
+
+                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+                passenger->availablemoves=0;
+
+                printf("Units Landed condition\n");
+                return true;
+            }
+        }
+    }
+
+    return false;
+
+}
+
+Trireme* findNavalUnit(int lat, int lon)
+{
+    Trireme* navalunit = nullptr;
+    for(auto& [k,u]:units)
+    {
+        if (u->getMovementType()==OCEANTYPE && u->latitude == lat && u->longitude == lon)
+        {
+            navalunit = dynamic_cast<Trireme*>(u);
+        }
+    }   
+    return navalunit; 
+}
 
 void moveUnit(Unit* unit, int lat, int lon)
 {
     if (unit->availablemoves>0)
     {
+
+        // Find a naval unit in the target tile.
+        Trireme* navalunit = findNavalUnit(lat,lon);
+
+
         // @NOTE: moving into a ship
-        if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
-            (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE))
+        if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || (map.set(lat,lon).code==OCEAN && navalunit!=nullptr) ||
+            (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) || (map.set(lat,lon).code==LAND && dynamic_cast<Trireme*>(unit)->manifest()>0) )
         {
 
-            if (!captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
+            if (!land(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
             {
                 if (!war)
                 {
