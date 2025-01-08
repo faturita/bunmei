@@ -32,6 +32,7 @@ class Unit : public Buildable
         char assetname[256];
 
         bool fortified = false;
+        bool sentried = false;
         
     public:
     Unit();
@@ -56,7 +57,7 @@ class Unit : public Buildable
     bool isAuto();
     bool arrived();
 
-    void update(int newlat, int newlon);
+    void virtual update(int newlat, int newlon);
 
     coordinate getCoordinate();
 
@@ -67,6 +68,10 @@ class Unit : public Buildable
 
     void fortify();
     bool isFortified();
+
+    void sentry();
+    bool isSentry();
+    void wakeUp();
 
 };
 
