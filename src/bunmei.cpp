@@ -252,7 +252,6 @@ inline void endOfYear()
     {
         u->availablemoves = u->getUnitMoves();
     }
-    controller.controllingid=nextUnitId(controller.faction);
 
     std::vector<int> todelete;
     for (auto& [k, c] : cities) 
@@ -513,6 +512,12 @@ bool captureCity(Unit* invader, int lat, int lon)
 
 bool moveForward(Unit* unit, int lat, int lon)
 {
+    // @FIXME: I am checking consistency again here...
+    if (!((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
+        (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) ))
+    {
+        return false;
+    }
 
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
     if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)))
@@ -573,7 +578,7 @@ bool land(Unit* navalunit, int lat, int lon)
         if(Trireme* trireme = dynamic_cast<Trireme*>(units[controller.controllingid]))
         {
             // @FIXME: Check that there are no enemy units and that there are cities and there are no places controlled by cities.
-            if (!map.set(lat,lon).isFreeLand() || !map.set(lat,lon).isOwnedBy(trireme->faction))
+            if (!map.set(lat,lon).isFreeLand())
                 return false;
 
             if (trireme->manifest()>0)
@@ -814,6 +819,19 @@ void autoPlayer()
     }
 }
 
+void setUpFaction()
+{
+    controller.reset();
+    controller.controllingid=nextMovableUnitId(controller.faction);
+    if (units.find(controller.controllingid)!=units.end())
+    {
+        map.setCenter(0,factions[controller.faction]->mapoffset);
+        coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        c = map.to_screen(c.lat,c.lon);
+        centermapinmap(c.lat, c.lon);   
+    }      
+}
+
 // This runs continuosly....
 void update(int value)
 {
@@ -902,36 +920,18 @@ void update(int value)
 
         if (controller.faction<factions.size()-1) 
         {
-            controller.reset();
             controller.faction++;
-            controller.controllingid=nextUnitId(controller.faction);
-            if (units.find(controller.controllingid)!=units.end())
-            {
-                map.setCenter(0,factions[controller.faction]->mapoffset);
-                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-                c = map.to_screen(c.lat,c.lon);
-                centermapinmap(c.lat, c.lon);   
-            }         
+            setUpFaction();    
         }
-        else
-        {
-            controller.reset();
-            controller.faction=0;  // Reset for the new year.
-            controller.controllingid=nextUnitId(controller.faction);
-            if (units.find(controller.controllingid)!=units.end())
-            {
-                map.setCenter(0,factions[controller.faction]->mapoffset);
-                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-                c = map.to_screen(c.lat,c.lon);
-                centermapinmap(c.lat, c.lon);
-            }
-        }
+
     }
 
     if (endOfTurnForAllFactions())
     {
         // Everybody played their turn, end of year, and start it over.....
         endOfYear();
+        controller.faction = 0;     // Restart the turn from the first faction.
+        setUpFaction();
     }
 
     processCommandOrders();

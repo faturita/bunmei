@@ -17,6 +17,8 @@ class Faction {
 
         int blinkingrate = 70;
 
+        int p=0;
+
     Faction ()
     {
         doneThisTurn = false;
@@ -36,6 +38,7 @@ class Faction {
     void ready()
     {
         doneThisTurn = false;
+        p=0;
     };
 };
 

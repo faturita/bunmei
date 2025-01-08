@@ -101,6 +101,21 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * There are six resources: food, shields, trade, coins, science, and culture.
 
 
+# Working issues
+
+* Replace controllingid with activeid.
+* Show units in cityscreen.
+* Add a way in which fortified units can be selected.
+* Sentry is clearly used only for ships and I think that is Ok.
+* Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
+* Paint land ownership.
+* Add the spheroid concept into map: by doing this we can make sense of the maps locations on the south and north.
+* Add a world edit testcase to create customized maps.
+* Include diplomatic into Factions (and remove the war bool flag).
+* Improve the way we can center into cities: this will help to fix the issue with the city screen.
+* Handle what happens when a trireme lands into a occupied land, a city land, or a land with enemy units (amphibious attack?).
+* Show attack unit versus defending units.
+
 # Features
 
 * Arriving to the south and north pole (0,-24) (0,23).

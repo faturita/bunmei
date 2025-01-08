@@ -6,6 +6,7 @@
 #include "City.h"
 #include "resources.h"
 
+#include "Faction.h"
 #include "units/Unit.h"
 #include "units/Warrior.h"
 #include "units/Settler.h"
@@ -47,22 +48,24 @@ int nextUnitId(int faction)
     return id;
 }
 
+extern std::vector<Faction*> factions;
+
 // This function returns the next unit that can be moved.
-int nextMovableUnitId(int faction)
+int nextMovableUnitId(int f_id)
 {
-    static int p=0;
+    Faction *faction = factions[f_id];
 
     std::vector<int> ids;
-    for (auto& [k, c] : units) 
+    for (auto& [k, u] : units) 
     {
-        if (c->faction==faction && c->availablemoves>0 && c->isSentry()==false) 
+        if (u->faction==f_id && u->availablemoves>0 && u->isSentry()==false && u->isFortified()==false) 
         {
-            ids.push_back(c->id);
+            ids.push_back(u->id);
         }
     }
 
     if (ids.size()==0) return CONTROLLING_NONE;
-    return ids[p++ % ids.size()];
+    return ids[(faction->p)++ % ids.size()];
 }
 
 City* findCityAt(int lat, int lon)
