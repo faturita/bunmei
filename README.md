@@ -1,4 +1,4 @@
-# Bunmei
+# Bunmei 文明の旅行
 
 This is a remake of a classical game with all the stuf that I wanted to have it in the same game.  
 
