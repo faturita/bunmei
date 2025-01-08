@@ -81,6 +81,7 @@ coordinate goTo(Unit* unit, bool &ok)
 
     Tree tree;
 
+    // Add all the land vertices into the graph.
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
@@ -90,6 +91,7 @@ coordinate goTo(Unit* unit, bool &ok)
 
     auto vv = boost::make_iterator_range(vertices(tree));
 
+    // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
@@ -106,6 +108,7 @@ coordinate goTo(Unit* unit, bool &ok)
                         if (map.peek(lat+i,lon+j).code == LAND)
                         {
                             auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
+                            // @FIXME: Add terrain cost here on the edge.
                             add_edge(*start, *end, Edge{1}, tree);
                         }
                     }

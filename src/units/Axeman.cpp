@@ -14,11 +14,6 @@ Axeman::Axeman()
     aw = 3;
 }
 
-bool Axeman::canBuildCity()
-{
-    return false;
-}
-
 Axeman* AxemanFactory::create()
 {
     return new Axeman();

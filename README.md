@@ -2,6 +2,84 @@
 
 This is a remake of a classical game with all the stuf that I wanted to have it in the same game.  
 
+# Compiling and Installation
+
+## Prereqs on Mac
+
+Install homebrew for Mac and run:
+
+```bash
+brew install premake
+```
+
+## Prereqs on Linux
+
+**Tested on Ubuntu 20.02.4**
+
+```bash
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install libbsd-dev freeglut3-dev libasound2 libasound2-dev
+sudo apt-get install git make gcc g++
+sudo apt-get install python3-pip
+ ```
+
+
+## Requirements
+
+* OpenGL Version 2.1 (supported natively in Linux, Mac and Windows)
+* STK: The Synthesis Toolkit in C++ (Audio Library)
+* C++ Boost Library (particularly the Graph Library https://github.com/boostorg/graph)
+
+
+STK
+---
+
+First you need to copy the stk file from dependencies into the parent directory where you cloned wakuseiboukan.  Then you need
+to compile this sound library.
+
+```bash
+cp dependencies/stk.tgz ../../
+cd ../../
+tar xvzf stk.tgz
+cd stk
+make clean
+./configure
+make 
+sudo make install
+```
+
+The STK libraries are going to be copied into /usr/local/lib/.  So you need
+to run the following command before executing the simulator or configure it intorc_bash or similar.
+
+```bash
+export LD_LIBRARY_PATH=/usr/local/lib/
+``` 
+
+Boost
+----- 
+
+```
+git clone https://github.com/boostorg/boost
+cd boost
+git submodule update --init
+./b2 headers
+```
+
+## Compiling
+
+```bash
+make 
+```
+
+ # Running
+
+```bash
+./bunmei [-nointro] [-seed seed]
+```
+
+That's all folks.
+
 # Game logic
 
 ## Map

@@ -13,11 +13,6 @@ Spearman::Spearman()
     dw = 3;
 }
 
-bool Spearman::canBuildCity()
-{
-    return false;
-}
-
 Spearman* SpearmanFactory::create()
 {
     return new Spearman();

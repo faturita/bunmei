@@ -13,12 +13,6 @@ Horsearcher::Horsearcher()
     aw = 2;
 }
 
-
-bool Horsearcher::canBuildCity()
-{
-    return false;
-}
-
 // ----------------------------
 
 Horsearcher* HorsearcherFactory::create()

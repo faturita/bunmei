@@ -10,7 +10,6 @@ class Galley : public Unit
     public:
     Galley();
 
-    bool canBuildCity();
     MOVEMENT_TYPE virtual getMovementType();
 };
 

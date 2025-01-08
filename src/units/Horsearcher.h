@@ -9,8 +9,6 @@ class Horsearcher : public Unit
 {
     public:
     Horsearcher();
-
-    bool canBuildCity();
 };
 
 class HorsearcherFactory : public BuildableFactory

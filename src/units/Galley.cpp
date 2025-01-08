@@ -12,10 +12,6 @@ Galley::Galley()
     moves = 4;
 }
 
-bool Galley::canBuildCity()
-{
-    return false;
-}
 
 MOVEMENT_TYPE Galley::getMovementType()
 {

@@ -9,8 +9,6 @@ class Spearman : public Unit
 {
     public:
     Spearman();
-
-    bool canBuildCity();
 };
 
 class SpearmanFactory : public BuildableFactory

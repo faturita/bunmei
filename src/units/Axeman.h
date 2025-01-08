@@ -9,8 +9,6 @@ class Axeman : public Unit
 {
     public:
     Axeman();
-
-    bool canBuildCity();
 };
 
 class AxemanFactory : public BuildableFactory

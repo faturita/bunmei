@@ -13,11 +13,6 @@ Swordman::Swordman()
     aw = 4;
 }
 
-bool Swordman::canBuildCity()
-{
-    return false;
-}
-
 Swordman* SwordmanFactory::create()
 {
     return new Swordman();
