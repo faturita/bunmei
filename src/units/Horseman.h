@@ -9,8 +9,6 @@ class Horseman : public Unit
 {
     public:
     Horseman();
-
-    bool canBuildCity();
 };
 
 class HorsemanFactory : public BuildableFactory

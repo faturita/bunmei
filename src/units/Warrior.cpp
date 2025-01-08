@@ -12,11 +12,6 @@ Warrior::Warrior()
     moves = 2;
 }
 
-bool Warrior::canBuildCity()
-{
-    return false;
-}
-
 Warrior* WarriorFactory::create()
 {
     return new Warrior();

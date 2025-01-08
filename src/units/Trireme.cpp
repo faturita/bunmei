@@ -14,11 +14,6 @@ Trireme::Trireme()
 }
 
 
-bool Trireme::canBuildCity()
-{
-    return false;
-}
-
 MOVEMENT_TYPE Trireme::getMovementType()
 {
     return OCEANTYPE;

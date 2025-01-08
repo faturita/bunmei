@@ -52,6 +52,7 @@ class Unit : public Buildable
     MOVEMENT_TYPE virtual getMovementType();
 
     void goTo(int lat, int lon);
+    void resetGoTo();
     bool isAuto();
     bool arrived();
 

@@ -44,6 +44,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <algorithm> 
 
 #include "imageloader.h"
 #include "profiling.h"
@@ -54,9 +55,11 @@
 #include "camera.h"
 #include "openglutils.h"
 #include "lodepng.h"
+#include "tiles.h"
 #include "usercontrols.h"
 #include "map.h"
 #include "hud.h"
+#include "ai.h"
 
 #include "buildable.h"
 
@@ -610,6 +613,128 @@ void adjustMovements()
     }      
 }
 
+void autoPlayer()
+{
+    if (units.find(controller.controllingid)!=units.end())
+    {
+        Unit *unit = units[controller.controllingid];
+        if(Settler* s = dynamic_cast<Settler*>(units[controller.controllingid]))
+        {
+            if (!s->isAuto())
+            {
+                // Find the nearest city, and move AWAY from it as far as possible, 
+                //    and if there is no city, build it here.
+                City* nc = nullptr;
+                int distance = 5;
+                for(auto& [cid,c]:cities)
+                {
+                    int d = abs(c->latitude-s->latitude)+abs(c->longitude-s->longitude);  // Manhattan distance
+                    if (d<distance)
+                    {
+                        distance = d;
+                        nc = c;
+                    }
+                }
+
+                if (nc!=nullptr)
+                {
+                    // Move away from the city.
+                    bool ok;
+                    coordinate c = reachableHorizon(s,5,ok);
+                    if (ok)
+                    {
+                        s->goTo(c.lat,c.lon);
+                    }
+                    else
+                    {
+                        // Boludeo
+                        controller.registers.roll = getRandomInteger(-1.0,1.0);
+                        controller.registers.pitch = getRandomInteger(-1.0,1.0);
+
+                        if (controller.registers.roll==0 && controller.registers.pitch==0)
+                        {
+                            s->availablemoves = 0;
+                        }
+                    }
+
+                }
+                else
+                {
+                    if (s->canBuildCity())
+                    {
+                        CommandOrder co;
+                        co.command = Command::BuildCityOrder;
+                        controller.push(co);
+                    }
+                }
+            }
+
+        }
+        else
+        {
+            // If the unit is already in a city, fortify it.
+            City* nc = nullptr;
+            for(auto& [cid,c]:cities)
+            {
+                if (c->faction == unit->faction && c->getCoordinate()==unit->getCoordinate())
+                {
+                    nc = c;
+                    CommandOrder co;
+                    co.command = Command::FortifyUnitOrder;
+                    controller.push(co);
+                }
+            }
+            
+            if (nc == nullptr)
+            {
+                // If there is a defenseless enemy city nearby, capture it.
+                City* cc = nullptr;
+                for(auto& [cid,c]:cities)
+                {
+                    if (c->faction != unit->faction && !c->isDefendedCity())
+                    {
+                        cc = c;
+                    }
+                }
+
+                unit->goTo(cc->latitude,cc->longitude);
+
+                if (nc == nullptr)
+                {
+                    // Boludeo
+                    controller.registers.roll = getRandomInteger(-1.0,1.0);
+                    controller.registers.pitch = getRandomInteger(-1.0,1.0);
+
+                    if (controller.registers.roll==0 && controller.registers.pitch==0)
+                    {
+                        unit->availablemoves = 0;
+                    }
+                }
+            }
+        }
+
+    }
+
+    // Control city production.
+    for(auto& [k,c]:cities)
+    {
+        if (c->faction == controller.faction)
+        {
+            if (c->pop==1)
+            {
+                c->productionQueue.push(new WarriorFactory());    
+            } else
+            if (c->pop>1)
+            {
+                if (c->resources[SHIELDS]>30)
+                {
+                    c->productionQueue.push(new SettlerFactory());
+                }
+            }
+        }
+    }
+}
+
 // This runs continuosly....
 void update(int value)
 {
@@ -637,42 +762,49 @@ void update(int value)
                 c->setDefense();
             }
         }
+
+        // @FIXME: This is a workaround
+        if (!c->workingOn(0,0))
+        {
+            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
+        }
+        c->deAssigntWorkingTile();
+
     }
 
 
     // GoTo Function
     if (units.find(controller.controllingid)!=units.end() && units[controller.controllingid]->isAuto())
     {
-        controller.registers.roll = sgnz(units[controller.controllingid]->target.lon-units[controller.controllingid]->longitude );
-        controller.registers.pitch = sgnz(units[controller.controllingid]->target.lat-units[controller.controllingid]->latitude );
+        // First build the tree map of the available land.
+        // Calculate the path to the target.
 
-        units[controller.controllingid]->arrived();
-    }
-
-
-    if (factions[controller.faction]->autoPlayer)
-    {
-        if (getRandomInteger(0,1)==0)
+        bool ok = false;
+        
+        coordinate c = goTo(units[controller.controllingid],ok);
+        
+        if (ok)
         {
-            controller.registers.roll = getRandomInteger(-1.0,1.0);
+            controller.registers.roll = sgnz(c.lon-units[controller.controllingid]->longitude );
+            controller.registers.pitch = sgnz(c.lat-units[controller.controllingid]->latitude );
         }
         else
         {
-            controller.registers.pitch = getRandomInteger(-1.0,1.0);
+            // Cancel goto operation and make a sound.
+            if (!units[controller.controllingid]->arrived()) blocked();
+            units[controller.controllingid]->resetGoTo();
         }
 
-        if (units.find(controller.controllingid)!=units.end())
-        {
-            if (units[controller.controllingid]->canBuildCity())
-            {
-                if (getRandomInteger(0,10)==0)
-                {
-                    CommandOrder co;
-                    co.command = Command::BuildCityOrder;
-                    controller.push(co);
-                }
-            }
-        }
+        units[controller.controllingid]->arrived();
+
+    }
+
+
+    // Autoplayer
+    if (factions[controller.faction]->autoPlayer)
+    {
+
+        autoPlayer();
 
     }
 

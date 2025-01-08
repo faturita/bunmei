@@ -10,7 +10,6 @@ class Warrior : public Unit
     public:
     Warrior();
 
-    bool canBuildCity();
 };
 
 class WarriorFactory : public BuildableFactory

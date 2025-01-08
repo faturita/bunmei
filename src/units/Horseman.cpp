@@ -14,11 +14,6 @@ Horseman::Horseman()
 }
 
 
-bool Horseman::canBuildCity()
-{
-    return false;
-}
-
 // ----------------------------
 
 Horseman* HorsemanFactory::create()

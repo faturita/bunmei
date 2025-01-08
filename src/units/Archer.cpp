@@ -13,11 +13,6 @@ Archer::Archer()
     dw = 2;
 }
 
-bool Archer::canBuildCity()
-{
-    return false;
-}
-
 Archer* ArcherFactory::create()
 {
     return new Archer();

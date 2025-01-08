@@ -63,6 +63,12 @@ void Unit::goTo(int lat, int lon)
     target = coordinate(lat,lon);
 }
 
+void Unit::resetGoTo()
+{
+    autoMode = false;
+    target = coordinate(latitude,longitude);
+}
+
 bool Unit::isAuto()
 {
     return autoMode;

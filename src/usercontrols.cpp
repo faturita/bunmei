@@ -79,20 +79,22 @@ void handleKeypress(unsigned char key, int x, int y) {
                 CommandOrder co;
                 co.command = Command::BuildCityOrder;
                 controller.push(co);
+                break;
             }
         }
-        break;
         case 'D':
         {
             CommandOrder co;
             co.command = Command::DisbandUnitOrder;
             controller.push(co);
+            break;
         }
         case 'F':
         {
             CommandOrder co;
             co.command = Command::FortifyUnitOrder;
             controller.push(co);
+            break;
         }
     default:break;
     }

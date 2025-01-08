@@ -9,8 +9,7 @@ class Trireme : public Unit
 {
     public:
     Trireme();
-
-    bool canBuildCity();
+    
     MOVEMENT_TYPE virtual getMovementType();
 };
 

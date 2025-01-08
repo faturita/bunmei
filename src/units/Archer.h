@@ -9,8 +9,6 @@ class Archer : public Unit
 {
     public:
     Archer();
-
-    bool canBuildCity();
 };
 
 class ArcherFactory : public BuildableFactory
