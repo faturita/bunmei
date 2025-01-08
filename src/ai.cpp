@@ -73,12 +73,8 @@ extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 
 
-// Build the tree and the path to the destination.
-// Calculate the next movement based on Dijkstra algorithm.
-// @FIXME: Only works for land, it should consider water, the terrain cost, and also the presence of enemy units and cities.
-coordinate goTo(Unit* unit, bool &ok)
+Tree buildTree()
 {
-
     Tree tree;
 
     // Add all the land vertices into the graph.
@@ -115,6 +111,65 @@ coordinate goTo(Unit* unit, bool &ok)
             }
         }
 
+    return tree;
+}
+
+coordinate reachableHorizon(Unit* unit, int jumpingdistance, bool &ok)
+{
+    Tree tree = buildTree();
+    auto vv = boost::make_iterator_range(vertices(tree));
+    
+    // At this point, the tree is built.
+
+    int lat = unit->latitude;
+    int lon = unit->longitude;
+    auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+
+    printf("Start %d %d\n", lat, lon);
+
+    dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
+
+    int vertexid = *source;
+    auto nextStep = find_if(vv, [&, vertexid](auto vd) { return tree[vd].pred == vertexid; });
+    
+    // This can be nonexistant
+    if (nextStep == vv.end())
+    {
+        ok = false;
+        return coordinate(0,0);
+    }
+
+    // Move forward towards somewhere
+    int jumps = 1;
+    while(jumps < jumpingdistance)
+    {
+        printf("Next to %d: %d,%d\n",*nextStep, lat,lon);
+        vertexid = *nextStep;
+        nextStep = find_if(vv, [&, vertexid](auto vd) { return tree[vd].pred == vertexid; });
+
+        if (nextStep == vv.end())
+        {
+            ok = false;
+            return coordinate(0,0);
+        }
+        jumps++;
+    }
+
+    ok = true;
+    return coordinate(tree[vertexid].lat, tree[vertexid].lon);
+        
+}
+
+
+
+// Build the tree and the path to the destination.
+// Calculate the next movement based on Dijkstra algorithm.
+// @FIXME: Only works for land, it should consider water, the terrain cost, and also the presence of enemy units and cities.
+coordinate goTo(Unit* unit, bool &ok)
+{
+
+    Tree tree = buildTree();
+    auto vv = boost::make_iterator_range(vertices(tree));
     
     // At this point, the tree is built.
 

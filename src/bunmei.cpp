@@ -44,6 +44,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <algorithm> 
 
 #include "imageloader.h"
 #include "profiling.h"
@@ -619,61 +620,59 @@ void autoPlayer()
         Unit *unit = units[controller.controllingid];
         if(Settler* s = dynamic_cast<Settler*>(units[controller.controllingid]))
         {
-            // Find the nearest city, and move AWAY from it as far as possible, 
-            //    and if there is no city, build it here.
-            City* nc = nullptr;
-            int distance = 5;
-            for(auto& [cid,c]:cities)
+            if (!s->isAuto())
             {
-                int d = abs(c->latitude-s->latitude)+abs(c->longitude-s->longitude);  // Manhattan distance
-                if (d<distance)
+                // Find the nearest city, and move AWAY from it as far as possible, 
+                //    and if there is no city, build it here.
+                City* nc = nullptr;
+                int distance = 5;
+                for(auto& [cid,c]:cities)
                 {
-                    distance = d;
-                    nc = c;
-                }
-            }
-
-            if (nc!=nullptr)
-            {
-                int counter = 0;
-                do {
-                    controller.registers.roll = (-1)*sgnz(nc->longitude-s->longitude );
-                    controller.registers.pitch = (-1)*sgnz(nc->latitude-s->latitude );
-
-                    if (controller.registers.roll == 0 && controller.registers.pitch == 0)
+                    int d = abs(c->latitude-s->latitude)+abs(c->longitude-s->longitude);  // Manhattan distance
+                    if (d<distance)
                     {
+                        distance = d;
+                        nc = c;
+                    }
+                }
 
-                        // Pick a random direction to trigger the escape rule (an affordable one)
+                if (nc!=nullptr)
+                {
+                    // Move away from the city.
+                    bool ok;
+                    coordinate c = reachableHorizon(s,5,ok);
+                    if (ok)
+                    {
+                        s->goTo(c.lat,c.lon);
+                    }
+                    else
+                    {
+                        // Boludeo
                         controller.registers.roll = getRandomInteger(-1.0,1.0);
                         controller.registers.pitch = getRandomInteger(-1.0,1.0);
 
+                        if (controller.registers.roll==0 && controller.registers.pitch==0)
+                        {
+                            s->availablemoves = 0;
+                        }
                     }
 
-                    coordinate c = map.spheroid_displacement(s->latitude,s->longitude,controller.registers.pitch,controller.registers.roll);
-
-                    if (map.set(c.lat, c.lon).code == LAND && map.set(c.lat,c.lon).isFreeLand())
-                    {
-                        break;
-                    }
-                    counter++;
-                } while (counter<10000);
-
-                if (counter==10000) unit->availablemoves = 0; // Give up
-
-            }
-            else
-            {
-                if (s->canBuildCity())
+                }
+                else
                 {
-                    CommandOrder co;
-                    co.command = Command::BuildCityOrder;
-                    controller.push(co);
+                    if (s->canBuildCity())
+                    {
+                        CommandOrder co;
+                        co.command = Command::BuildCityOrder;
+                        controller.push(co);
+                    }
                 }
             }
 
         }
         else
         {
+            // If the unit is already in a city, fortify it.
             City* nc = nullptr;
             for(auto& [cid,c]:cities)
             {
@@ -688,19 +687,35 @@ void autoPlayer()
             
             if (nc == nullptr)
             {
-                // Boludeo
-                controller.registers.roll = getRandomInteger(-1.0,1.0);
-                controller.registers.pitch = getRandomInteger(-1.0,1.0);
-
-                if (controller.registers.roll==0 && controller.registers.pitch==0)
+                // If there is a defenseless enemy city nearby, capture it.
+                City* cc = nullptr;
+                for(auto& [cid,c]:cities)
                 {
-                    unit->availablemoves = 0;
+                    if (c->faction != unit->faction && !c->isDefendedCity())
+                    {
+                        cc = c;
+                    }
+                }
+
+                unit->goTo(cc->latitude,cc->longitude);
+
+                if (nc == nullptr)
+                {
+                    // Boludeo
+                    controller.registers.roll = getRandomInteger(-1.0,1.0);
+                    controller.registers.pitch = getRandomInteger(-1.0,1.0);
+
+                    if (controller.registers.roll==0 && controller.registers.pitch==0)
+                    {
+                        unit->availablemoves = 0;
+                    }
                 }
             }
         }
 
     }
 
+    // Control city production.
     for(auto& [k,c]:cities)
     {
         if (c->faction == controller.faction)
