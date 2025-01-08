@@ -112,8 +112,48 @@ void TestCase_001::init()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            map.set(lat,lon) = mapcell(1);
+            map.set(lat,lon) = mapcell(OCEAN);
         }
+
+     // Pick a random number and use it to seed the land masses.
+    int r=getRandomInteger(2,15);
+
+    for(int i=0;i<r;i++)
+    {
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
+
+        while (getRandomInteger(0,100)>2)
+        {
+            map.set(lat,lon) = mapcell(LAND);
+            int dir=getRandomInteger(0,3);
+            if (dir==0) lat-=1;
+            if (dir==1) lat+=1;
+            if (dir==2) lon+=1;
+            if (dir==3) lon-=1;
+
+        }
+    }
+
+    // Fill in randomly the land masses with land.
+    int energy = 100000;
+    for(int rep=0;rep<5000;rep++)
+    {
+        int lat = getRandomInteger(map.minlat,map.maxlat-1);
+        int lon = getRandomInteger(map.minlon,map.maxlon-1);
+
+        int north,south,east,west;
+        north = map(lat-1,lon).code;
+        south = map(lat+1,lon).code;
+        east  = map(lat,lon+1).code;
+        west  = map(lat,lon-1).code;
+
+        if (energy>0) if ((south+north+east+west)>=1)
+        {
+            map.set(lat,lon) = mapcell(LAND);
+            energy--;
+        }
+    }   
 
 
     resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
@@ -122,6 +162,15 @@ void TestCase_001::init()
     resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
     resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
     resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
+
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            for(auto &r:resources)
+            {
+                map.set(lat,lon).resource_production_rate.push_back(2);
+            }
+        }
 
     Faction *faction = new Faction();
     faction->id = 0;
@@ -289,8 +338,30 @@ void TestCase_001::init()
         return tree[*vd];
     };
 
+    //auto find_by_lat_lon = [&tree](int lat,int lon) -> Co& {
+    //    auto vv = boost::make_iterator_range(vertices(tree));
+    //    auto vd = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+    //    return tree[*vd];
+    //};
+
     print_graph(tree, co, std::cout << "original: ");
 
+    printf("Find by lat %d\n", find_by_lat(10).lon);
+
+    int lat = 10;
+    int lon = 11;
+    auto vv = boost::make_iterator_range(vertices(tree));
+
+    auto vd = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+
+    if (vd!=vv.end())
+    {
+        printf("Found %d %d\n", tree[*vd].lat, tree[*vd].lon);
+    }
+    else
+    {
+        printf("Not found\n");
+    }
 
 }
 
@@ -322,7 +393,7 @@ int TestCase_001::check(int year)
    add_edge(4, 5, g);
    add_edge(5, 7, g);
 
-    //isdone = true;
+    isdone = true;
 
 
     return 0;
