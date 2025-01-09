@@ -195,8 +195,8 @@ inline void processCommandOrders()
             // Buildings already built in the city
             city->buildings.push_back(new Palace());
 
-
-            russians();
+            // @FIXME: This is the momento to make the song of the faction.
+            //russians();
 
         }
 
@@ -281,8 +281,16 @@ inline void endOfYear()
         {
             c->resources[r->id] -= c->getConsumptionRate(r->id);
         }
-        
 
+        // Convert trade accordingly.  Trade is not accummulated
+
+        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
+        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
+        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
+        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
+
+        c->resources[TRADE]=0;
+        
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)
@@ -896,6 +904,7 @@ void update(int value)
             map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
         }
         c->deAssigntWorkingTile();
+
 
         // @NOTE Collect taxes....
         factions[c->faction]->coins += c->resources[COINS];

@@ -489,6 +489,10 @@ void initFactions()
     faction->red = 255;
     faction->green = 0;
     faction->blue = 0;
+    faction->rates[0] = 1;
+    faction->rates[1] = 0;
+    faction->rates[2] = 0;
+    faction->rates[3] = 0;
     
     factions.push_back(faction);
 
@@ -498,6 +502,10 @@ void initFactions()
     faction->red = 255;
     faction->green = 255;
     faction->blue = 255;
+    faction->rates[0] = 1;
+    faction->rates[1] = 0;
+    faction->rates[2] = 0;
+    faction->rates[3] = 0;
     factions.push_back(faction);
 
 
@@ -507,6 +515,10 @@ void initFactions()
     faction->red = 0;
     faction->green = 0;
     faction->blue = 255;
+    faction->rates[0] = 1;
+    faction->rates[1] = 0;
+    faction->rates[2] = 0;
+    faction->rates[3] = 0;
     factions.push_back(faction);
 
 

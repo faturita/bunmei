@@ -11,13 +11,15 @@ class Faction {
         int id;
         int red, green, blue;
 
-        bool autoPlayer = true;
+        bool autoPlayer = false;
 
         int mapoffset;
 
         int blinkingrate = 70;
 
         int p=0;
+
+        float rates[4];
 
     Faction ()
     {
