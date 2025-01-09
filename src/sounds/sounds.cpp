@@ -181,20 +181,20 @@ void intro()
 
 void march()
 {
-    playthissound( "sounds/march.wav");
+    playthissound(Vec3f(0,0,0), "sounds/march.wav");
 }
 
 void built()
 {
-    playthissound( "sounds/built.wav");
+    playthissound(Vec3f(0,0,0), "sounds/built.wav");
 }
 
 void romans()
 {
-    playthissound( "sounds/romans.wav");
+    playthissound(Vec3f(0,0,0),"sounds/romans.wav");
 }
 
 void russians()
 {
-    playthissound( "sounds/russians.wav");
+    playthissound(Vec3f(0,0,0), "sounds/russians.wav");
 }
