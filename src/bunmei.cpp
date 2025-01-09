@@ -75,6 +75,7 @@
 #include "buildings/Palace.h"
 #include "buildings/Barracks.h"
 #include "buildings/Granary.h"
+#include "buildings/Collosseum.h"
 
 #include "units/Unit.h"
 #include "units/Settler.h"
@@ -200,6 +201,7 @@ inline void processCommandOrders()
         city->buildable.push_back(new PalaceFactory());
         city->buildable.push_back(new SettlerFactory());
         city->buildable.push_back(new GranaryFactory());
+        city->buildable.push_back(new CollosseumFactory());
         city->buildable.push_back(new WarriorFactory());
         city->buildable.push_back(new ArcherFactory());
         city->buildable.push_back(new SpearmanFactory());
