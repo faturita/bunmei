@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <queue>
 #include <iostream>
+#include <string.h>
 #include "coordinate.h"
 #include "buildings/Building.h"
 

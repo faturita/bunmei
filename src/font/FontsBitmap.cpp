@@ -1,3 +1,7 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+
 #include "../profiling.h"
 #include "../math/yamathutil.h"
 #include "../lodepng.h"

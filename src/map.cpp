@@ -27,6 +27,11 @@ std::unordered_map<int, std::string> tiles;
 Map map;
 std::unordered_map<std::string, GLuint> maptextures;
 
+
+extern int REAL_SCREEN_WIDTH;
+extern int REAL_SCREEN_HEIGHT;
+
+
 int width = SCREEN_WIDTH;
 int height = SCREEN_HEIGHT;
 int mapzoom=1;
@@ -56,8 +61,8 @@ void centermap(int ccx, int ccy)  // lon,lat
 {
     //1728,1117
 
-    float fccx = ccx/1728.0*width;
-    float fccy = ccy/1117.0*height;
+    float fccx = ccx/(REAL_SCREEN_WIDTH*1.0)*width;
+    float fccy = ccy/(REAL_SCREEN_HEIGHT*1.0)*height;
 
     ccx = fccx;
     ccy = fccy;
@@ -109,8 +114,8 @@ coordinate getCurrentCenter()
 // So clicking on the center of the screen will give 0,0 result, and on the bottom right, +,+
 coordinate convertToMap(int ccx, int ccy, int gridsize)
 {
-    float fccx = ccx/1728.0*width;
-    float fccy = ccy/1117.0*height;
+    float fccx = ccx/(REAL_SCREEN_WIDTH*1.0)*width;
+    float fccy = ccy/(REAL_SCREEN_HEIGHT*1.0)*height;
 
     ccx = fccx;
     ccy = fccy; 

@@ -2,6 +2,8 @@
 #define MESSAGES_H
 
 #include <iostream>
+#include <unordered_map>
+#include <vector>
 
 struct Message
 {

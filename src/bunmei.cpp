@@ -101,6 +101,10 @@ std::vector<Faction*> factions;
 std::vector<Resource*> resources;
 std::vector<Message> messages;
 
+
+int REAL_SCREEN_WIDTH = 1728;
+int REAL_SCREEN_HEIGHT = 1117;
+
 extern Map map;
 
 int year;
@@ -1002,8 +1006,13 @@ int main(int argc, char** argv) {
     // Switch up OpenGL version (at the time of writing compatible with 2.1)
     if (true)
         glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+#ifdef __linux
+
+#elif __APPLE__
     else
         glutInitDisplayMode (GLUT_3_2_CORE_PROFILE | GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
+#endif
+
 
     disclaimer();
     glutCreateWindow("Bunmei");
@@ -1028,6 +1037,12 @@ int main(int argc, char** argv) {
     version = glGetString (GL_VERSION);
     printf ("Renderer: %s\n", renderer);
     printf ("OpenGL version supported: %s\n", version);
+
+    REAL_SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
+    REAL_SCREEN_WIDTH = glutGet(GLUT_SCREEN_WIDTH);
+
+    printf("Width:%d\n", glutGet(GLUT_SCREEN_WIDTH) );
+    printf("Height:%d\n", glutGet(GLUT_SCREEN_HEIGHT) );
 
     setupWorldModelling();
     initRendering();

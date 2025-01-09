@@ -13,7 +13,7 @@ TCOBJS = $(TCSRCS:.cpp=.o)
 ifeq ($(shell uname),Darwin)
 	LIBS = -lstk -lpthread -framework CoreAudio -framework CoreMIDI -framework CoreFoundation -framework OpenGL -framework GLUT
 else
-	LIBS = -L/usr/local/lib -I/usr/local/include -L/usr/lib/x86_64-linux-gnu/ -lGL -lGLU -lglut -pthread -lbsd
+	LIBS = -L/usr/local/lib -I/usr/local/include -L/usr/lib/x86_64-linux-gnu/ -lGL -lGLU -lglut -pthread -lbsd -lstk -lasound 
 endif
 
 all: $(PROG)
