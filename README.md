@@ -85,24 +85,29 @@ That's all folks.
 ## Map
 Map size is 72x48.  Latitud determines the relation to the equator, increasing towards south, and longitud are the meridians increasing towards east.  Zero, Zero, is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course when there is possible to move according to the unit.  This can change sea warfare.    
 
-There are spetial resources around.
+There are special resources around.  
 
 ## Land Ownership
 
-Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.
+Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determine by tile ownership rules.
 
-## Population
+## Resources
+There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.
 
-Population represents humans, so they are handled like human population.
+## Trade
+
+Food and all the special resources can be directly traded, by loading them into boats and shipping them to foreign cities in exchange of money or other resources.
+
+
+## Population
+
+Population represents humans, so they are handled like human population.  So the basic rule of increase population when food storage is completed, there is an logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  This also opens the possibility of indentured servants, slaves and so on.
 
 
 ## Combat
 
-The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack points, defense points and experience points.
+The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  Terrain and city are bilinear with additional weights that depend on the terrain itself and on the city.  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die (this is the stochastic component) according to the power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers.  The unit needs to gather population from somewhere to increase their numbers !
 
-
-## Resources
-* There are six resources: food, shields, trade, coins, science, and culture.
 
 
 # Working issues
