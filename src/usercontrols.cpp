@@ -167,7 +167,8 @@ void processMouse(int button, int state, int x, int y)
                         for (auto& [k,c] : cities) 
                         {
                             coordinate co = getCurrentCenter();
-
+                            // @NOTE: We needed to center the map always in the same value for the cities and transform that
+                            //    into the screen coordinates.
                             coordinate c2 = map.to_screen(co.lat,co.lon);
                             centermapinmap(c2.lat, c2.lon);
                             if (co.lat == c->latitude && co.lon == c->longitude)
