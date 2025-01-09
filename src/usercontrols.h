@@ -38,6 +38,8 @@ public:
 
     bool teletype=false;
 
+    bool landOwnership = false;
+
     std::string str;
 
     float targetX, targetY, targetZ;

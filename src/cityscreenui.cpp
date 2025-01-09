@@ -35,9 +35,9 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 }
 
 // @FIXME: This is super ugly, but it works for now.
+// @FIXME: Improve this please.....
 bool changeIsActive = false;
 int selection = -1;
-int baselat = 11;
 
 coordinate clickedTile(0,0);
 bool tileWorkingIsActive = false;
@@ -49,13 +49,11 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
     {
         printf("Change\n"); // Row, Column
         changeIsActive = true;
-        if (lat2==8) baselat = 10;
-        else baselat = 11;
     }
 
     if (changeIsActive)
     {
-        selection = lat2 - baselat;
+        selection = lat2 - 10;
         printf("Selection %d\n",selection);
     }
 

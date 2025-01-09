@@ -188,3 +188,13 @@ void built()
 {
     playthissound( "sounds/built.wav");
 }
+
+void romans()
+{
+    playthissound( "sounds/romans.wav");
+}
+
+void russians()
+{
+    playthissound( "sounds/russians.wav");
+}

@@ -189,6 +189,10 @@ inline void processCommandOrders()
             city->setCapitalCity();
             // Buildings already built in the city
             city->buildings.push_back(new Palace());
+
+
+            russians();
+
         }
 
         // What the city can actually build.
@@ -851,6 +855,7 @@ void update(int value)
     {
         //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
         f->pop = 0;
+        f->coins = 0;
     }
 
     // Update all the time if the city is or not defended...
@@ -872,6 +877,9 @@ void update(int value)
             map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
         }
         c->deAssigntWorkingTile();
+
+        // @NOTE Collect taxes....
+        factions[c->faction]->coins += c->resources[COINS];
 
     }
 

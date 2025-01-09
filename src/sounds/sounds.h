@@ -26,5 +26,8 @@ void built();
 
 void intro();
 
+void romans();
+void russians();
+
 
 #endif // SOUNDS_H

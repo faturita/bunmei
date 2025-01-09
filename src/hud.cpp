@@ -143,16 +143,25 @@ void drawHUD()
     sprintf (str, "Population:%d",factions[controller.faction]->pop);
     drawString(0,-90,1,str,0.2f);
 
+    sprintf (str, "Alphabet");
+    placeMark4(30 + strlen(str)*10,-110,7*3,"assets/assets/status/science_25.png");
+    drawString(0,-120,1,str,0.2f);
+
+    sprintf (str, "%d",factions[controller.faction]->coins);
+    placeMark4(30 + strlen(str)*10,-140,7*3,"assets/assets/city/gold.png");
+    drawString(0,-150,1,str,0.2f);
+
+
     if (controller.controllingid != CONTROLLING_NONE)
     {
         sprintf (str, "(%s)",units[controller.controllingid]->name);
-        drawString(0,-120,1,str,0.2f);
+        drawString(0,-180,1,str,0.2f);
 
         sprintf (str, "(%d, %d)",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-        drawString(0,-150,1,str,0.2f);
+        drawString(0,-210,1,str,0.2f);
     }
 
-    placeMark4(10,-180,7*3,"assets/assets/city/bulb.png");
+
 
 
     //sprintf (str, "Military Advisor: enemy units are coming from the south.");

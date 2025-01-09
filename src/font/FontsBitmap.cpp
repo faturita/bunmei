@@ -162,6 +162,7 @@ void placeWord(float x, float y, int sizex, int sizey, const char* word, int yof
         letter[0] = word[i];
         letter[1] = '\0';
         place(x*16+i*sizex,y*16+yoffset,sizex,sizey,fonts[std::string(letter)]);
+        //place(x*16+i*sizex,y*16+yoffset,sizex,sizey,"assets/assets/general/occupied.png");
     }
 }
 

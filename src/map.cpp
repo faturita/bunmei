@@ -115,8 +115,8 @@ coordinate convertToMap(int ccx, int ccy, int gridsize)
     ccx = fccx;
     ccy = fccy; 
 
-    float dcx = (ccx+16)-(width/2-MAPHALFWIDTH*gridsize);
-    float dcy = (ccy+16)-(height/2-MAPHALFHEIGHT*gridsize);
+    float dcx = (ccx+gridsize/2)-(width/2-MAPHALFWIDTH*gridsize);
+    float dcy = (ccy+gridsize/2)-(height/2-MAPHALFHEIGHT*gridsize);
 
     int lon = (int)(dcx/gridsize) - MAPHALFWIDTH;
     int lat = (int)(dcy/gridsize) - MAPHALFHEIGHT;
@@ -261,7 +261,7 @@ void drawIntro()
     sprintf (str, "Bunmei: Craddle of civilization.");
     drawString(0,-700,1,str,0.1f);
 
-    placeMark(600,-400,800,"assets/art/opening.png");
+    placeMark(600,-400,1000,"assets/art/opening.png");
 
 
     glPopAttrib();
@@ -426,6 +426,21 @@ void drawMap()
                     if (!(map.west(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_w.png");
                     if (!(map.east(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_e.png");
 
+                }
+            }
+
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                if (controller.landOwnership)
+                if (!map(lat,lon).isFreeLand())
+                {
+                    int faction = map(lat,lon).getOwnedBy();
+                    int red = factions[faction]->red;
+                    int green = factions[faction]->green;
+                    int blue = factions[faction]->blue;
+
+                    placeThisUnit(lat,lon,16,"assets/assets/general/owned.png",red,green,blue);
                 }
             }
 

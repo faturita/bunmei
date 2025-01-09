@@ -465,6 +465,11 @@ void initResources()
                     if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
 
+                if (map.set(lat,lon).bioma/16==ARCTIC/16) // Mountains
+                {
+                    if (map.set(lat,lon).resource==SEAL) map.set(lat,lon).resource_production_rate[FOOD] = 3;
+                }
+
                 if (map.set(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
                 if (map.set(lat,lon).resource==GOLD) 
                 {

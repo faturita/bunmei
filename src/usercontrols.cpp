@@ -47,7 +47,10 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'c':controller.registers.pitch+=1.0;controller.registers.roll+=1.0f;break;
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
+        case 'r':controller.registers.bank+=1.0f;break;
+        case 'v':controller.registers.bank-=1.0f;break;
         case ' ':controller.endofturn=true;break;
+        case 'l':controller.landOwnership = !controller.landOwnership;break;
         case 'G':
         {
              if (units.find(controller.controllingid) != units.end())
@@ -164,6 +167,9 @@ void processMouse(int button, int state, int x, int y)
                         for (auto& [k,c] : cities) 
                         {
                             coordinate co = getCurrentCenter();
+
+                            coordinate c2 = map.to_screen(co.lat,co.lon);
+                            centermapinmap(c2.lat, c2.lon);
                             if (co.lat == c->latitude && co.lon == c->longitude)
                             {
                                 if (controller.faction == c->faction)
