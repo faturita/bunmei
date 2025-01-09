@@ -2,6 +2,9 @@
 #define UNIT_H
 
 #include <iostream>
+#include <string.h>
+#include <unordered_map>
+#include <vector>
 #include "../buildable.h"
 #include "../coordinate.h"
 

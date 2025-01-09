@@ -2,6 +2,9 @@
 #define BUILDING_H
 
 #include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <cstring>
 #include "../buildable.h"
 
 class Building : public Buildable

@@ -1,3 +1,6 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
 #include "openglutils.h"
 #include "font/DrawFonts.h"
 #include "lodepng.h"
