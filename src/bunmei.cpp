@@ -508,8 +508,9 @@ bool captureCity(Unit* invader, int lat, int lon)
                 city->setDefense();              
 
                 march();
-                message(year, invader->faction, "City %s has been conquered by %s.",city->name, factions[invader->faction]->name);  
+                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
 
+                // @FIXME: We may loose some coins here.  I am just capturing everything.
                 printf("Capture City Condition\n");
                 return true;    
             }
