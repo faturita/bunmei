@@ -92,7 +92,7 @@ There are special resources around.
 Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determine by tile ownership rules.
 
 ## Resources
-* There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.
+There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.
 
 ## Trade
 
