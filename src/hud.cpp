@@ -105,14 +105,13 @@ void placeMark4(float x, float y, int size, const char* modelName)
 
 void drawHUD()
 {
-    // This will make things dark.
 
-    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);     // @NOTE: Commented out because it is in overlay mode.
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
     glOrtho(0, 1200, 800, 0, -1, 1);            // @NOTE: This is the size of the HUD screen (FIXED), it goes from x=[0,1200] , y=[-400,400]
-    glMatrixMode(GL_MODELVIEW);                 //  the HUD screen is independent of the map screen.  It is an overly on top of it.
+    glMatrixMode(GL_MODELVIEW);                 //  the HUD screen is independent of the map screen.  It is an overlay on top of it.
     glPushMatrix();
     glLoadIdentity();
 

@@ -2,6 +2,7 @@
 #include "font/FontsBitmap.h"
 #include "Faction.h"
 #include "map.h"
+#include "tiles.h"
 #include "City.h"
 
 extern std::vector<Faction*> factions;
@@ -121,15 +122,36 @@ void City::deAssigntWorkingTile()
 
 void City::assignWorkingTile()
 {
+    // @NOTE: We are maximizing food production
+    coordinate max_food_production_tile(0,0);
+    int max = 0;
+
     for(int lat=-3;lat<=3;lat++)
         for(int lon=-3;lon<=3;lon++)
         {
             if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
             {
-                map.peek(latitude+lat, longitude+lon).setCityOwnership(faction, id);
-                return;   
+                int production = map.peek(latitude+lat, longitude+lon).resource_production_rate[0];
+                if (production>max)
+                {
+                    max = production;
+                    max_food_production_tile = coordinate(lat,lon);
+                }
             }
-        }    
+        }   
+
+    assignWorkingTile(max_food_production_tile);
+
+
+    //for(int lat=-3;lat<=3;lat++)
+    //    for(int lon=-3;lon<=3;lon++)
+    //    {
+    //        if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
+    //        {
+    //            map.peek(latitude+lat, longitude+lon).setCityOwnership(faction, id);
+    //            return;   
+    //        }
+    //    }    
 }
 
 void City::assignWorkingTile(coordinate c)

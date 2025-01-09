@@ -735,8 +735,8 @@ void autoPlayer()
                 {
                     // Move away from the city.
                     bool ok;
-                    coordinate c = reachableHorizon(s,5,ok);
-                    if (ok)
+                    coordinate c = reachableHorizon(s,5,s->faction,ok);
+                    if (ok && !map.peek(c.lat,c.lon).isFreeLand())
                     {
                         s->goTo(c.lat,c.lon);
                     }
@@ -769,6 +769,7 @@ void autoPlayer()
         {
             // If the unit is already in a city, fortify it.
             City* nc = nullptr;
+            if(Warrior* w = dynamic_cast<Warrior*>(units[controller.controllingid]))
             for(auto& [cid,c]:cities)
             {
                 if (c->faction == unit->faction && c->getCoordinate()==unit->getCoordinate())
@@ -792,9 +793,7 @@ void autoPlayer()
                     }
                 }
 
-                unit->goTo(cc->latitude,cc->longitude);
-
-                if (nc == nullptr)
+                if (cc == nullptr)
                 {
                     // Boludeo
                     controller.registers.roll = getRandomInteger(-1.0,1.0);
@@ -804,6 +803,8 @@ void autoPlayer()
                     {
                         unit->availablemoves = 0;
                     }
+                } else {
+                    unit->goTo(cc->latitude,cc->longitude);
                 }
             }
         }
@@ -815,15 +816,26 @@ void autoPlayer()
     {
         if (c->faction == controller.faction)
         {
-            if (c->pop==1)
+            if (c->productionQueue.size()==0)
             {
-                c->productionQueue.push(new WarriorFactory());    
-            } else
-            if (c->pop>1)
-            {
-                if (c->resources[SHIELDS]>30)
+                if (c->pop>1)
                 {
-                    c->productionQueue.push(new SettlerFactory());
+                    int rand = getRandomInteger(0,2);
+
+                    switch (rand) 
+                    {
+                        case 0:
+                            c->productionQueue.push(new WarriorFactory());
+                            break;
+                        case 1:
+                            c->productionQueue.push(new SettlerFactory());
+                            break;
+                        case 2:
+                            c->productionQueue.push(new HorsemanFactory());
+                            break;
+                        default:
+                            c->productionQueue.push(new ArcherFactory());
+                    }
                 }
             }
         }
@@ -881,6 +893,10 @@ void update(int value)
 
         // @NOTE Collect taxes....
         factions[c->faction]->coins += c->resources[COINS];
+
+        // @FIXME: Spread culture
+
+        // @FIXME: Collect science.
 
     }
 

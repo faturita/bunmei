@@ -114,9 +114,51 @@ Tree buildTree()
     return tree;
 }
 
-coordinate reachableHorizon(Unit* unit, int jumpingdistance, bool &ok)
+
+Tree buildTraversalTree(int faction)
 {
-    Tree tree = buildTree();
+    Tree tree;
+
+    // Add all the land vertices into the graph.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map.peek(lat,lon).code == LAND && map.peek(lat,lon).isOwnedBy(faction))
+                auto v = add_vertex({lat,lon,0,0}, tree);
+        }
+
+    auto vv = boost::make_iterator_range(vertices(tree));
+
+    // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (map.peek(lat,lon).code == LAND && map.peek(lat,lon).isOwnedBy(faction))
+            {
+                auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+                
+                for(int i=-1;i<=1;i++)
+                    for(int j=-1;j<=1;j++)
+                    {
+                        if (i==0 && j==0)
+                            continue;
+
+                        if (map.peek(lat+i,lon+j).code == LAND && map.peek(lat+i,lon+j).isOwnedBy(faction))
+                        {
+                            auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
+                            // @FIXME: Add terrain cost here on the edge.
+                            add_edge(*start, *end, Edge{1}, tree);
+                        }
+                    }
+            }
+        }
+
+    return tree;
+}
+
+coordinate reachableHorizon(Unit* unit, int jumpingdistance, int f_id, bool &ok)
+{
+    Tree tree = buildTraversalTree(f_id);
     auto vv = boost::make_iterator_range(vertices(tree));
     
     // At this point, the tree is built.

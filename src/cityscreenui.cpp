@@ -38,6 +38,7 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 // @FIXME: Improve this please.....
 bool changeIsActive = false;
 int selection = -1;
+int selectionOffset = 0;
 
 coordinate clickedTile(0,0);
 bool tileWorkingIsActive = false;
@@ -53,8 +54,20 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
 
     if (changeIsActive)
     {
-        selection = lat2 - 10;
-        printf("Selection %d\n",selection);
+        if (lat2==10 && lon2==18)
+        {
+            // Move up
+            selectionOffset++;
+        } else
+        if (lat2==18 && lon2==18)
+        {
+            // Move down
+            selectionOffset--;
+        } else 
+        {
+            selection = lat2 - 10 + selectionOffset*(-1);
+            printf("Selection %d\n",selection);
+        }
     }
 
     if ((lat>-3 || lat<3) && (lon>-3 || lon<3))
@@ -155,10 +168,14 @@ void drawCityScreen(int cla, int clo, City *city)
     if (changeIsActive)
     {
         int i=0;
+        int slots = 9;
         for(auto it=city->buildable.begin();it!=city->buildable.end();it++)
         {
+            int loc = i+selectionOffset;
+            if (loc<0) {i++;continue;}
+            //printf("First element: %d offset %d\n", i, selectionOffset);
             BuildableFactory *bf = *it;
-            placeWord(clo + (4),cla + (5),4,8,bf->name, (i)*8);
+            placeWord(clo + (4),cla + (5),4,8,bf->name, (loc)*8);
             if (selection>=0 && selection == i)
             {
                 while (!city->productionQueue.empty()) city->productionQueue.pop();
@@ -167,7 +184,19 @@ void drawCityScreen(int cla, int clo, City *city)
                 selection = -1;
             }
             i++;
+            if (loc==slots-1) break;
         }
+        if (city->buildable.size()>slots)
+        {
+            place((clo+(9))*16,(cla+(5))*16 ,7,7,"assets/assets/cursor/up.png");
+            place((clo+(9))*16,(cla+(9))*16 ,7,7,"assets/assets/cursor/down.png");
+        }
+
+        if (selectionOffset>0) selectionOffset=0;
+        int max = ((int)city->buildable.size())-slots;
+        if (selectionOffset<-max) 
+            selectionOffset=(city->buildable.size()-slots)*(-1);
+
     }
     else
     {

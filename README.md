@@ -103,6 +103,9 @@ Food and all the special resources can be directly traded, by loading them into 
 
 Population represents humans, so they are handled like human population.  So the basic rule of increase population when food storage is completed, there is an logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  This also opens the possibility of indentured servants, slaves and so on.
 
+## Science
+
+Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know.  
 
 ## Combat
 
