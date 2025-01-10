@@ -67,6 +67,7 @@ Boost
 git clone https://github.com/boostorg/boost
 cd boost
 git submodule update --init
+./bootstrap.sh
 ./b2 headers
 ```
 
