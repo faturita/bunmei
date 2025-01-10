@@ -2,9 +2,7 @@
 #include <unordered_map>
 #include "tiles.h"
 
-extern std::unordered_map<int, std::string> tiles;
-
-void initTiles()
+void initTiles(std::unordered_map<int, std::string> &tiles)
 {
     tiles[OCEAN] = "assets/assets/terrain/ocean.png";
     tiles[LAND] = "assets/assets/terrain/land.png";
@@ -231,3 +229,71 @@ void initTiles()
     tiles[SEAL] = "assets/assets/terrain/seal.png";
     tiles[GEOSHIELD] = "assets/assets/terrain/shield.png";
 }
+
+void initCommodities(std::unordered_map<int, std::vector<int>> &commodities)
+{
+    commodities[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
+    commodities[DESERT]     = {OASIS,OIL};
+    commodities[FOREST]     = {GAME};
+    commodities[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,GEOSHIELD};
+    commodities[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
+    commodities[JUNGLE]     = {IRON,GOLD,GEMS,OIL};
+    commodities[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
+    commodities[PLAINS]     = {DOE,GAME,HORSE,OIL,GEOSHIELD};
+    commodities[RIVER]      = {FISH};
+    commodities[SWAMP]      = {GOLD,GEMS,OIL};
+    commodities[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
+    commodities[OCEANBIOMA] = {FISH,OIL};
+}
+
+void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
+{
+    citynames[0] = std::queue<std::string>();       // Vikings
+    citynames[1] = std::queue<std::string>();       // Romans
+    citynames[2] = std::queue<std::string>();       // Greeks
+
+    citynames[0].push("Kattegate");
+    citynames[0].push("Jorvik");
+    citynames[0].push("Hedeby");
+    citynames[0].push("Trondheim");
+    citynames[0].push("Bergen");
+    citynames[0].push("Stavanger");
+    citynames[0].push("Kristiansand");
+    citynames[0].push("Oslo");
+    citynames[0].push("Stockholm");
+    citynames[0].push("Copenhagen");
+    citynames[0].push("Helsinki");
+    citynames[0].push("Reykjavik");
+
+    citynames[1].push("Roma");
+    citynames[1].push("Caesarea");
+    citynames[1].push("Carthage");
+    citynames[1].push("Nicopolis");
+    citynames[1].push("Byzantium");
+    citynames[1].push("Brundisium");
+    citynames[1].push("Camulodunum");
+    citynames[1].push("Syracuse");
+    citynames[1].push("Antioch");
+    citynames[1].push("Palmyra");
+    citynames[1].push("Cyrene");
+    citynames[1].push("Alexandria");
+    citynames[1].push("Gordion");
+    citynames[1].push("Jerusalem");
+    citynames[1].push("Ravenna");
+    citynames[1].push("Artaxata");
+
+    citynames[2].push("Atenas");
+    citynames[2].push("Sparta");
+    citynames[2].push("Corinto");
+    citynames[2].push("Tevas");
+    citynames[2].push("Delfos");
+    citynames[2].push("Olimpia");
+    citynames[2].push("Micenas");
+    citynames[2].push("Tebas");
+    citynames[2].push("Argos");
+    citynames[2].push("Mileto");
+    citynames[2].push("Efeso");
+    citynames[2].push("Samos");
+    citynames[2].push("Rodas");    
+}
+

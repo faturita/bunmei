@@ -32,23 +32,104 @@ void update(int value);
 
 extern int year;
 
+void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
+{
+    initResources(resources);
+
+    for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
+        for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
+        {
+            for(auto &r:resources)
+            {
+                mmp.set(lat,lon).resource_production_rate.push_back(0);
+            }
+
+            if (mmp.set(lat,lon).code==OCEAN)       // Water
+            {
+                mmp.set(lat,lon).resource_production_rate[FOOD]     = 1;
+                mmp.set(lat,lon).resource_production_rate[TRADE]    = 1;
+
+                if (mmp.set(lat,lon).resource==FISH) mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+            }
+            else
+            if (mmp.set(lat,lon).code==LAND)       // Land
+            {
+                // @FIXME Adjust the basic production rate of each tile
+                mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+
+                //printf("Bioma %x\n",mmp(lat,lon).bioma);
+                if (mmp.set(lat,lon).code == LAND && mmp.set(lat,lon).bioma == LANDBIOMA) // Regular land
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 2;
+                }
+                if (mmp.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                    if (mmp.set(lat,lon).resource==GEOSHIELD) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==RIVER/16) // River
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD]  = 4;
+                    mmp.set(lat,lon).resource_production_rate[TRADE] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==DESERT/16) // Desert
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==SWAMP/16) // Swamps
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    mmp.set(lat,lon).resource_production_rate[TRADE] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==PLAINS/16) // Plains
+                {
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==HILLS/16) // Hills
+                {
+                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                }
+                if (mmp.set(lat,lon).bioma/16==FOREST/16) // Forests
+                {
+                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).resource_production_rate[FOOD] = 2;
+                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                }
+                if (mmp.set(lat,lon).bioma/16==DESERT/16)   // Deserts
+                {
+                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                    if (mmp.set(lat,lon).resource==OASIS) {mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                                                            mmp.set(lat,lon).resource_production_rate[TRADE] = 1;}
+                }
+                if (mmp.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
+                {
+                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                }
+
+                if (mmp.set(lat,lon).bioma/16==ARCTIC/16) // Mountains
+                {
+                    if (mmp.set(lat,lon).resource==SEAL) mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                }
+
+                if (mmp.set(lat,lon).resource==GEMS) mmp(lat,lon).resource_production_rate[CULTURE] = 2;
+                if (mmp.set(lat,lon).resource==GOLD) 
+                {
+                    mmp.set(lat,lon).resource_production_rate[COINS]    = 2;
+                    mmp.set(lat,lon).resource_production_rate[CULTURE]  = 1;
+                }
+            }
+        }
+}
+
 void initMap()
 {
-    initTiles();
+    initTiles(tiles);
     
-    resourcesxbioma[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
-    resourcesxbioma[DESERT]     = {OASIS,OIL};
-    resourcesxbioma[FOREST]     = {GAME};
-    resourcesxbioma[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,GEOSHIELD};
-    resourcesxbioma[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
-    resourcesxbioma[JUNGLE]     = {IRON,GOLD,GEMS,OIL};
-    resourcesxbioma[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
-    resourcesxbioma[PLAINS]     = {DOE,GAME,HORSE,OIL,GEOSHIELD};
-    resourcesxbioma[RIVER]      = {FISH};
-    resourcesxbioma[SWAMP]      = {GOLD,GEMS,OIL};
-    resourcesxbioma[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
-    resourcesxbioma[OCEANBIOMA] = {FISH,OIL};
-
+    initCommodities(resourcesxbioma);
 
     map.init();
 
@@ -380,105 +461,12 @@ void initMap()
 
             }
         }
+
+    assignProductionRates(map, resources);
 }
 
-void initResources()
-{
-    resources.push_back(new Resource(FOOD,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(SHIELDS,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(TRADE,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(COINS,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(SCIENCE,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(CULTURE,0,"assets/assets/city/culture.png","Culture"));
 
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for (int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            for(auto &r:resources)
-            {
-                map.set(lat,lon).resource_production_rate.push_back(0);
-            }
 
-            if (map.set(lat,lon).code==OCEAN)       // Water
-            {
-                map.set(lat,lon).resource_production_rate[FOOD]     = 1;
-                map.set(lat,lon).resource_production_rate[TRADE]    = 1;
-
-                if (map.set(lat,lon).resource==FISH) map.set(lat,lon).resource_production_rate[FOOD] = 3;
-                if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-            }
-            else
-            if (map.set(lat,lon).code==LAND)       // Land
-            {
-                // @FIXME Adjust the basic production rate of each tile
-                map.set(lat,lon).resource_production_rate[FOOD] = 1;
-
-                //printf("Bioma %x\n",map(lat,lon).bioma);
-                if (map.set(lat,lon).code == LAND && map.set(lat,lon).bioma == LANDBIOMA) // Regular land
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD] = 2;
-                }
-                if (map.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD] = 3;
-                    if (map.set(lat,lon).resource==GEOSHIELD) map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==RIVER/16) // River
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD]  = 4;
-                    map.set(lat,lon).resource_production_rate[TRADE] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==DESERT/16) // Desert
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==SWAMP/16) // Swamps
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
-                    map.set(lat,lon).resource_production_rate[TRADE] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==PLAINS/16) // Plains
-                {
-                    map.set(lat,lon).resource_production_rate[FOOD] = 1;
-                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==HILLS/16) // Hills
-                {
-                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
-                }
-                if (map.set(lat,lon).bioma/16==FOREST/16) // Forests
-                {
-                    map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[FOOD] = 2;
-                    if (map.set(lat,lon).resource==GAME) map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
-                }
-                if (map.set(lat,lon).bioma/16==DESERT/16)   // Deserts
-                {
-                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                    if (map.set(lat,lon).resource==OIL)  map.set(lat,lon).resource_production_rate[SHIELDS] = 3;
-                    if (map.set(lat,lon).resource==OASIS) {map.set(lat,lon).resource_production_rate[FOOD] = 3;
-                                                            map.set(lat,lon).resource_production_rate[TRADE] = 1;}
-                }
-                if (map.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
-                {
-                    map.set(lat,lon).resource_production_rate[SHIELDS] = 1;
-                    if (map.set(lat,lon).resource==COAL) map.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                }
-
-                if (map.set(lat,lon).bioma/16==ARCTIC/16) // Mountains
-                {
-                    if (map.set(lat,lon).resource==SEAL) map.set(lat,lon).resource_production_rate[FOOD] = 3;
-                }
-
-                if (map.set(lat,lon).resource==GEMS) map(lat,lon).resource_production_rate[CULTURE] = 2;
-                if (map.set(lat,lon).resource==GOLD) 
-                {
-                    map.set(lat,lon).resource_production_rate[COINS]    = 2;
-                    map.set(lat,lon).resource_production_rate[CULTURE]  = 1;
-                }
-            }
-        }
-}
 
 void initFactions()
 {
@@ -576,53 +564,7 @@ void initFactions()
     }
 
 
-    citynames[0] = std::queue<std::string>();       // Vikings
-    citynames[1] = std::queue<std::string>();       // Romans
-    citynames[2] = std::queue<std::string>();       // Greeks
-
-    citynames[0].push("Kattegate");
-    citynames[0].push("Jorvik");
-    citynames[0].push("Hedeby");
-    citynames[0].push("Trondheim");
-    citynames[0].push("Bergen");
-    citynames[0].push("Stavanger");
-    citynames[0].push("Kristiansand");
-    citynames[0].push("Oslo");
-    citynames[0].push("Stockholm");
-    citynames[0].push("Copenhagen");
-    citynames[0].push("Helsinki");
-    citynames[0].push("Reykjavik");
-
-    citynames[1].push("Roma");
-    citynames[1].push("Caesarea");
-    citynames[1].push("Carthage");
-    citynames[1].push("Nicopolis");
-    citynames[1].push("Byzantium");
-    citynames[1].push("Brundisium");
-    citynames[1].push("Camulodunum");
-    citynames[1].push("Syracuse");
-    citynames[1].push("Antioch");
-    citynames[1].push("Palmyra");
-    citynames[1].push("Cyrene");
-    citynames[1].push("Alexandria");
-    citynames[1].push("Gordion");
-    citynames[1].push("Jerusalem");
-    citynames[1].push("Ravenna");
-    citynames[1].push("Artaxata");
-
-    citynames[2].push("Atenas");
-    citynames[2].push("Sparta");
-    citynames[2].push("Corinto");
-    citynames[2].push("Tevas");
-    citynames[2].push("Delfos");
-    citynames[2].push("Olimpia");
-    citynames[2].push("Micenas");
-    citynames[2].push("Tebas");
-    citynames[2].push("Argos");
-    citynames[2].push("Mileto");
-    citynames[2].push("Efeso");
-    citynames[2].push("Samos");
-    citynames[2].push("Rodas");
+    initNaming(citynames);
 
 }
 

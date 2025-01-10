@@ -6,11 +6,13 @@
 #include "City.h"
 
 extern std::vector<Faction*> factions;
-extern Map map;
 
-City::City(int pfaction, int pid, int platitude, int plongitude)
+
+City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
 {
     strncpy(name,"Kattegat",256);
+
+    map = mn;
 
     resources.push_back(0);
     resources.push_back(0);
@@ -29,7 +31,7 @@ City::City(int pfaction, int pid, int platitude, int plongitude)
 
     // We are working on the city location and one more
     // Assignment of the land to this city.
-    map.peek(latitude+0, longitude+0).setCityOwnership(faction, id);
+    map->peek(latitude+0, longitude+0).setCityOwnership(faction, id);
     assignWorkingTile();
 
 }
@@ -52,7 +54,7 @@ void City::draw()
         placeThisTile(latitude,longitude,16,"assets/assets/map/defended.png");
     }
 
-    coordinate c = map.to_screen(latitude,longitude);
+    coordinate c = map->to_screen(latitude,longitude);
 
     int lon = c.lon;
     int lat = c.lat;
@@ -101,7 +103,7 @@ void City::reAssignWorkingTiles(int new_f_id)
         {
             if (workingOn(lat,lon))
             {
-                map.peek(latitude+lat, longitude+lon).setCityOwnership(new_f_id, id);
+                map->peek(latitude+lat, longitude+lon).setCityOwnership(new_f_id, id);
             }
         }       
 }
@@ -113,7 +115,7 @@ void City::deAssigntWorkingTile()
         {
             if (workingOn(lat,lon) && lat!=0 && lon!=0 && numberOfWorkingTiles()>(pop+1))
             {
-                map.peek(latitude+lat, longitude+lon).releaseCityOwnership();
+                map->peek(latitude+lat, longitude+lon).releaseCityOwnership();
 
                 return;   
             }
@@ -131,7 +133,7 @@ void City::assignWorkingTile()
         {
             if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
             {
-                int production = map.peek(latitude+lat, longitude+lon).resource_production_rate[0];
+                int production = map->peek(latitude+lat, longitude+lon).resource_production_rate[0];
                 if (production>max)
                 {
                     max = production;
@@ -148,7 +150,7 @@ void City::assignWorkingTile()
     //    {
     //        if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
     //        {
-    //            map.peek(latitude+lat, longitude+lon).setCityOwnership(faction, id);
+    //            map->peek(latitude+lat, longitude+lon).setCityOwnership(faction, id);
     //            return;   
     //        }
     //    }    
@@ -166,12 +168,12 @@ void City::assignWorkingTile(coordinate c)
         if (!workingOn(c.lat,c.lon) && numberOfWorkingTiles()<(pop+1))        // Everybody can work on the fields (on the available fields)
         {
             // Assignment of the land to this city.
-            map.peek(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
+            map->peek(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
         }
         else
         {
             // Release of the land from this city
-            map.peek(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
+            map->peek(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
         }
     }
 }
@@ -193,13 +195,13 @@ void City::assignWorkingTile(coordinate c)
 // Lat Lon are RELATIVE to the city here.
 bool City::workingOn(int lat, int lon)
 {
-    return map.peek(latitude+lat,longitude+lon).belongsToCity(faction, id);
+    return map->peek(latitude+lat,longitude+lon).belongsToCity(faction, id);
 }
 
 bool City::occupied(int lat, int lon)
 {
 
-    return map.peek(latitude+lat,longitude+lon).isOccupied(faction,id);
+    return map->peek(latitude+lat,longitude+lon).isOccupied(faction,id);
 
 }
 
@@ -222,7 +224,7 @@ int City::getProductionRate(int r_id)
         {
             if (workingOn(lat,lon))
             {
-                production_rate += map.peek(latitude+lat,longitude+lon).resource_production_rate[r_id];
+                production_rate += map->peek(latitude+lat,longitude+lon).resource_production_rate[r_id];
             }
         }
 

@@ -30,6 +30,6 @@ class Resource {
 
 };
 
-
+void initResources(std::vector<Resource*> &resources);
 
 #endif // RESOURCES_H
