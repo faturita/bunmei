@@ -1,3 +1,4 @@
+#include <unordered_map>
 #include "Faction.h"
 #include "gamekernel.h"
 #include "usercontrols.h"

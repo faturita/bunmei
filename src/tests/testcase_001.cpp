@@ -101,13 +101,14 @@ extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
+extern Tiles tiles;
 
 void TestCase_001::init()
 {
 
     map.init();
 
-    initTiles();
+    initTiles(tiles);
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)

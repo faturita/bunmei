@@ -1,6 +1,8 @@
 #ifndef FACTION_H
 #define FACTION_H
 
+#include <vector>
+
 class Faction {
     protected:
         bool doneThisTurn;
@@ -43,5 +45,7 @@ class Faction {
         p=0;
     };
 };
+
+typedef std::vector<Faction*> Factions;
 
 #endif // FACTION_H

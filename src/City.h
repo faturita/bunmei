@@ -7,6 +7,8 @@
 #include <string.h>
 #include "coordinate.h"
 #include "buildings/Building.h"
+#include "mapmodel.h"
+#include "Faction.h"
 
 class City
 {
@@ -16,14 +18,17 @@ protected:
     bool isCapital;
     bool isDefended=false;
 
+    Map *map;
+
 public:
+
     std::queue<BuildableFactory*> productionQueue;              // List of things that are currently being built within THIS particular city.
     std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
     std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
 
-    City(int faction, int id, int latitude, int longitude);
+    City(Map *map, int faction, int id, int latitude, int longitude);
     int latitude;
     int longitude;
     int faction;

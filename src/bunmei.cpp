@@ -122,8 +122,6 @@ void setupWorldModelling()
 {
     initMap();
 
-    initResources();
-
     initWorldModelling();
 }
 
@@ -185,7 +183,7 @@ inline void processCommandOrders()
         }
 
 
-        City *city = new City(units[controller.controllingid]->faction,getNextCityId(),units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        City *city = new City(&map, units[controller.controllingid]->faction,getNextCityId(),units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
         city->setName(citynames[controller.faction].front().c_str());citynames[controller.faction].pop();
 
         // @NOTE: When the population is zero, the first city is the capital city.
@@ -972,6 +970,8 @@ void update(int value)
 
     }
 
+    processCommandOrders();
+    
     if (endOfTurnForAllFactions())
     {
         // Everybody played their turn, end of year, and start it over.....
@@ -979,8 +979,6 @@ void update(int value)
         controller.faction = 0;     // Restart the turn from the first faction.
         setUpFaction();
     }
-
-    processCommandOrders();
 
 
     glutPostRedisplay();

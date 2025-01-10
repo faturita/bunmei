@@ -46,6 +46,11 @@ enum SPECIALRESOURCES
     GEOSHIELD = 0x10d
 };
 
-void initTiles();
+typedef std::unordered_map<int, std::string> Tiles;
+typedef std::unordered_map<int, std::vector<int>> Commodities;
+
+void initTiles(std::unordered_map<int, std::string> &tiles);
+void initCommodities(std::unordered_map<int, std::vector<int>> &commodities);
+void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
 
 #endif // TILES_H
