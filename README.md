@@ -2,6 +2,9 @@
 
 This is a remake of a classical game with all the stuf that I wanted to have it in the same game.  
 
+<img width="1025" alt="bunmeiscreenshot" src="https://github.com/user-attachments/assets/e720a91c-9380-4297-941f-a722696e63c8" />
+
+
 # Compiling and Installation
 
 ## Prereqs on Mac
