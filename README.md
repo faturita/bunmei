@@ -30,6 +30,7 @@ sudo apt-get install python3-pip
 * OpenGL Version 2.1 (supported natively in Linux, Mac and Windows)
 * STK: The Synthesis Toolkit in C++ (Audio Library)
 * C++ Boost Library (particularly the Graph Library https://github.com/boostorg/graph)
+* LodePNG https://github.com/lvandeve/lodepng (Bundled internally within this codebase).
 
 
 STK
