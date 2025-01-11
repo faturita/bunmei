@@ -10,7 +10,7 @@ OBJS = $(SSRC:.cpp=.o)
 TCSRCS = $(SCS) src/bunmei.cpp src/tests/tester.cpp src/tests/testcase.cpp src/tests/testcase_$(TC).cpp
 TCOBJS = $(TCSRCS:.cpp=.o)
 
-SSM = src/math/vec3f.cpp src/math/yamathutil.cpp src/tiles.cpp src/resources.cpp src/City.cpp $(shell ls src/units/*.cpp) $(shell ls src/buildings/*.cpp)  src/simulate.cpp
+SSM = src/math/vec3f.cpp src/math/yamathutil.cpp src/tiles.cpp src/resources.cpp src/engine.cpp src/City.cpp $(shell ls src/units/*.cpp) $(shell ls src/buildings/*.cpp)  src/simulate.cpp
 OSSM = $(SSM:.cpp=.o)
 
 ifeq ($(shell uname),Darwin)

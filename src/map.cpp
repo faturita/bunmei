@@ -13,9 +13,11 @@
 #include "cityscreenui.h"
 #include "Faction.h"
 #include "resources.h"
+#include "coordinator.h"
 #include "map.h"
 
 extern Controller controller;
+extern Coordinator coordinator;
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
@@ -471,7 +473,7 @@ void drawUnitsAndCities()
         unfog(c.lat,c.lon);
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
-        if (controller.controllingid != u->id && (controller.controllingid == CONTROLLING_NONE || units[controller.controllingid]->getCoordinate() != u->getCoordinate()))
+        if (coordinator.a_u_id != u->id && (coordinator.a_u_id == CONTROLLING_NONE || units[coordinator.a_u_id]->getCoordinate() != u->getCoordinate()))
             u->draw();
     }
 
@@ -487,14 +489,14 @@ void drawUnitsAndCities()
     // Draw last the unit that you want on top of the stack (selected unit)
     for (auto& [k,u] : units) 
     {
-        if (u->faction == controller.faction)
+        if (u->faction == coordinator.a_f_id)
         {
-            if (controller.controllingid == u->id)
+            if (coordinator.a_u_id== u->id)
             {
                 if (!u->movementCompleted() || u->isFortified())
                     u->draw();
                 else
-                if (count++ % factions[controller.faction]->blinkingrate < (factions[controller.faction]->blinkingrate/2))
+                if (count++ % factions[coordinator.a_f_id]->blinkingrate < (factions[coordinator.a_f_id]->blinkingrate/2))
                 {
                     u->draw();
                 }
@@ -502,9 +504,9 @@ void drawUnitsAndCities()
         }
     }
 
-    if (factions[controller.faction]->blinkingrate < 70) factions[controller.faction]->blinkingrate++;
+    if (factions[coordinator.a_f_id]->blinkingrate < 70) factions[coordinator.a_f_id]->blinkingrate++;
 
-    map.setCenter(0,factions[controller.faction]->mapoffset);
+    map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
 }
 
 

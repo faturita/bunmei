@@ -10,12 +10,7 @@
 
 class Controller
 {
-private:
-    CommandOrder corder;
 public:
-
-    // Device ID to be controller.
-    int controllingid=CONTROLLING_NONE;
 
     int cityid = -1;
 
@@ -46,26 +41,8 @@ public:
 
     int slider=0;
 
-    bool endofturn=false;
-
-    void push(CommandOrder co)
-    {
-        corder = co;
-    }
-
-    CommandOrder pop()
-    {
-        CommandOrder cr = corder;
-
-        corder.command = Command::None;
-
-        return cr;
-    }
-
-
     void reset()
     {
-        corder.command = Command::None;
         registers.roll=registers.pitch=registers.precesion=registers.bank=0;registers.yaw=0;
         registers.thrust=0;
     };
@@ -90,9 +67,6 @@ public:
         return teletype;
     };
 
-    int faction;
-
-    int weapon;
 };
 
 
