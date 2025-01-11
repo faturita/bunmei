@@ -4,9 +4,15 @@
 #include "Faction.h"
 #include "City.h"
 #include "units/Unit.h"
+#include "coordinator.h"
+#include "engine.h"
 
 typedef std::unordered_map<int, City*> Cities;
 typedef std::unordered_map<int, Unit*> Units;
+
+Factions factions;
+Units units;
+Cities cities;
 
 void initMap(Map &map, Tiles tiles)
 {
@@ -165,16 +171,168 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
         }
 }
 
-
-struct Coordinator 
+inline bool endOfTurnForAllFactions(Factions &factions)
 {
-    int controllingid;
-    int faction;
-    bool endofturn = false;
-};
+    for(auto& f:factions)
+    {
+        if (!f->isDone())
+            return false;
+    }
+    return true;
+}
+
+void setUpFaction(Map &map, Factions &factions, Cities &cities, Units &units, Coordinator &coordinator)
+{
+    coordinator.reset();
+    coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
+    if (units.find(coordinator.a_u_id)!=units.end())
+    {
+        map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
+        coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);  
+    }      
+}
+
+inline void endOfYear(int &year, Map &map, Factions &factions, Cities &cities, Units &units, std::vector<Resource*> &resources, Coordinator &coordinator)
+{
+    year++;
+    for (auto& [k, u] : units) 
+    {
+        u->availablemoves = u->getUnitMoves();
+    }
+
+    std::vector<int> todelete;
+    for (auto& [k, c] : cities) 
+    {
+        // Pick two food items per one population and gather the rest.
+        // If granary is present the amount of food that is required to increase the population is half.
+
+        printf("City %s\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
+        // Go through all the map locations and gather all the resources.
+        for(auto &r:resources)
+        {
+            c->resources[r->id] += c->getProductionRate(r->id);
+        }
+
+        // Reduce the number of resources according to what is required now.
+        for(auto &r:resources)
+        {
+            c->resources[r->id] -= c->getConsumptionRate(r->id);
+        }
+
+        // Convert trade accordingly.  Trade is not accummulated
+
+        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
+        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
+        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
+        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
+
+        c->resources[TRADE]=0;
+        
+
+        // Peek the production queue.
+        if (c->productionQueue.size()>0)
+        {
+            BuildableFactory *bf = c->productionQueue.front();
+            if (c->resources[1]>=bf->cost(1))
+            {
+                c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
+
+                // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
+                c->productionQueue.pop();
+                Buildable *b = bf->create();
+
+                if (b->getType() == BuildableType::UNIT)
+                {
+                    Unit *unit = (Unit*)b;
+                    unit->longitude = c->longitude;
+                    unit->latitude = c->latitude;
+                    unit->id = getNextUnitId();
+                    unit->faction = c->faction;
+                    unit->availablemoves = unit->getUnitMoves();
+
+                    units[unit->id] = unit;  
+                }
+                else
+                {
+                    Building *building = (Building*)b;
+                    building->faction = c->faction;
+                    c->buildings.push_back(building);
+
+                    //message(year, c->faction, "City %s has built %s.",c->name,building->name);
+                    //built();                
+                }
+
+            }
+        }
+        
+        // Balance city population according to available resources.
+        if (c->resources[0]>100)
+        {
+            c->resources[0] = 0;
+            c->pop++;
+
+            c->assignWorkingTile();
+        } else 
+        if (c->resources[0]<0)
+        {
+            c->resources[0] = 0;
+
+            if (c->pop>1)
+            {
+                c->pop--;
+                c->deAssigntWorkingTile();
+            } else if (c->pop == 1)
+            {
+                // The city is abandoned.
+                todelete.push_back(c->id);
+
+                // @FIXME: When a city is captured with pop 1 it should be burned.
+            }
+
+        }
+
+    }
+
+    for(auto& cid:todelete)
+    {
+        City* c = cities[cid];
+        // The city is abandoned.
+        //message(year, c->faction, "%s has been abandoned.",c->name);
+
+        c->pop = 0;
+        c->deAssigntWorkingTile();
+        map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
+        cities.erase(c->id);
+        delete c;
+
+        // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
+    }
 
 
-void update(Map &map, Factions &factions, Cities cities, Units units, Coordinator controller)
+    for(auto& f:factions)
+    {
+        f->ready();
+    }
+}
+
+void switchUnitIfNoMovesLeft(Coordinator &coordinator)
+{
+    if (units.find(coordinator.a_u_id)!=units.end())
+        if (units[coordinator.a_u_id]->availablemoves==0)
+        {
+            int cid = nextMovableUnitId(coordinator.a_f_id);
+            if (cid != 0)
+            {
+                coordinator.a_u_id = cid;
+            }
+            else
+            {
+                coordinator.endofturn = true;
+            }
+        }
+}
+
+void update(int &year, Map &map, Factions &factions, Cities &cities, Units &units, std::vector<Resource*> &resources, Coordinator &coordinator)
 {
     for(auto& f:factions)
     {
@@ -214,164 +372,60 @@ void update(Map &map, Factions &factions, Cities cities, Units units, Coordinato
     }
 
     // GoTo Function
-    if (units.find(controller.controllingid)!=units.end() && units[controller.controllingid]->isAuto())
+    if (units.find(coordinator.a_u_id)!=units.end() && units[coordinator.a_u_id]->isAuto())
     {
         // Determine where to move
 
     }
 
     // Autoplayer
-    if (factions[controller.faction]->autoPlayer)
+    if (factions[coordinator.a_f_id]->autoPlayer)
     {
 
         //autoPlayer();
+        if (units.find(coordinator.a_u_id)!=units.end())
+        {
+            units[coordinator.a_u_id]->availablemoves = 0;
+        }
 
     }
 
     //adjustMovements();
+    switchUnitIfNoMovesLeft(coordinator);
 
     //processOrders();
 
 
-    if (controller.endofturn)
+    if (coordinator.endofturn)
     {
-        controller.endofturn=false;
-        factions[controller.faction]->done();
+        coordinator.endofturn=false;
+        factions[coordinator.a_f_id]->done();
 
         // Reset all the remaining available moves for all the units that belong to the controller faction.
         for (auto& [k, u] : units) 
         {
-            if (u->faction == controller.faction) u->availablemoves = 0;
+            if (u->faction == coordinator.a_f_id) u->availablemoves = 0;
         }
 
-        if (controller.faction<factions.size()-1) 
+        if (coordinator.a_f_id<factions.size()-1) 
         {
-            controller.faction++;
-            //setUpFaction();    
+            coordinator.a_f_id++;
+            setUpFaction(map, factions, cities,units, coordinator);
         }
 
     }
     
-    //if (endOfTurnForAllFactions())
-    //{
+    if (endOfTurnForAllFactions(factions))
+    {
         // Everybody played their turn, end of year, and start it over.....
-    //    endOfYear();
-    //    controller.faction = 0;     // Restart the turn from the first faction.
-    //    setUpFaction();
-    //}  
+       endOfYear(year,map, factions, cities,units,resources, coordinator);
+       coordinator.a_f_id = 0;     // Restart the turn from the first faction.
+       setUpFaction(map, factions, cities, units,coordinator);
+    }  
 
 
 }
 
-// GAME Model Update
-/** 
-void update(Map &map, Factions &factions)
-{
-    for(auto& f:factions)
-    {
-        //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
-        f->pop = 0;
-        f->coins = 0;
-    }
-
-    // Update all the time if the city is or not defended...
-    for(auto& [cid,c]:cities)
-    {
-        factions[c->faction]->pop += c->pop;
-        c->noDefense();
-        for(auto& [k, u] : units) 
-        {
-            if (u->latitude == c->latitude && u->longitude == c->longitude)
-            {
-                c->setDefense();
-            }
-        }
-
-        // @FIXME: This is a workaround
-        if (!c->workingOn(0,0))
-        {
-            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
-        }
-        c->deAssigntWorkingTile();
-
-
-        // @NOTE Collect taxes....
-        factions[c->faction]->coins += c->resources[COINS];
-
-        // @FIXME: Spread culture
-
-        // @FIXME: Collect science.
-
-    }
-
-
-    // GoTo Function
-    if (units.find(controller.controllingid)!=units.end() && units[controller.controllingid]->isAuto())
-    {
-        // First build the tree map of the available land.
-        // Calculate the path to the target.
-
-        bool ok = false;
-        
-        coordinate c = goTo(units[controller.controllingid],ok);
-        
-        if (ok)
-        {
-            controller.registers.roll = sgnz(c.lon-units[controller.controllingid]->longitude );
-            controller.registers.pitch = sgnz(c.lat-units[controller.controllingid]->latitude );
-        }
-        else
-        {
-            // Cancel goto operation and make a sound.
-            if (!units[controller.controllingid]->arrived()) blocked();
-            units[controller.controllingid]->resetGoTo();
-        }
-
-        units[controller.controllingid]->arrived();
-
-    }
-
-
-    // Autoplayer
-    if (factions[controller.faction]->autoPlayer)
-    {
-
-        autoPlayer();
-
-    }
-
-    adjustMovements();
-
-    if (controller.endofturn)
-    {
-        controller.endofturn=false;
-        factions[controller.faction]->done();
-
-        // Reset all the remaining available moves for all the units that belong to the controller faction.
-        for (auto& [k, u] : units) 
-        {
-            if (u->faction == controller.faction) u->availablemoves = 0;
-        }
-
-        if (controller.faction<factions.size()-1) 
-        {
-            controller.faction++;
-            setUpFaction();    
-        }
-
-    }
-
-    processCommandOrders();
-    
-    if (endOfTurnForAllFactions())
-    {
-        // Everybody played their turn, end of year, and start it over.....
-        endOfYear();
-        controller.faction = 0;     // Restart the turn from the first faction.
-        setUpFaction();
-    }
-
-}**/
 
 void placeThisUnit(float flat, float flon, int size, const char* filename, int red, int green, int blue)
 {
@@ -398,7 +452,6 @@ void placeThisCity(int lat, int lon, int red, int green, int blue)
 
 }
 
-Factions factions;
 
 int main() {
     Map map;
@@ -407,7 +460,10 @@ int main() {
     std::unordered_map<int,std::queue<std::string>> citynames;
     std::vector<Resource*> resources;
 
+    Coordinator coordinator;
 
+    coordinator.a_f_id = 0;
+    coordinator.a_u_id = 0;
 
     map.init();
 
@@ -429,10 +485,7 @@ int main() {
 
     // At this point everything is set up.
 
-    std::unordered_map<int, Unit*> units;
-    std::unordered_map<int, City*> cities;
 
-    Coordinator controller;
 
     // Now the logic goes like this.
     // 1. Iterate through all the factions.
@@ -443,8 +496,8 @@ int main() {
     bool wincondition = false;
     while (!wincondition)
     {
-        update(map, factions,cities, units,controller);
-        year++;
+        printf("Year %d\n",year);
+        update(year,map, factions,cities, units,resources,coordinator);
 
         if (year == 2000)
             break;

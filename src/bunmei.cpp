@@ -57,6 +57,7 @@
 #include "lodepng.h"
 #include "tiles.h"
 #include "usercontrols.h"
+#include "coordinator.h"
 #include "map.h"
 #include "hud.h"
 #include "ai.h"
@@ -100,6 +101,8 @@ std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
 std::vector<Resource*> resources;
 std::vector<Message> messages;
+
+Coordinator coordinator;
 
 
 int REAL_SCREEN_WIDTH = 1728;
@@ -172,22 +175,22 @@ void drawScene()
 
 inline void processCommandOrders()
 {
-    CommandOrder co = controller.pop();
+    CommandOrder co = coordinator.pop();  //@FIXME make it a queue.
     if (co.command == Command::BuildCityOrder)
     {
         // You cannot build a city in a land CLAIMED already by another city.
-        if (!map.set(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude).isUnassignedLand())
+        if (!map.set(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude).isUnassignedLand())
         {
-            message(year, controller.faction, "City cannot be built here.  The land is already claimed by another city.");
+            message(year, coordinator.a_f_id, "City cannot be built here.  The land is already claimed by another city.");
             return;
         }
 
 
-        City *city = new City(&map, units[controller.controllingid]->faction,getNextCityId(),units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
-        city->setName(citynames[controller.faction].front().c_str());citynames[controller.faction].pop();
+        City *city = new City(&map, units[coordinator.a_u_id]->faction,getNextCityId(),units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
+        city->setName(citynames[coordinator.a_f_id].front().c_str());citynames[coordinator.a_f_id].pop();
 
         // @NOTE: When the population is zero, the first city is the capital city.
-        if (factions[controller.faction]->pop==0)
+        if (factions[coordinator.a_f_id]->pop==0)
         {
             city->setCapitalCity();
             // Buildings already built in the city
@@ -223,33 +226,33 @@ inline void processCommandOrders()
         cities[city->id] = city;
 
         // @FIXME: Disband the settler unit.
-        Unit *settler = units[controller.controllingid];
+        Unit *settler = units[coordinator.a_u_id];
         map.set(settler->latitude,settler->longitude).releaseOwner();
-        units.erase(controller.controllingid);
+        units.erase(coordinator.a_u_id);
         delete settler;
 
-        controller.controllingid = nextMovableUnitId(controller.faction);
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
 
-        message(year, controller.faction, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
+        message(year, coordinator.a_f_id, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
 
 
     }
     else if (co.command == Command::DisbandUnitOrder)
     {
-        Unit *unit = units[controller.controllingid];
+        Unit *unit = units[coordinator.a_u_id];
         map.set(unit->latitude,unit->longitude).releaseOwner();
-        units.erase(controller.controllingid);
+        units.erase(coordinator.a_u_id);
         delete unit;
 
-        controller.controllingid = nextMovableUnitId(controller.faction);  //@FIXME: There could be the case that there are no more units.
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);  //@FIXME: There could be the case that there are no more units.
     }
     else if (co.command == Command::FortifyUnitOrder)
     {
-        Unit *unit = units[controller.controllingid];
+        Unit *unit = units[coordinator.a_u_id];
         unit->fortify();
         unit->availablemoves = 0;
 
-        controller.controllingid = nextMovableUnitId(controller.faction);
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
     }
 }
 
@@ -402,7 +405,7 @@ bool attack(Unit* attacker, int lat, int lon)
         int numberofdefenders = 0;
         for (auto& [k, u] : units) 
         {
-            if (u->latitude == lat && u->longitude == lon && u->faction != controller.faction)
+            if (u->latitude == lat && u->longitude == lon && u->faction != coordinator.a_f_id)
             {
                 // @NOTE: How to pick which defender.  This should be rule-based.
                 defender = u;
@@ -468,7 +471,7 @@ bool attack(Unit* attacker, int lat, int lon)
 
             if (loser == attacker)
             {
-                controller.controllingid = nextMovableUnitId(controller.faction);
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
                 printf("Lost\n");
             } 
 
@@ -598,7 +601,7 @@ bool land(Unit* navalunit, int lat, int lon)
     // Chek if navalunit is actually a boat, and that we are moving towards a place where is land.
     if (map.set(lat,lon).code == LAND)
     {
-        if(Trireme* trireme = dynamic_cast<Trireme*>(units[controller.controllingid]))
+        if(Trireme* trireme = dynamic_cast<Trireme*>(units[coordinator.a_u_id]))
         {
             // @FIXME: Check that there are no enemy units and that there are cities and there are no places controlled by cities.
             if (!map.set(lat,lon).isFreeLand())
@@ -658,14 +661,14 @@ void moveUnit(Unit* unit, int lat, int lon)
             {
                 if (!war)
                 {
-                    factions[controller.faction]->blinkingrate = 10;
+                    factions[coordinator.a_f_id]->blinkingrate = 10;
                     blocked();
                 }   
             } 
 
         } else
         {
-            factions[controller.faction]->blinkingrate = 10;
+            factions[coordinator.a_f_id]->blinkingrate = 10;
             blocked();  // @FIXME: differentiate between controlling unit and activeunit (active is what i am currently using indeed)
         }
     }
@@ -673,29 +676,29 @@ void moveUnit(Unit* unit, int lat, int lon)
 
 void switchUnitIfNoMovesLeft()
 {
-    if (controller.controllingid != CONTROLLING_NONE)
-        if (units.find(controller.controllingid)!=units.end())
-            if (units[controller.controllingid]->availablemoves==0)
+    if (coordinator.a_u_id != CONTROLLING_NONE)
+        if (units.find(coordinator.a_u_id)!=units.end())
+            if (units[coordinator.a_u_id]->availablemoves==0)
             {
-                int cid = nextMovableUnitId(controller.faction);
+                int cid = nextMovableUnitId(coordinator.a_f_id);
                 if (cid != CONTROLLING_NONE)
                 {
-                    controller.controllingid = cid;
+                    coordinator.a_u_id = cid;
                 }
                 else
                 {
-                    controller.endofturn = true;
+                    coordinator.endofturn = true;
                 }
             }
 }
 
 void adjustMovements()
 {
-    if ( (controller.controllingid != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
+    if ( (coordinator.a_u_id != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
     {
         // Receives real latitude and longitude (contained in the unit)
-        int lon = units[controller.controllingid]->longitude;
-        int lat = units[controller.controllingid]->latitude;
+        int lon = units[coordinator.a_u_id]->longitude;
+        int lat = units[coordinator.a_u_id]->latitude;
 
         // Affect the coordinates according to the desired movement.
         coordinate s = map.spheroid_displacement(lat,lon,controller.registers.pitch,controller.registers.roll);
@@ -705,27 +708,27 @@ void adjustMovements()
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
-        printf("Lat %d Lon %d  -> (%d,%d) -> (%d,%d) Land %d  Bioma  %x  \n",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude, lat,lon,c.lat, c.lon, map.set(c.lat,c.lon).code, map.set(c.lat,c.lon).bioma); 
+        printf("Lat %d Lon %d  -> (%d,%d) -> (%d,%d) Land %d  Bioma  %x  \n",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude, lat,lon,c.lat, c.lon, map.set(c.lat,c.lon).code, map.set(c.lat,c.lon).bioma); 
 
         // Now move the unit if it is possible.
-        moveUnit(units[controller.controllingid],c.lat,c.lon);  
+        moveUnit(units[coordinator.a_u_id],c.lat,c.lon);  
 
         switchUnitIfNoMovesLeft();
     }  
 
     if ( (controller.registers.yaw !=0) )
     {
-        factions[controller.faction]->mapoffset += controller.registers.yaw;
+        factions[coordinator.a_f_id]->mapoffset += controller.registers.yaw;
         controller.registers.yaw = 0;
     }      
 }
 
 void autoPlayer()
 {
-    if (units.find(controller.controllingid)!=units.end())
+    if (units.find(coordinator.a_u_id)!=units.end())
     {
-        Unit *unit = units[controller.controllingid];
-        if(Settler* s = dynamic_cast<Settler*>(units[controller.controllingid]))
+        Unit *unit = units[coordinator.a_u_id];
+        if(Settler* s = dynamic_cast<Settler*>(units[coordinator.a_u_id]))
         {
             if (!s->isAuto())
             {
@@ -771,7 +774,7 @@ void autoPlayer()
                     {
                         CommandOrder co;
                         co.command = Command::BuildCityOrder;
-                        controller.push(co);
+                        coordinator.push(co);
                     }
                 }
             }
@@ -781,7 +784,7 @@ void autoPlayer()
         {
             // If the unit is already in a city, fortify it.
             City* nc = nullptr;
-            if(Warrior* w = dynamic_cast<Warrior*>(units[controller.controllingid]))
+            if(Warrior* w = dynamic_cast<Warrior*>(units[coordinator.a_u_id]))
             for(auto& [cid,c]:cities)
             {
                 if (c->faction == unit->faction && c->getCoordinate()==unit->getCoordinate())
@@ -789,7 +792,7 @@ void autoPlayer()
                     nc = c;
                     CommandOrder co;
                     co.command = Command::FortifyUnitOrder;
-                    controller.push(co);
+                    coordinator.push(co);
                 }
             }
             
@@ -826,7 +829,7 @@ void autoPlayer()
     // Control city production.
     for(auto& [k,c]:cities)
     {
-        if (c->faction == controller.faction)
+        if (c->faction == coordinator.a_f_id)
         {
             if (c->productionQueue.size()==0)
             {
@@ -857,11 +860,11 @@ void autoPlayer()
 void setUpFaction()
 {
     controller.reset();
-    controller.controllingid=nextMovableUnitId(controller.faction);
-    if (units.find(controller.controllingid)!=units.end())
+    coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
+    if (units.find(coordinator.a_u_id)!=units.end())
     {
-        map.setCenter(0,factions[controller.faction]->mapoffset);
-        coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
+        coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
         c = map.to_screen(c.lat,c.lon);
         centermapinmap(c.lat, c.lon);   
     }      
@@ -915,34 +918,34 @@ void update(int value)
 
 
     // GoTo Function
-    if (units.find(controller.controllingid)!=units.end() && units[controller.controllingid]->isAuto())
+    if (units.find(coordinator.a_u_id)!=units.end() && units[coordinator.a_u_id]->isAuto())
     {
         // First build the tree map of the available land.
         // Calculate the path to the target.
 
         bool ok = false;
         
-        coordinate c = goTo(units[controller.controllingid],ok);
+        coordinate c = goTo(units[coordinator.a_u_id],ok);
         
         if (ok)
         {
-            controller.registers.roll = sgnz(c.lon-units[controller.controllingid]->longitude );
-            controller.registers.pitch = sgnz(c.lat-units[controller.controllingid]->latitude );
+            controller.registers.roll = sgnz(c.lon-units[coordinator.a_u_id]->longitude );
+            controller.registers.pitch = sgnz(c.lat-units[coordinator.a_u_id]->latitude );
         }
         else
         {
             // Cancel goto operation and make a sound.
-            if (!units[controller.controllingid]->arrived()) blocked();
-            units[controller.controllingid]->resetGoTo();
+            if (!units[coordinator.a_u_id]->arrived()) blocked();
+            units[coordinator.a_u_id]->resetGoTo();
         }
 
-        units[controller.controllingid]->arrived();
+        units[coordinator.a_u_id]->arrived();
 
     }
 
 
     // Autoplayer
-    if (factions[controller.faction]->autoPlayer)
+    if (factions[coordinator.a_f_id]->autoPlayer)
     {
 
         autoPlayer();
@@ -951,20 +954,20 @@ void update(int value)
 
     adjustMovements();
 
-    if (controller.endofturn)
+    if (coordinator.endofturn)
     {
-        controller.endofturn=false;
-        factions[controller.faction]->done();
+        coordinator.endofturn=false;
+        factions[coordinator.a_f_id]->done();
 
         // Reset all the remaining available moves for all the units that belong to the controller faction.
         for (auto& [k, u] : units) 
         {
-            if (u->faction == controller.faction) u->availablemoves = 0;
+            if (u->faction == coordinator.a_f_id) u->availablemoves = 0;
         }
 
-        if (controller.faction<factions.size()-1) 
+        if (coordinator.a_f_id<factions.size()-1) 
         {
-            controller.faction++;
+            coordinator.a_f_id++;
             setUpFaction();    
         }
 
@@ -976,7 +979,7 @@ void update(int value)
     {
         // Everybody played their turn, end of year, and start it over.....
         endOfYear();
-        controller.faction = 0;     // Restart the turn from the first faction.
+        coordinator.a_f_id = 0;     // Restart the turn from the first faction.
         setUpFaction();
     }
 

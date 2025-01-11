@@ -5,6 +5,7 @@
 #include "font/DrawFonts.h"
 #include "lodepng.h"
 #include "usercontrols.h"
+#include "coordinator.h"
 #include "math/yamathutil.h"
 #include "units/Unit.h"
 #include "Faction.h"
@@ -17,6 +18,7 @@ extern std::unordered_map<std::string, GLuint> maptextures;
 
 extern int year;
 
+extern Coordinator coordinator;
 extern Controller controller;
 extern std::unordered_map<int, Unit*> units;
 extern std::vector<Faction*> factions;
@@ -128,7 +130,7 @@ void drawHUD()
 
     char str[256];
 
-    sprintf (str, "Bunmei - %s", factions[controller.faction]->name);
+    sprintf (str, "Bunmei - %s", factions[coordinator.a_f_id]->name);
     // width, height, 0 0 upper left
     drawString(0,-30,1,str,0.2f);
 
@@ -142,24 +144,24 @@ void drawHUD()
     drawString(0,-60,1,str,0.2f);
 
 
-    sprintf (str, "Population:%d",factions[controller.faction]->pop);
+    sprintf (str, "Population:%d",factions[coordinator.a_f_id]->pop);
     drawString(0,-90,1,str,0.2f);
 
     sprintf (str, "Alphabet");
     placeMark4(30 + strlen(str)*10,-110,7*3,"assets/assets/status/science_25.png");
     drawString(0,-120,1,str,0.2f);
 
-    sprintf (str, "%d",factions[controller.faction]->coins);
+    sprintf (str, "%d",factions[coordinator.a_f_id]->coins);
     placeMark4(30 + strlen(str)*10,-140,7*3,"assets/assets/city/gold.png");
     drawString(0,-150,1,str,0.2f);
 
 
-    if (controller.controllingid != CONTROLLING_NONE)
+    if (coordinator.a_u_id != CONTROLLING_NONE)
     {
-        sprintf (str, "(%s)",units[controller.controllingid]->name);
+        sprintf (str, "(%s)",units[coordinator.a_u_id]->name);
         drawString(0,-180,1,str,0.2f);
 
-        sprintf (str, "(%d, %d)",units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+        sprintf (str, "(%d, %d)",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
         drawString(0,-210,1,str,0.2f);
     }
 
@@ -177,7 +179,7 @@ void drawHUD()
         int msgonboard=0;
         for(size_t i=0;i<messages.size();i++)
         {
-            if (messages[i].faction == controller.faction || messages[i].faction == -1)
+            if (messages[i].faction == coordinator.a_f_id || messages[i].faction == -1)
             {
                 std::string line = messages[i].msg;
                 if (msgonboard==0)

@@ -5,6 +5,7 @@
 #include "cityscreenui.h"
 #include "City.h"
 #include "resources.h"
+#include "coordinator.h"
 
 #include "units/Unit.h"
 #include "units/Warrior.h"
@@ -15,6 +16,7 @@
 
 #include "tiles.h"
 
+extern Coordinator coordinator;
 extern Controller controller;
 
 extern std::unordered_map<int, std::string> tiles;
@@ -579,14 +581,14 @@ void initWorldModelling()
 {
     initFactions();   
 
-    controller.faction = factions[0]->id;
-    controller.controllingid = nextUnitId(controller.faction);
+    coordinator.a_f_id = factions[0]->id;
+    coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     factions[0]->autoPlayer = false;
     
     year = -4000;
 
-    message(year, controller.faction, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
+    message(year, coordinator.a_f_id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
 
-    centermapinmap(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+    centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();     
 }

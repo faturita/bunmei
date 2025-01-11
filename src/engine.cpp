@@ -14,6 +14,8 @@
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
+extern std::vector<Faction*> factions;
+
 
 int getNextCityId()
 {
@@ -49,7 +51,6 @@ int nextUnitId(int faction)
     return id;
 }
 
-extern std::vector<Faction*> factions;
 
 // This function returns the next unit that can be moved.
 int nextMovableUnitId(int f_id)

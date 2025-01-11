@@ -9,10 +9,11 @@
 #include "units/Unit.h"
 #include "cityscreenui.h"
 #include "engine.h"
+#include "coordinator.h"
 #include "usercontrols.h"
 
 
-Controller controller;
+extern Coordinator coordinator;
 extern std::unordered_map<int, City*> cities;
 extern std::unordered_map<int, Unit*> units;
 extern Map map;
@@ -23,6 +24,7 @@ int _yoffset = 0;
 
 bool goToMode = false;
 
+Controller controller;
 
 void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
@@ -49,20 +51,21 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'g':controller.registers.yaw-=1.0;break;
         case 'r':controller.registers.bank+=1.0f;break;
         case 'v':controller.registers.bank-=1.0f;break;
-        case ' ':controller.endofturn=true;break;
+        case ' ':coordinator.endofturn=true;break;
         case 'l':controller.landOwnership = !controller.landOwnership;break;
         case 'G':
         {
-             if (units.find(controller.controllingid) != units.end())
+             if (units.find(coordinator.a_u_id) != units.end())
             {
                 goToMode = true;
             }           
         }
+        break;
         case 'C':
         {
-            if (units.find(controller.controllingid) != units.end())
+            if (units.find(coordinator.a_u_id) != units.end())
             {
-                coordinate c(units[controller.controllingid]->latitude,units[controller.controllingid]->longitude);
+                coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
                 c = map.to_screen(c.lat,c.lon);
                 centermapinmap(c.lat, c.lon);
                 resetzoom();
@@ -71,35 +74,35 @@ void handleKeypress(unsigned char key, int x, int y) {
         break;
         case 9:
         {
-            controller.controllingid = nextMovableUnitId(controller.faction);
-            printf("Controlling %d\n",controller.controllingid);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            printf("Controlling %d\n",coordinator.a_u_id);
         }
         break;
         case 'b':
         {
-            if (units[controller.controllingid]->canBuildCity())
+            if (units[coordinator.a_u_id]->canBuildCity())
             {
                 CommandOrder co;
                 co.command = Command::BuildCityOrder;
-                controller.push(co);
-                break;
+                coordinator.push(co);
             }
         }
+        break;
         case 'D':
         {
             CommandOrder co;
             co.command = Command::DisbandUnitOrder;
-            controller.push(co);
-            break;
+            coordinator.push(co);
         }
+        break;
         case 'F':
         {
             CommandOrder co;
             co.command = Command::FortifyUnitOrder;
-            controller.push(co);
-            break;
+            coordinator.push(co);
         }
-    default:break;
+        break;
+        default:break;
     }
 }
 
@@ -152,10 +155,10 @@ void processMouse(int button, int state, int x, int y)
                     centermap(x,y);
                     if (goToMode)
                     {
-                        if (units.find(controller.controllingid) != units.end())
+                        if (units.find(coordinator.a_u_id) != units.end())
                         {
                             coordinate co = getCurrentCenter();
-                            units[controller.controllingid]->goTo(co.lat,co.lon);
+                            units[coordinator.a_u_id]->goTo(co.lat,co.lon);
                         }
                         goToMode = false;
                     }
@@ -173,7 +176,7 @@ void processMouse(int button, int state, int x, int y)
                             centermapinmap(c2.lat, c2.lon);
                             if (co.lat == c->latitude && co.lon == c->longitude)
                             {
-                                if (controller.faction == c->faction)
+                                if (coordinator.a_f_id == c->faction)
                                 {
                                     printf("City %s %d %d,%d\n",c->name, c->id, c->latitude, c->longitude);
                                     controller.view = 2;
@@ -190,10 +193,10 @@ void processMouse(int button, int state, int x, int y)
                             coordinate co = getCurrentCenter();
                             if (co.lat == u->latitude && co.lon == u->longitude)
                             {
-                                if (controller.faction == u->faction && u->availablemoves>0)
+                                if (coordinator.a_f_id == u->faction && u->availablemoves>0)
                                 {
                                     printf("Unit %s %d %d,%d\n",u->name, u->id, u->latitude, u->longitude);
-                                    controller.controllingid = u->id;
+                                    coordinator.a_u_id = u->id;
 
                                     if (u->isFortified())
                                     {
