@@ -52,7 +52,7 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'r':controller.registers.bank+=1.0f;break;
         case 'v':controller.registers.bank-=1.0f;break;
         case ' ':coordinator.endofturn=true;break;
-        case 'l':controller.landOwnership = !controller.landOwnership;break;
+        case 'l':controller.showLandOwnership = !controller.showLandOwnership;break;
         case 'G':
         {
              if (units.find(coordinator.a_u_id) != units.end())

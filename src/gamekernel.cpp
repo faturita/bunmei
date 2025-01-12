@@ -36,6 +36,7 @@ extern int year;
 
 void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
 {
+    // @FIXME Encode all of this....
     initResources(resources);
 
     for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
@@ -88,6 +89,10 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
                 {
                     mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
                     mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+
+                    if (mmp.set(lat,lon).resource==GEOSHIELD)   mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (mmp.set(lat,lon).resource==HORSE)       mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+
                 }
                 if (mmp.set(lat,lon).bioma/16==HILLS/16) // Hills
                 {
@@ -112,7 +117,7 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
                     if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
                 }
 
-                if (mmp.set(lat,lon).bioma/16==ARCTIC/16) // Mountains
+                if (mmp.set(lat,lon).bioma/16==ARCTIC/16) // Arctic
                 {
                     if (mmp.set(lat,lon).resource==SEAL) mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
                 }

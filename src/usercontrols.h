@@ -33,7 +33,7 @@ public:
 
     bool teletype=false;
 
-    bool landOwnership = false;
+    bool showLandOwnership = false;
 
     std::string str;
 

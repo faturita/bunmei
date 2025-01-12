@@ -438,7 +438,7 @@ void drawMap()
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for(int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                if (controller.landOwnership)
+                if (controller.showLandOwnership)
                 if (!map(lat,lon).isFreeLand())
                 {
                     int faction = map(lat,lon).getOwnedBy();
