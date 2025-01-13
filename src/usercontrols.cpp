@@ -80,11 +80,14 @@ void handleKeypress(unsigned char key, int x, int y) {
         break;
         case 'b':
         {
-            if (units[coordinator.a_u_id]->canBuildCity())
+            if (units.find(coordinator.a_u_id) != units.end())
             {
-                CommandOrder co;
-                co.command = Command::BuildCityOrder;
-                coordinator.push(co);
+                if (units[coordinator.a_u_id]->canBuildCity())
+                {
+                    CommandOrder co;
+                    co.command = Command::BuildCityOrder;
+                    coordinator.push(co);
+                }
             }
         }
         break;

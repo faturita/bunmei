@@ -22,6 +22,7 @@
 #include "../resources.h"
 #include "../map.h"
 #include "../units/Settler.h"
+#include "../units/Archer.h"
 #include "../engine.h"
 #include "../tiles.h"
 
@@ -48,13 +49,16 @@ extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
+extern Tiles tiles;
+
+extern int mapzoom;
 
 void TestCase_002::init()
 {
 
     map.init();
 
-    initTiles();
+    initTiles(tiles);
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
@@ -62,8 +66,17 @@ void TestCase_002::init()
             map.set(lat,lon) = mapcell(OCEAN);
         }
 
+
+    for (int lat=-10;lat<=10;lat++)
+    {
+        for (int lon=-10;lon<=10;lon++)
+        {
+            map.set(lat,lon) = mapcell(LAND);
+        }
+    }
+
      // Pick a random number and use it to seed the land masses.
-    int r=getRandomInteger(2,15);
+    /**int r=getRandomInteger(2,15);
 
     for(int i=0;i<r;i++)
     {
@@ -100,7 +113,7 @@ void TestCase_002::init()
             map.set(lat,lon) = mapcell(LAND);
             energy--;
         }
-    }   
+    }   **/
 
 
     resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
@@ -125,33 +138,42 @@ void TestCase_002::init()
     faction->red = 255;
     faction->green = 0;
     faction->blue = 0;
+    faction->autoPlayer = true;
     
     factions.push_back(faction);
 
-    for (auto& f: factions)
-    {
-        std::vector<coordinate> list;
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
-            {
-                if (map(lat,lon).code==1)
-                {
-                    list.push_back(coordinate(lat,lon));
-                }
-            }
+    faction = new Faction();
+    faction->id = 1;
+    strcpy(faction->name,"Romans");
+    faction->red = 255;
+    faction->green = 255;
+    faction->blue = 0;
+    faction->autoPlayer = true;
+    
+    factions.push_back(faction);
 
+    {
         coordinate c(0,0);
-        if (list.size()>0)
-        {
-            int r = getRandomInteger(0,list.size());
-            c = list[r];
-        }
 
         Settler *settler = new Settler();
         settler->longitude = c.lon;
         settler->latitude = c.lat;
         settler->id = getNextUnitId();
-        settler->faction = f->id;
+        settler->faction = 0;
+        settler->availablemoves = settler->getUnitMoves();
+
+        units[settler->id] = settler;
+
+    }
+
+    {
+        coordinate c(1,1);
+
+        Archer *settler = new Archer();
+        settler->longitude = c.lon;
+        settler->latitude = c.lat;
+        settler->id = getNextUnitId();
+        settler->faction = 1;
         settler->availablemoves = settler->getUnitMoves();
 
         units[settler->id] = settler;
@@ -172,6 +194,9 @@ void TestCase_002::init()
     citynames[0].push("Copenhagen");
     citynames[0].push("Helsinki");
     citynames[0].push("Reykjavik");
+
+    mapzoom = 2;
+    centermapinmap(0,0);
 
 }
 
