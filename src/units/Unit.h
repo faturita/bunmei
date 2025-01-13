@@ -36,6 +36,11 @@ class Unit : public Buildable
 
         bool fortified = false;
         bool sentried = false;
+
+        bool markedForDeletion = false;
+
+        bool destroyed = false;
+        bool goBack = false;
         
     public:
     Unit();
@@ -76,6 +81,10 @@ class Unit : public Buildable
     void sentry();
     bool isSentry();
     void wakeUp();
+
+    bool isMarkedForDeletion();
+    void markForDeletion();
+    void destroy();
 
 };
 

@@ -10,5 +10,6 @@ int nextUnitId(int faction);
 int nextMovableUnitId(int f_id);
 
 City* findCityAt(int lat, int lon);
+Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 
 #endif // ENGINE_H

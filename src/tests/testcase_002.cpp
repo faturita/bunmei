@@ -21,8 +21,10 @@
 #include "../Faction.h"
 #include "../resources.h"
 #include "../map.h"
+#include "../coordinator.h"
 #include "../units/Settler.h"
 #include "../units/Archer.h"
+#include "../units/Chariot.h"
 #include "../engine.h"
 #include "../tiles.h"
 
@@ -40,7 +42,7 @@ TestCase_002::~TestCase_002()
 
 int TestCase_002::number()
 {
-    return 0;
+    return 002;
 }
 
 extern Map map;
@@ -52,6 +54,8 @@ extern std::vector<Resource*> resources;
 extern Tiles tiles;
 
 extern int mapzoom;
+
+extern Coordinator coordinator;
 
 void TestCase_002::init()
 {
@@ -138,7 +142,7 @@ void TestCase_002::init()
     faction->red = 255;
     faction->green = 0;
     faction->blue = 0;
-    faction->autoPlayer = true;
+    faction->autoPlayer = false;
     
     factions.push_back(faction);
 
@@ -148,21 +152,33 @@ void TestCase_002::init()
     faction->red = 255;
     faction->green = 255;
     faction->blue = 0;
-    faction->autoPlayer = true;
+    faction->autoPlayer = false;
     
     factions.push_back(faction);
 
     {
         coordinate c(0,0);
 
-        Settler *settler = new Settler();
-        settler->longitude = c.lon;
-        settler->latitude = c.lat;
-        settler->id = getNextUnitId();
-        settler->faction = 0;
-        settler->availablemoves = settler->getUnitMoves();
+        Chariot *chariot = new Chariot();
+        chariot->longitude = c.lon;
+        chariot->latitude = c.lat;
+        chariot->id = getNextUnitId();
+        chariot->faction = 0;
+        chariot->availablemoves = chariot->getUnitMoves();
 
-        units[settler->id] = settler;
+        units[chariot->id] = chariot;
+        map.set(c.lat,c.lon).setOwnedBy(0);
+
+        c = coordinate(-3,-3);
+        chariot = new Chariot();
+        chariot->longitude = c.lon;
+        chariot->latitude = c.lat;
+        chariot->id = getNextUnitId();
+        chariot->faction = 0;
+        chariot->availablemoves = chariot->getUnitMoves();
+
+        units[chariot->id] = chariot;
+        map.set(c.lat,c.lon).setOwnedBy(0);
 
     }
 
@@ -177,6 +193,17 @@ void TestCase_002::init()
         settler->availablemoves = settler->getUnitMoves();
 
         units[settler->id] = settler;
+        map.set(c.lat,c.lon).setOwnedBy(1);
+
+        settler = new Archer();
+        settler->longitude = c.lon;
+        settler->latitude = c.lat;
+        settler->id = getNextUnitId();
+        settler->faction = 1;
+        settler->availablemoves = settler->getUnitMoves();
+
+        units[settler->id] = settler;
+        map.set(c.lat,c.lon).setOwnedBy(1);
 
     }
 
@@ -195,18 +222,46 @@ void TestCase_002::init()
     citynames[0].push("Helsinki");
     citynames[0].push("Reykjavik");
 
+    citynames[1] = std::queue<std::string>();      
+
+    citynames[1].push("Kattegate");
+    citynames[1].push("Jorvik");
+    citynames[1].push("Hedeby");
+    citynames[1].push("Trondheim");
+    citynames[1].push("Bergen");
+    citynames[1].push("Stavanger");
+    citynames[1].push("Kristiansand");
+    citynames[1].push("Oslo");
+    citynames[1].push("Stockholm");
+    citynames[1].push("Copenhagen");
+    citynames[1].push("Helsinki");
+    citynames[1].push("Reykjavik");
+
     mapzoom = 2;
     centermapinmap(0,0);
+    coordinator.a_f_id = 0;
+    coordinator.a_u_id = 1;
 
 }
 
+
+unsigned long ticks = 0;
+
 int TestCase_002::check(int year)
 {
+
+    if (ticks==300)
+    {
+        units[1]->goTo(1,1);
+    }
+
+    ticks++;
+
     return 0;
 }
 std::string TestCase_002::title()
 {
-    return std::string("Generic Test Case");
+    return std::string("Check attacking enemy unit.");
 
 }
 

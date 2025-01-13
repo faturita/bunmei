@@ -391,8 +391,99 @@ inline bool endOfTurnForAllFactions()
 
 bool war = true;
 
-
 bool attack(Unit* attacker, int lat, int lon)
+{
+    std::vector<int> unitstodelete;
+    bool confirmed = false;
+
+    // War movement towards an enemy unit
+    if (war && !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(attacker->faction))
+    {
+        // Find the enemy unit located there
+        Unit *defender = nullptr;
+
+        City* city = findCityAt(lat,lon);
+
+        int numberofdefenders = 0;
+        defender = getDefender(lat,lon,numberofdefenders,attacker->faction);
+
+        Unit *winner = nullptr;
+        Unit *loser = nullptr;
+
+        assert(defender!=nullptr || !"Error: a tile is marked by owner but it does not belong to a city and there aren't any unit in it.");
+        if (defender!=nullptr)
+        {
+            int chance = getRandomInteger(0,1);
+
+            // Coordinate who wins the battle.
+            if (defender->getDefense()>attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 0) )
+            {
+                lose();
+                winner = defender;
+                loser = attacker;
+            }
+            else if (defender->getDefense()<attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 1))
+            {
+                win();
+                winner = attacker;
+                loser = defender;
+            }
+
+            // @NOTE: Eventually we can have a draw, a stalemate, or a retreat.
+        }
+
+        if (winner == attacker && city == nullptr && numberofdefenders==1)
+        {
+            // Move the unit into the tile if there are no more units left AND if the tile is not a city.
+            coordinate c = map.to_real(lat,lon);
+
+            map.set(attacker->latitude, attacker->longitude).releaseOwner();
+
+            // Confirm the change if the movement is allowed.
+            attacker->update(lat,lon);
+
+            map.set(attacker->latitude, attacker->longitude).setOwnedBy(attacker->faction);
+
+            attacker->availablemoves=0;
+
+            loser->destroy();
+        }
+        else
+        if (winner == attacker && (city != nullptr || numberofdefenders>1) )
+        {
+            // Move the unit into the tile if there are no more units left AND if the tile is not a city.
+            coordinate c = map.to_real(lat,lon);
+
+            // Confirm the change if the movement is allowed.
+            attacker->update(lat,lon);
+
+            attacker->availablemoves--;
+            //attacker->goBackOnCompletion();
+
+            loser->destroy();
+        } else
+        if (winner == defender)
+        {
+            attacker->availablemoves=0;
+
+            attacker->update(lat,lon);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            printf("Lost\n");
+
+            attacker->markForDeletion();
+        }
+
+
+    }   
+
+    return confirmed;
+}
+
+
+
+
+
+bool attdack(Unit* attacker, int lat, int lon)
 {
     std::vector<int> unitstodelete;
     bool confirmed = false;
@@ -466,14 +557,21 @@ bool attack(Unit* attacker, int lat, int lon)
         {
             // Check what happens with All the other loosers.
 
-            unitstodelete.push_back(loser->id);
+            //unitstodelete.push_back(loser->id);
             loser->availablemoves=0;
 
             if (loser == attacker)
             {
+                attacker->update(lat,lon);
                 coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
                 printf("Lost\n");
             } 
+            else
+            {
+                loser->destroy();
+            }
+
+            loser->markForDeletion();
 
         }
         printf("Attack condition\n");
@@ -481,15 +579,15 @@ bool attack(Unit* attacker, int lat, int lon)
 
     }   
 
-    for(auto& uid:unitstodelete)
-    {
-        Unit* u = units[uid];
+    //for(auto& uid:unitstodelete)
+    //{
+    //    Unit* u = units[uid];
 
-        map.set(u->latitude, u->longitude).releaseOwner();
+    //    map.set(u->latitude, u->longitude).releaseOwner();
 
-        units.erase(u->id);
-        delete u;
-    } 
+    //    units.erase(u->id);
+    //    delete u;
+    //} 
 
     return confirmed;
 }
@@ -878,6 +976,26 @@ void update(int value)
     {
         exit(0);
     }
+    std::vector<int> unitstodelete;
+
+
+    for(auto& [k, u] : units) 
+    {
+        if (u->isMarkedForDeletion())
+        {
+            unitstodelete.push_back(u->id);
+        }
+    }
+
+    for(auto& uid:unitstodelete)
+    {
+        Unit* u = units[uid];
+
+        map.set(u->latitude, u->longitude).releaseOwner();
+
+        units.erase(u->id);
+        delete u;
+    } 
 
     for(auto& f:factions)
     {

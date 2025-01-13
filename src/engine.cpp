@@ -83,4 +83,20 @@ City* findCityAt(int lat, int lon)
     return city;
 }
 
+Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id)
+{
+    Unit* defender = nullptr;
+    numberofdefenders = 0;
+    for (auto& [k, u] : units) 
+    {
+        if (u->latitude == lat && u->longitude == lon && u->faction != f_id)
+        {
+            // @NOTE: How to pick which defender.  This should be rule-based.
+            defender = u;
+            numberofdefenders++;
+        }
+    }
+
+    return defender;
+}
 

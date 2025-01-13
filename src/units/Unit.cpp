@@ -18,8 +18,20 @@ void Unit::draw()
     int red = factions[faction]->red;
     int green = factions[faction]->green;
     int blue = factions[faction]->blue;
-    
+
     placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,assetname, red, green, blue);
+
+
+    if (destroyed)
+    {
+        char strcombat[256];
+        sprintf(strcombat,"assets/assets/units/combat_%d.png",(int)(completion*10));
+        printf("Completion %s\n",strcombat);
+
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,strcombat, red, green, blue);
+
+    }
+
 
     if (fortified)
     {
@@ -152,5 +164,20 @@ void Unit::wakeUp()
     sentried = false;
 }
 
+bool Unit::isMarkedForDeletion()
+{
+    return (markedForDeletion && movementCompleted());
+}
 
+void Unit::markForDeletion()
+{
+    markedForDeletion = true;
+}
+
+void Unit::destroy()
+{
+    markedForDeletion = true;
+    destroyed = true;
+    completion = 0;
+}
 
