@@ -39,7 +39,7 @@ class Unit : public Buildable
 
         bool markedForDeletion = false;
 
-        bool destroyed = false;
+        bool bDestroy = false;
         bool goBack = false;
         
     public:
@@ -85,6 +85,7 @@ class Unit : public Buildable
     bool isMarkedForDeletion();
     void markForDeletion();
     void destroy();
+    void goBackOnCompletion();
 
 };
 

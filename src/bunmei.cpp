@@ -434,8 +434,6 @@ bool attack(Unit* attacker, int lat, int lon)
 
         if (winner == attacker && city == nullptr && numberofdefenders==1)
         {
-            // Move the unit into the tile if there are no more units left AND if the tile is not a city.
-            coordinate c = map.to_real(lat,lon);
 
             map.set(attacker->latitude, attacker->longitude).releaseOwner();
 
@@ -447,30 +445,34 @@ bool attack(Unit* attacker, int lat, int lon)
             attacker->availablemoves=0;
 
             loser->destroy();
+            confirmed = true;
         }
         else
         if (winner == attacker && (city != nullptr || numberofdefenders>1) )
         {
-            // Move the unit into the tile if there are no more units left AND if the tile is not a city.
-            coordinate c = map.to_real(lat,lon);
-
             // Confirm the change if the movement is allowed.
             attacker->update(lat,lon);
 
             attacker->availablemoves--;
-            //attacker->goBackOnCompletion();
+            printf("Attack %d\n",attacker->availablemoves);
+            attacker->goBackOnCompletion();
 
             loser->destroy();
+            confirmed = true;
         } else
         if (winner == defender)
         {
+            map.set(attacker->latitude, attacker->longitude).releaseOwner();
+
             attacker->availablemoves=0;
 
             attacker->update(lat,lon);
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
             printf("Lost\n");
 
+            attacker->destroy();
             attacker->markForDeletion();
+            confirmed = true;
         }
 
 
@@ -741,6 +743,7 @@ Trireme* findNavalUnit(int lat, int lon)
     return navalunit; 
 }
 
+// Lat, lon are expressed in real map units.
 void moveUnit(Unit* unit, int lat, int lon)
 {
     if (unit->availablemoves>0)

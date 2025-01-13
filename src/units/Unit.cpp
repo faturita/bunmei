@@ -22,7 +22,7 @@ void Unit::draw()
     placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,assetname, red, green, blue);
 
 
-    if (destroyed)
+    if (bDestroy)
     {
         char strcombat[256];
         sprintf(strcombat,"assets/assets/units/combat_%d.png",(int)(completion*10));
@@ -45,6 +45,13 @@ void Unit::draw()
 
     if (completion < 1)
         completion += 0.1;
+
+    if (movementCompleted() && goBack)
+    {
+        latitude = oldlatitude;
+        longitude = oldlongitude;
+        goBack = false;
+    }
 
 }
 
@@ -177,7 +184,15 @@ void Unit::markForDeletion()
 void Unit::destroy()
 {
     markedForDeletion = true;
-    destroyed = true;
+    bDestroy = true;
     completion = 0;
+
+    oldlatitude = latitude;
+    oldlongitude = longitude;
+}
+
+void Unit::goBackOnCompletion()
+{
+    goBack = true;
 }
 

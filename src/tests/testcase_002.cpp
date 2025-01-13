@@ -185,17 +185,27 @@ void TestCase_002::init()
     {
         coordinate c(1,1);
 
-        Archer *settler = new Archer();
-        settler->longitude = c.lon;
-        settler->latitude = c.lat;
-        settler->id = getNextUnitId();
-        settler->faction = 1;
-        settler->availablemoves = settler->getUnitMoves();
+        Archer *archer = new Archer();
+        archer->longitude = c.lon;
+        archer->latitude = c.lat;
+        archer->id = getNextUnitId();
+        archer->faction = 1;
+        archer->availablemoves = archer->getUnitMoves();
 
-        units[settler->id] = settler;
+        units[archer->id] = archer;
         map.set(c.lat,c.lon).setOwnedBy(1);
 
-        settler = new Archer();
+        archer = new Archer();
+        archer->longitude = c.lon;
+        archer->latitude = c.lat;
+        archer->id = getNextUnitId();
+        archer->faction = 1;
+        archer->availablemoves = archer->getUnitMoves();
+
+        units[archer->id] = archer;
+        map.set(c.lat,c.lon).setOwnedBy(1);
+
+        Settler *settler = new Settler();
         settler->longitude = c.lon;
         settler->latitude = c.lat;
         settler->id = getNextUnitId();
@@ -252,7 +262,7 @@ int TestCase_002::check(int year)
 
     if (ticks==300)
     {
-        units[1]->goTo(1,1);
+        //units[1]->goTo(1,1);
     }
 
     ticks++;
