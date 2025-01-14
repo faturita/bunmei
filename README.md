@@ -155,6 +155,12 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Units also require **Line Of Sight** to the capital city, by having a continuos line of access (or free land in the middle).  
 * Roads keep ownership.  This allows to increase the line of sight regardless of culture.
 * Food can be shipped.  This allows to cities without any harvesting to increase if they manage to import food.
+* Cities can upgrade city walls to Forts and Fortress.  These can open fire on naval units in nearby tiles.
+* Air units can move freely but within their airrange.  They need airfields to refuel.  They can hope in the same turn from city to city.
+* There are also airfields which are isolated fort upgrades.
+* Bombers can attack cities and enemy units.
+* Carrier can transport air units.
+* EVALUATE asynchronous movement.
 
 
 ## More info and Resources

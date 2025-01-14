@@ -470,7 +470,8 @@ bool attack(Unit* attacker, int lat, int lon)
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
             printf("Lost\n");
 
-            attacker->destroy();
+            //attacker->destroy();
+
             attacker->markForDeletion();
             confirmed = true;
         }
