@@ -10,7 +10,7 @@ Archer::Archer()
     strcpy(name,"Archer");
     strcpy(assetname,"assets/assets/units/archer.png");
     moves = 1;
-    dw = 20;
+    dw = 2;
 }
 
 Archer* ArcherFactory::create()

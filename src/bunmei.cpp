@@ -410,7 +410,7 @@ bool attack(Unit* attacker, int lat, int lon)
         Unit *winner = nullptr;
         Unit *loser = nullptr;
 
-        assert(defender!=nullptr || !"Error: a tile is marked by owner but it does not belong to a city and there aren't any unit in it.");
+        //assert(defender!=nullptr || !"Error: a tile is marked by owner but it does not belong to a city and there aren't any unit in it.");
         if (defender!=nullptr)
         {
             int chance = getRandomInteger(0,1);
@@ -430,6 +430,10 @@ bool attack(Unit* attacker, int lat, int lon)
             }
 
             // @NOTE: Eventually we can have a draw, a stalemate, or a retreat.
+        }
+        else
+        {
+            return false;
         }
 
         if (winner == attacker && city == nullptr && numberofdefenders==1)

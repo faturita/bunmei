@@ -25,8 +25,6 @@ void Unit::draw()
     {
         char strcombat[256];
         sprintf(strcombat,"assets/assets/units/combat_%d.png",(int)(completion*10));
-        printf("Completion %s\n",strcombat);
-
         placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,strcombat, red, green, blue); 
     }
 
