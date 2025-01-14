@@ -1,4 +1,4 @@
-//  TestCase_002.cpp
+//  TestCase_003.cpp
 //  bunmei
 //
 //  Created by Rodrigo Ramele on 07/09/2021
@@ -25,24 +25,25 @@
 #include "../units/Settler.h"
 #include "../units/Archer.h"
 #include "../units/Chariot.h"
+#include "../units/Warrior.h"
 #include "../engine.h"
 #include "../tiles.h"
 
-#include "TestCase_002.h"
+#include "TestCase_003.h"
 
-TestCase_002::TestCase_002()
+TestCase_003::TestCase_003()
 {
 
 }
 
-TestCase_002::~TestCase_002()
+TestCase_003::~TestCase_003()
 {
 
 }
 
-int TestCase_002::number()
+int TestCase_003::number()
 {
-    return 002;
+    return 003;
 }
 
 extern Map map;
@@ -57,7 +58,7 @@ extern int mapzoom;
 
 extern Coordinator coordinator;
 
-void TestCase_002::init()
+void TestCase_003::init()
 {
 
     map.init();
@@ -159,18 +160,18 @@ void TestCase_002::init()
     {
         coordinate c(0,0);
 
-        Chariot *chariot = new Chariot();
-        chariot->longitude = c.lon;
-        chariot->latitude = c.lat;
-        chariot->id = getNextUnitId();
-        chariot->faction = 0;
-        chariot->availablemoves = chariot->getUnitMoves();
+        Warrior *warrior = new Warrior();
+        warrior->longitude = c.lon;
+        warrior->latitude = c.lat;
+        warrior->id = getNextUnitId();
+        warrior->faction = 0;
+        warrior->availablemoves = warrior->getUnitMoves();
 
-        units[chariot->id] = chariot;
+        units[warrior->id] = warrior;
         map.set(c.lat,c.lon).setOwnedBy(0);
 
         c = coordinate(-3,-3);
-        chariot = new Chariot();
+        Chariot *chariot = new Chariot();
         chariot->longitude = c.lon;
         chariot->latitude = c.lat;
         chariot->id = getNextUnitId();
@@ -254,7 +255,7 @@ void TestCase_002::init()
 
 }
 
-int TestCase_002::check(int year)
+int TestCase_003::check(int year)
 {
 
     if (ticks==300)
@@ -262,29 +263,18 @@ int TestCase_002::check(int year)
         units[1]->goTo(1,1);
     }
 
-    if (ticks==500)
-    {
-        units[1]->goTo(1,1);
-    }
-
-    if (ticks==700)
-    {
-        units[1]->goTo(1,1);
-    }
-
-
     if (ticks==900)
     {
-        if (units.find(1)!=units.end() && units[1]->latitude==1 && units[1]->longitude==1)
+        if (units.find(1)==units.end() || (!(units[1]->latitude==1 && units[1]->longitude==1)))
         {
             isdone=true;
-            message = std::string("Unit won and moved into the 1,1 tile.");
+            message = std::string("Attacking unit lost and did not moved into the 1,1 tile.");
             haspassed = true;
         }
         else
         {
             isdone=true;
-            message = std::string("Unit did not succeed and move into the 1,1 tile (and it should have done so).");
+            message = std::string("The defending unit won and the attacking unit was destroyed.");
             haspassed = false;
         }
     }
@@ -293,26 +283,26 @@ int TestCase_002::check(int year)
     ticks++;
     return 0;
 }
-std::string TestCase_002::title()
+std::string TestCase_003::title()
 {
-    return std::string("Check attacking enemy unit.");
+    return std::string("Check successfully defending unit.");
 
 }
 
-bool TestCase_002::done()
+bool TestCase_003::done()
 {
     return isdone;
 }
-bool TestCase_002::passed()
+bool TestCase_003::passed()
 {
     return haspassed;
 }
-std::string TestCase_002::failedMessage()
+std::string TestCase_003::failedMessage()
 {
     return message;
 }
 
 TestCase *pickTestCase(int testcase)
 {
-    return new TestCase_002();
+    return new TestCase_003();
 }

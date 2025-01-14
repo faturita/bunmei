@@ -411,7 +411,7 @@ bool TestCase_001::done()
 }
 bool TestCase_001::passed()
 {
-    return false;
+    return haspassed;
 }
 std::string TestCase_001::failedMessage()
 {

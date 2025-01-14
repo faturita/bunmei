@@ -48,7 +48,7 @@ bool TestCase::done()
 }
 bool TestCase::passed()
 {
-    return false;
+    return haspassed;
 }
 std::string TestCase::failedMessage()
 {

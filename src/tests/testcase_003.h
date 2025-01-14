@@ -1,5 +1,5 @@
-#ifndef TESTCASE_H
-#define TESTCASE_H
+#ifndef TESTCASE_003_H
+#define TESTCASE_003_H
 
 #include <iostream>
 #include <fstream>
@@ -7,16 +7,17 @@
 #include <stdio.h>
 #include <string.h>
 
-class TestCase
+#include "testcase.h"
+
+class TestCase_003 : public TestCase
 {
 protected:
     bool isdone=false;
     bool haspassed=false;
     std::string message;
-    unsigned long int ticks = 0;
 public:
-    TestCase();
-    virtual ~TestCase();
+    TestCase_003();
+    virtual ~TestCase_003();
 
     // This method is called when the test is initialized.  It should create islands and all the other entities.
     virtual void init();
@@ -33,9 +34,6 @@ public:
     virtual std::string failedMessage();
 };
 
-// This method should be implemented by the test case.  This allows the method to create the particular instance.
-// The idea is to go through the code and use the compilation scheme to create all the available test cases as long as there are classes that implement
-// this.
-TestCase *pickTestCase(int testcase);
 
-#endif // TESTCASE_H
+
+#endif // TESTCASE_003_H
