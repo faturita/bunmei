@@ -13,7 +13,7 @@ class Faction {
         int id;
         int red, green, blue;
 
-        bool autoPlayer = false;
+        bool autoPlayer = true;
 
         int mapoffset;
 

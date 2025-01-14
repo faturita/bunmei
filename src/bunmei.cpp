@@ -438,10 +438,10 @@ bool attack(Unit* attacker, int lat, int lon)
 
         if (winner == attacker && city == nullptr && numberofdefenders==1)
         {
-
+            // The attacker wins, move forward capturing the new tile.
             map.set(attacker->latitude, attacker->longitude).releaseOwner();
 
-            // Confirm the change if the movement is allowed.
+            // Confirm the change
             attacker->update(lat,lon);
 
             map.set(attacker->latitude, attacker->longitude).setOwnedBy(attacker->faction);
@@ -454,11 +454,11 @@ bool attack(Unit* attacker, int lat, int lon)
         else
         if (winner == attacker && (city != nullptr || numberofdefenders>1) )
         {
-            // Confirm the change if the movement is allowed.
+            // Move forward, do not confirm it and go back.
             attacker->update(lat,lon);
 
             attacker->availablemoves--;
-            printf("Attack %d\n",attacker->availablemoves);
+
             attacker->goBackOnCompletion();
 
             loser->destroy();
@@ -472,7 +472,6 @@ bool attack(Unit* attacker, int lat, int lon)
 
             attacker->update(lat,lon);
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
-            printf("Lost\n");
 
             attacker->markForDeletion();
             confirmed = true;
@@ -480,119 +479,6 @@ bool attack(Unit* attacker, int lat, int lon)
 
 
     }   
-
-    return confirmed;
-}
-
-
-
-
-
-bool attdack(Unit* attacker, int lat, int lon)
-{
-    std::vector<int> unitstodelete;
-    bool confirmed = false;
-
-    // War movement towards an enemy unit
-    if (war && !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(attacker->faction))
-    {
-        // Find the enemy unit located there
-        Unit *defender = nullptr;
-        int numberofdefenders = 0;
-        for (auto& [k, u] : units) 
-        {
-            if (u->latitude == lat && u->longitude == lon && u->faction != coordinator.a_f_id)
-            {
-                // @NOTE: How to pick which defender.  This should be rule-based.
-                defender = u;
-                numberofdefenders++;
-            }
-        }
-
-        Unit *winner = nullptr;
-        Unit *loser = nullptr;
-        if (defender!=nullptr)
-        {
-            int chance = getRandomInteger(0,1);
-
-            // Coordinate who wins the battle.
-            if (defender->getDefense()>attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 0) )
-            {
-                lose();
-                winner = defender;
-                loser = attacker;
-            }
-            else if (defender->getDefense()<attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 1))
-            {
-                win();
-                winner = attacker;
-                loser = defender;
-            }
-
-            // @NOTE: Eventually we can have a draw, a stalemate, or a retreat.
-        }
-
-        City* city = findCityAt(lat,lon);
-
-        if (winner == attacker)
-        {
-            winner->availablemoves--;
-            if (city == nullptr)
-            {
-
-                if (numberofdefenders==1)
-                {
-                    // Move the unit into the tile if there are no more units left AND if the tile is not a city.
-                    coordinate c = map.to_real(lat,lon);
-
-                    map.set(winner->latitude, winner->longitude).releaseOwner();
-
-                    // Confirm the change if the movement is allowed.
-                    attacker->update(lat,lon);
-
-                    map.set(winner->latitude, winner->longitude).setOwnedBy(winner->faction);
-
-                    winner->availablemoves=0;
-                    
-                }
-            }
-        }
-
-        if (loser)
-        {
-            // Check what happens with All the other loosers.
-
-            //unitstodelete.push_back(loser->id);
-            loser->availablemoves=0;
-
-            if (loser == attacker)
-            {
-                attacker->update(lat,lon);
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
-                printf("Lost\n");
-            } 
-            else
-            {
-                loser->destroy();
-            }
-
-            loser->markForDeletion();
-
-        }
-        printf("Attack condition\n");
-        confirmed = true;
-
-    }   
-
-    //for(auto& uid:unitstodelete)
-    //{
-    //    Unit* u = units[uid];
-
-    //    map.set(u->latitude, u->longitude).releaseOwner();
-
-    //    units.erase(u->id);
-    //    delete u;
-    //} 
 
     return confirmed;
 }

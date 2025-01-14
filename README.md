@@ -120,7 +120,9 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 
 # Working issues
 
-* Replace controllingid with activeid.
+* Allow GoTo with naval units.
+* <strike>Replace controllingid with activeid.</strike>
+* Iterate on improving the AI: focus more on production on cities and build defensive units.
 * Show units in cityscreen.
 * Add a way in which fortified units can be selected.
 * Sentry is clearly used only for ships and I think that is Ok.
