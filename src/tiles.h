@@ -1,6 +1,9 @@
 #ifndef TILES_H
 #define TILES_H
 
+#include <queue>
+#include <unordered_map>
+
 enum TERRAIN
 {
     OCEAN = 0,
