@@ -34,6 +34,7 @@ public:
     bool teletype=false;
 
     bool showLandOwnership = false;
+    bool bcenterinmap = false;
 
     std::string str;
 

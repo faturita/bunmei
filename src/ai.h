@@ -6,4 +6,6 @@
 coordinate goTo(Unit* unit, bool &ok);
 coordinate reachableHorizon(Unit* unit, int jumpingdistance, int f_id, bool &ok);
 
+void autoPlayer();
+
 #endif // AI_H

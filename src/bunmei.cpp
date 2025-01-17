@@ -176,6 +176,13 @@ void drawScene()
 inline void processCommandOrders()
 {
     CommandOrder co = coordinator.pop();  //@FIXME make it a queue.
+
+
+    if (units.find(coordinator.a_u_id) == units.end())
+    {
+        return;
+    }
+
     if (co.command == Command::BuildCityOrder)
     {
         // You cannot build a city in a land CLAIMED already by another city.
@@ -713,140 +720,6 @@ void adjustMovements()
     }      
 }
 
-void autoPlayer()
-{
-    if (units.find(coordinator.a_u_id)!=units.end())
-    {
-        Unit *unit = units[coordinator.a_u_id];
-        if(Settler* s = dynamic_cast<Settler*>(units[coordinator.a_u_id]))
-        {
-            if (!s->isAuto())
-            {
-                // Find the nearest city, and move AWAY from it as far as possible, 
-                //    and if there is no city, build it here.
-                City* nc = nullptr;
-                int distance = 5;
-                for(auto& [cid,c]:cities)
-                {
-                    int d = abs(c->latitude-s->latitude)+abs(c->longitude-s->longitude);  // Manhattan distance
-                    if (d<distance)
-                    {
-                        distance = d;
-                        nc = c;
-                    }
-                }
-
-                if (nc!=nullptr)
-                {
-                    // Move away from the city.
-                    bool ok;
-                    coordinate c = reachableHorizon(s,5,s->faction,ok);
-                    if (ok && !map.peek(c.lat,c.lon).isFreeLand())
-                    {
-                        s->goTo(c.lat,c.lon);
-                    }
-                    else
-                    {
-                        // Boludeo
-                        controller.registers.roll = getRandomInteger(-1.0,1.0);
-                        controller.registers.pitch = getRandomInteger(-1.0,1.0);
-
-                        if (controller.registers.roll==0 && controller.registers.pitch==0)
-                        {
-                            s->availablemoves = 0;
-                        }
-                    }
-
-                }
-                else
-                {
-                    if (s->canBuildCity())
-                    {
-                        CommandOrder co;
-                        co.command = Command::BuildCityOrder;
-                        coordinator.push(co);
-                    }
-                }
-            }
-
-        }
-        else
-        {
-            // If the unit is already in a city, fortify it.
-            City* nc = nullptr;
-            if(Warrior* w = dynamic_cast<Warrior*>(units[coordinator.a_u_id]))
-            for(auto& [cid,c]:cities)
-            {
-                if (c->faction == unit->faction && c->getCoordinate()==unit->getCoordinate())
-                {
-                    nc = c;
-                    CommandOrder co;
-                    co.command = Command::FortifyUnitOrder;
-                    coordinator.push(co);
-                }
-            }
-            
-            if (nc == nullptr)
-            {
-                // If there is a defenseless enemy city nearby, capture it.
-                City* cc = nullptr;
-                for(auto& [cid,c]:cities)
-                {
-                    if (c->faction != unit->faction && !c->isDefendedCity())
-                    {
-                        cc = c;
-                    }
-                }
-
-                if (cc == nullptr)
-                {
-                    // Boludeo
-                    controller.registers.roll = getRandomInteger(-1.0,1.0);
-                    controller.registers.pitch = getRandomInteger(-1.0,1.0);
-
-                    if (controller.registers.roll==0 && controller.registers.pitch==0)
-                    {
-                        unit->availablemoves = 0;
-                    }
-                } else {
-                    unit->goTo(cc->latitude,cc->longitude);
-                }
-            }
-        }
-
-    }
-
-    // Control city production.
-    for(auto& [k,c]:cities)
-    {
-        if (c->faction == coordinator.a_f_id)
-        {
-            if (c->productionQueue.size()==0)
-            {
-                if (c->pop>1)
-                {
-                    int rand = getRandomInteger(0,2);
-
-                    switch (rand) 
-                    {
-                        case 0:
-                            c->productionQueue.push(new WarriorFactory());
-                            break;
-                        case 1:
-                            c->productionQueue.push(new SettlerFactory());
-                            break;
-                        case 2:
-                            c->productionQueue.push(new HorsemanFactory());
-                            break;
-                        default:
-                            c->productionQueue.push(new ArcherFactory());
-                    }
-                }
-            }
-        }
-    }
-}
-
 void setUpFaction()
 {
     controller.reset();
@@ -856,8 +729,21 @@ void setUpFaction()
         map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
         coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
         c = map.to_screen(c.lat,c.lon);
-        centermapinmap(c.lat, c.lon);   
+        if (controller.bcenterinmap) centermapinmap(c.lat, c.lon);   
     }      
+}
+
+bool noMoreMovementsLeft(int fid)
+{
+    bool nomore = true;
+    for(auto& [k, u] : units) 
+    {
+        if (u->faction == fid && !u->isFortified() && !u->isSentry() && u->availablemoves>0)
+        {
+            nomore = false;
+        }
+    }
+    return nomore;
 }
 
 // GAME Model Update
@@ -962,7 +848,17 @@ void update(int value)
 
     }
 
+    processCommandOrders();
+
     adjustMovements();
+
+
+    // @NOTE: Remove me if you want to wait until the user press the space bar to move ahead the end of turn.
+    if (noMoreMovementsLeft(coordinator.a_f_id))
+    {
+        coordinator.endofturn = true;
+    }
+
 
     if (coordinator.endofturn)
     {
@@ -982,8 +878,6 @@ void update(int value)
         }
 
     }
-
-    processCommandOrders();
     
     if (endOfTurnForAllFactions())
     {
