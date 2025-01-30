@@ -1,14 +1,8 @@
 #include "ai.h"
 
-#include <iostream>
-#include <fstream>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "boost/mpl/and.hpp"
 
-#include <iostream>
-#include <deque>
-#include <iterator>
+namespace mpl=boost::mpl;
 
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/topological_sort.hpp"
@@ -23,9 +17,19 @@
 #include <boost/graph/named_function_params.hpp>
 #include <boost/property_map/transform_value_property_map.hpp>
 
-#include <boost/bind.hpp>
-
 #include <boost/phoenix.hpp>
+
+#include <iostream>
+#include <fstream>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <iostream>
+#include <deque>
+#include <iterator>
+
+
 using boost::phoenix::arg_names::arg1;
 
 #include <iostream>
@@ -123,7 +127,7 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && map.peek(lat,lon).isUnassignedLand())
+            if (map.peek(lat,lon).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
                 auto v = add_vertex({lat,lon,0,0}, tree);
         }
 
@@ -133,7 +137,7 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && map.peek(lat,lon).isUnassignedLand())
+            if (map.peek(lat,lon).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
             {
                 auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
                 
@@ -143,7 +147,7 @@ Tree buildTraversalTree(int faction)
                         if (i==0 && j==0)
                             continue;
 
-                        if (map.peek(lat+i,lon+j).code == LAND && map.peek(lat+i,lon+j).isUnassignedLand())
+                        if (map.peek(lat+i,lon+j).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
                         {
                             auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
                             // @FIXME: Add terrain cost here on the edge.
@@ -257,7 +261,14 @@ int reachableLand(Unit* unit, bool &ok)
 coordinate goTo(Unit* unit, bool &ok)
 {
 
-    Tree tree = buildTree();
+    if (map.peek(unit->latitude,unit->longitude).code != LAND || (!(map.peek(unit->latitude,unit->longitude).isUnassignedLand() || map.peek(unit->latitude,unit->longitude).getOwnedBy() == unit->faction)))
+    {
+        ok = false;
+        return coordinate(0,0);
+    }
+
+
+    Tree tree = buildTraversalTree(unit->faction);
     auto vv = boost::make_iterator_range(vertices(tree));
     
     // At this point, the tree is built.

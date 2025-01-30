@@ -127,14 +127,14 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Add a way in which fortified units can be selected.
 * Sentry is clearly used only for ships and I think that is Ok.
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
-* Paint land ownership.  This can be easily done using the png tile that shows red on each city based on the f_owner_id value.
+* <strike>Paint land ownership.  This can be easily done using the png tile that shows red on each city based on the f_owner_id value.</strike>
 * The f_owner_id value can be used as temperature on a heat diffusion model.  The heat can be increased by culture.  When a unit visit a tile, it own the tile, but when the unit left, the sourrounding heat will be transferred by the gaussian smoothing operation.
 * Add the spheroid concept into map: by doing this we can make sense of the maps locations on the south and north (what if the offset procedure can be extended vertically as well?)
 * Add a world edit testcase to create customized maps.
 * Include diplomatic into Factions (and remove the war bool flag).
-* Improve the way we can center into cities: this will help to fix the issue with the city screen.
+* <strike>Improve the way we can center into cities: this will help to fix the issue with the city screen.</strike>
 * Handle what happens when a trireme lands into a occupied land, a city land, or a land with enemy units (amphibious attack?).
-* Show attack unit versus defending units.
+* <strike>Show attack unit versus defending units.</strike>
 
 # Features
 
