@@ -35,7 +35,7 @@ extern int REAL_SCREEN_HEIGHT;
 
 int width = SCREEN_WIDTH;
 int height = SCREEN_HEIGHT;
-int mapzoom=1;
+float mapzoom=1;
 
 float cx;
 float cy;
@@ -43,13 +43,12 @@ float cy;
 void zoommapin()
 {
     if (mapzoom < 11)
-        mapzoom++;
+        mapzoom=mapzoom*2;
 }
 
 void zoommapout()
 {
-    if (mapzoom>1)
-        mapzoom--;
+    mapzoom=mapzoom/2;
 }
 
 void resetzoom()
