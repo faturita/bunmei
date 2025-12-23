@@ -473,7 +473,7 @@ void drawUnitsAndCities()
         unfog(c.lat,c.lon);
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
-        if (coordinator.a_u_id != u->id && (units.find(coordinator.a_f_id)==units.end() || units[coordinator.a_u_id]->getCoordinate() != u->getCoordinate()))
+        if (coordinator.a_u_id != u->id && (units.find(coordinator.a_u_id)==units.end() || units[coordinator.a_u_id]->getCoordinate() != u->getCoordinate()))
             u->draw();
     }
 

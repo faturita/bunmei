@@ -9,7 +9,9 @@ struct Coordinator
     CommandOrder corder;
 
     public:
+    // Unit id of the active unit
     int a_u_id;
+    // Faction id of the active player
     int a_f_id;
     bool endofturn = false;
 

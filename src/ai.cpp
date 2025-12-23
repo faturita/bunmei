@@ -293,6 +293,14 @@ coordinate goTo(Unit* unit, bool &ok)
         printf("Target %d: %d,%d Predecessor %d\n",*target, lat,lon,tree[*target].pred);
         int pred = tree[*target].pred;
 
+        // Check if prd is a valid element in the graph.
+        if (pred < 0 || pred >= (int)num_vertices(tree))
+        {
+            ok = false;
+            printf("There is no way to get there...\n");
+            return coordinate(0,0);
+        }
+
         lat = tree[pred].lat;
         lon = tree[pred].lon;
 

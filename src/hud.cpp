@@ -148,12 +148,12 @@ void drawHUD()
     drawString(0,-90,1,str,0.2f);
 
     sprintf (str, "Alphabet");
-    placeMark4(30 + strlen(str)*10,-110,7*3,"assets/assets/status/science_25.png");
-    drawString(0,-120,1,str,0.2f);
+    placeMark4(10,-110,7*3,"assets/assets/status/science_25.png");
+    drawString(30,-120,1,str,0.2f);
 
     sprintf (str, "%d",factions[coordinator.a_f_id]->coins);
-    placeMark4(30 + strlen(str)*10,-140,7*3,"assets/assets/city/gold.png");
-    drawString(0,-150,1,str,0.2f);
+    placeMark4(10,-140,7*3,"assets/assets/city/gold.png");
+    drawString(30,-150,1,str,0.2f);
 
 
     if (coordinator.a_u_id != CONTROLLING_NONE)
