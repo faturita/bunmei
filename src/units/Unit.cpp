@@ -89,7 +89,7 @@ MOVEMENT_TYPE Unit::getMovementType()
 
 void Unit::goTo(int lat, int lon)
 {
-    printf("Target Lat Lon %d, %d\n",lat,lon);
+    printf("GoTo: Target (Lat,Lon)=(%d, %d)\n",lat,lon);
     autoMode = true;
     target = coordinate(lat,lon);
 }
