@@ -11,6 +11,8 @@
 #include "engine.h"
 #include "coordinator.h"
 #include "usercontrols.h"
+#include "messages.h"
+#include "savegame.h"
 
 
 extern Coordinator coordinator;
@@ -26,7 +28,48 @@ bool goToMode = false;
 
 Controller controller;
 
+extern int year;
+
 void handleKeypress(unsigned char key, int x, int y) {
+
+    if (controller.isTeletype())
+    {
+        if (key == 13) // Enter key
+        {
+
+            if (controller.str.find("save")!=std::string::npos)
+            {
+                std::string savegamefilename;
+
+                if (controller.str.length()<=4)
+                {
+                    savegamefilename = "savegame.dat";
+                } else {
+                    savegamefilename = controller.str.substr(5);
+                }
+                savegame(savegamefilename.c_str());
+            }
+
+
+            controller.teletype = false;
+            message(year, coordinator.a_f_id, controller.str.c_str());
+
+            controller.str.clear();
+        }
+        else if (key == 127) // Backspace key
+        {
+            if (!controller.str.empty())
+            {
+                controller.str.pop_back();
+                fflush(stdout);
+            }
+        }
+        else
+        {
+            controller.str += key;
+        }
+    } else
+
     switch (key) {
         case 27: //Escape key
         {
@@ -52,6 +95,7 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'r':controller.registers.bank+=1.0f;break;
         case 'v':controller.registers.bank-=1.0f;break;
         case ' ':coordinator.endofturn=true;break;
+        case 't':controller.teletype=true;break;
         case 'l':controller.showLandOwnership = !controller.showLandOwnership;break;
         case 'G':
         {

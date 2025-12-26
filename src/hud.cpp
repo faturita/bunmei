@@ -171,6 +171,12 @@ void drawHUD()
     //sprintf (str, "Military Advisor: enemy units are coming from the south.");
     //drawString(0,-700,1,str,0.1f);
 
+    if (controller.isTeletype())
+    {
+        sprintf (str, ">>>%s",controller.str.c_str());
+        drawString(0,-650,1,str,0.1f,0.0f,1.0f,0.0f);
+    }
+
 
     static int mbrefresher = 1000;
     // Message board

@@ -114,6 +114,8 @@ int year;
 
 bool mute;
 
+bool preloadmap;
+
 
 void disclaimer()
 {
@@ -965,6 +967,12 @@ int main(int argc, char** argv) {
     printf("Width:%d\n", glutGet(GLUT_SCREEN_WIDTH) );
     printf("Height:%d\n", glutGet(GLUT_SCREEN_HEIGHT) );
 
+    preloadmap = false;
+    if (isPresentCommandLineParameter(argc,argv,"-loadmap"))
+    {
+        preloadmap = true;
+    }
+
     setupWorldModelling();
     initRendering();
     initSound();
@@ -972,6 +980,7 @@ int main(int argc, char** argv) {
     preloadFonts();
     if (!isPresentCommandLineParameter(argc,argv,"-nointro") && !isPresentCommandLineParameter(argc,argv,"-test"))
         {intro();controller.view = 5;}
+
 
     // OpenGL callback functions.
     glutDisplayFunc(drawScene);

@@ -12,13 +12,13 @@
 
 struct mapcell
 {
-    private:
+    public:
     int c_id_owner = UNASSIGNED_LAND;                           // Free land.
     int f_id_owner = FREE_LAND;                                 // Free land.
 
     int owners = 0;
 
-    public:
+
     mapcell(int code)
     {
         this->code = code;
