@@ -540,16 +540,16 @@ bool moveForward(Unit* unit, int lat, int lon)
     {
         return false;
     }
+ 
 
-
-    if (!map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(unit->faction))
+    if (!map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(unit->faction) && !war)
     {
         blocked();
         return false;
     }
 
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
-    if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)))
+    if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)) || (war && !map.set(lat,lon).isOwnedBy(unit->faction)) )
     {
         map.set(unit->latitude, unit->longitude).releaseOwner();
 
@@ -851,12 +851,7 @@ void update(int value)
     if (factions[coordinator.a_f_id]->autoPlayer)
     {
 
-        //autoPlayer();   // @FIXME: Comment this out because it is giving me so many errors.
-        if (units.find(coordinator.a_u_id)!=units.end())
-        {
-            Unit *unit = units[coordinator.a_u_id];
-            //unit->availablemoves = 0;
-        }
+        autoPlayer();   // @FIXME: Comment this out because it is giving me so many errors.
         //coordinator.endofturn = true;
     }
 

@@ -44,7 +44,7 @@ using boost::phoenix::arg_names::arg1;
 #include "engine.h"
 #include "tiles.h"
 
-
+extern bool war;
 
 struct CoordinateVertex {
     int lat;
@@ -127,7 +127,12 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
+            if (map.peek(lat,lon).code == LAND && 
+                (
+                map.peek(lat,lon).isUnassignedLand() || 
+                map.peek(lat,lon).getOwnedBy() == faction || 
+                (map.peek(lat,lon).getOwnedBy() != faction && war)
+                ) )
                 auto v = add_vertex({lat,lon,0,0}, tree);
         }
 
@@ -137,7 +142,12 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
+            if (map.peek(lat,lon).code == LAND && 
+                (
+                map.peek(lat,lon).isUnassignedLand() || 
+                map.peek(lat,lon).getOwnedBy() == faction || 
+                (map.peek(lat,lon).getOwnedBy() != faction && war)
+                ) )
             {
                 auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
                 
@@ -147,7 +157,12 @@ Tree buildTraversalTree(int faction)
                         if (i==0 && j==0)
                             continue;
 
-                        if (map.peek(lat+i,lon+j).code == LAND && (map.peek(lat,lon).isUnassignedLand() || map.peek(lat,lon).getOwnedBy() == faction))
+                        if (map.peek(lat+i,lon+j).code == LAND && 
+                        (
+                        map.peek(lat+i,lon+j).isUnassignedLand() || 
+                        map.peek(lat+i,lon+j).getOwnedBy() == faction || 
+                        (map.peek(lat+i,lon+j).getOwnedBy() != faction && war)
+                        ) )
                         {
                             auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
                             // @FIXME: Add terrain cost here on the edge.
@@ -298,6 +313,7 @@ coordinate goTo(Unit* unit, bool &ok)
         {
             ok = false;
             printf("There is no way to get there...\n");
+            exit(-1);
             return coordinate(0,0);
         }
 
@@ -313,7 +329,7 @@ coordinate goTo(Unit* unit, bool &ok)
     for(auto iter=vpair.first; iter!=vpair.second; iter++)
     {
         auto vd = *iter;
-        //std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
+        std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
     }
 
     if (lasttarget == -1)
@@ -437,14 +453,14 @@ void autoPlayer()
                     unit->goTo(u->latitude,u->longitude);
                 }
             }
-            
+
             if (nc == nullptr)
             {
                 // If there is a defenseless enemy city nearby, capture it.
                 City* cc = nullptr;
                 for(auto& [cid,c]:cities)
                 {
-                    if (c->faction != unit->faction && !c->isDefendedCity())
+                    if (c->faction != unit->faction && !c->isDefendedCity() && war)
                     {
                         cc = c;
                     }
