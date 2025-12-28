@@ -555,7 +555,8 @@ bool moveForward(Unit* unit, int lat, int lon)
 
     if (!map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(unit->faction) && !war)
     {
-        blocked();
+        if (!factions[coordinator.a_f_id]->autoPlayer)
+            blocked();
         return false;
     }
 
@@ -677,14 +678,14 @@ void moveUnit(Unit* unit, int lat, int lon)
                 if (!war)
                 {
                     factions[coordinator.a_f_id]->blinkingrate = 10;
-                    blocked();
+                    if (!factions[coordinator.a_f_id]->autoPlayer) blocked();
                 }   
             } 
 
         } else
         {
             factions[coordinator.a_f_id]->blinkingrate = 10;
-            blocked();  // @FIXME: differentiate between controlling unit and activeunit (active is what i am currently using indeed)
+            if (!factions[coordinator.a_f_id]->autoPlayer) blocked();  // @FIXME: differentiate between controlling unit and activeunit (active is what i am currently using indeed)
         }
     }
 }

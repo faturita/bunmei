@@ -471,7 +471,7 @@ void autoPlayer()
                         coordinate co = goTo(unit, ok, c->latitude, c->longitude);
                         if (ok)
                             cc = c;
-                    }
+                    }                  
                 }
 
                 if (cc == nullptr)

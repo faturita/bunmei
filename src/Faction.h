@@ -13,7 +13,7 @@ class Faction {
         int id;
         int red, green, blue;
 
-        bool autoPlayer = true;
+        bool autoPlayer = true; //@NOTE Change this if you want to be able to control the other factions.
 
         int mapoffset;
 
