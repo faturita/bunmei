@@ -35,6 +35,7 @@ public:
     int id;
     int pop;
     char name[256];
+    int foundedyear;
 
     int shields;
     int food;

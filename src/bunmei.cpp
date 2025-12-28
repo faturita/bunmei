@@ -217,6 +217,8 @@ inline void processCommandOrders()
 
         }
 
+        city->foundedyear = year;
+
         // What the city can actually build.
         city->buildable.push_back(new BarracksFactory());
         city->buildable.push_back(new PalaceFactory());
@@ -794,6 +796,8 @@ void update(int value)
     for(auto& f:factions)
     {
         //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
+
+        // @NOTE: Pop and coins are reset here and recalculated later.
         f->pop = 0;
         f->coins = 0;
     }
@@ -847,7 +851,7 @@ void update(int value)
         else
         {
             // Cancel goto operation and make a sound.
-            if (!units[coordinator.a_u_id]->arrived()) blocked();
+            //if (!units[coordinator.a_u_id]->arrived()) blocked();
             units[coordinator.a_u_id]->resetGoTo();
         }
 

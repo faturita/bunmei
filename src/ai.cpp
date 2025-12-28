@@ -273,7 +273,7 @@ int reachableLand(Unit* unit, bool &ok)
 // Build the tree and the path to the destination.
 // Calculate the next movement based on Dijkstra algorithm.
 // @FIXME: Only works for land, it should consider water, the terrain cost, and also the presence of enemy units and cities.
-coordinate goTo(Unit* unit, bool &ok)
+coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
 {
 
     if (map.peek(unit->latitude,unit->longitude).code != LAND || (!(map.peek(unit->latitude,unit->longitude).isUnassignedLand() || map.peek(unit->latitude,unit->longitude).getOwnedBy() == unit->faction)))
@@ -298,8 +298,8 @@ coordinate goTo(Unit* unit, bool &ok)
             
 
     // Track back the result until you find where the unit is located now.
-    lat = unit->target.lat;
-    lon = unit->target.lon;
+    lat = targetlat;
+    lon = targetlon;
     auto target = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
 
     int lasttarget=-1;
@@ -343,6 +343,11 @@ coordinate goTo(Unit* unit, bool &ok)
     printf("Next movement: %d %d %d\n",lasttarget,tree[lasttarget].lat, tree[lasttarget].lon);
     return coordinate(tree[lasttarget].lat, tree[lasttarget].lon);
 
+}
+
+coordinate goTo(Unit* unit, bool &ok)
+{
+    return goTo(unit, ok, unit->target.lat, unit->target.lon);
 }
 
 #include "Faction.h"
@@ -462,7 +467,10 @@ void autoPlayer()
                 {
                     if (c->faction != unit->faction && !c->isDefendedCity() && war)
                     {
-                        cc = c;
+                        bool ok;
+                        coordinate co = goTo(unit, ok, c->latitude, c->longitude);
+                        if (ok)
+                            cc = c;
                     }
                 }
 

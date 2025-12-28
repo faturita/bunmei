@@ -89,6 +89,7 @@ void savegame(const char* filename)
         out.write(reinterpret_cast<const char*>(&c->pop), sizeof(c->pop));
         out.write(reinterpret_cast<const char*>(&c->shields), sizeof(c->shields));
         out.write(reinterpret_cast<const char*>(&c->food), sizeof(c->food));
+        out.write(reinterpret_cast<const char*>(&c->foundedyear), sizeof(c->foundedyear));
 
         // Save city name
         size_t name_len = strlen(c->name);
@@ -199,6 +200,7 @@ void loadCities(std::ifstream& in)
         in.read(reinterpret_cast<char*>(&c->pop), sizeof(c->pop));
         in.read(reinterpret_cast<char*>(&c->shields), sizeof(c->shields));
         in.read(reinterpret_cast<char*>(&c->food), sizeof(c->food));
+        in.read(reinterpret_cast<char*>(&c->foundedyear), sizeof(c->foundedyear));
 
         // Load city name
         size_t name_len = 0;
@@ -352,7 +354,7 @@ void loadUnits(std::ifstream& in)
         u->name[name_len] = '\0';
 
         printf("Loaded unit: %s (ID: %d, Faction: %d, Location: (%d, %d), Available Moves: %d)\n",
-               str, u->id, u->faction, u->latitude, u->longitude, u->availablemoves);
+               u->name, u->id, u->faction, u->latitude, u->longitude, u->availablemoves);
 
         units[u->id] = u;
     }    
