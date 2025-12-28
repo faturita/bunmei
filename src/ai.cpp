@@ -313,7 +313,6 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
         {
             ok = false;
             printf("There is no way to get there...\n");
-            exit(-1);
             return coordinate(0,0);
         }
 
@@ -357,10 +356,22 @@ coordinate goTo(Unit* unit, bool &ok)
 #include "units/Settler.h"
 #include "units/Horseman.h"
 #include "units/Archer.h"
+#include "units/Swordman.h"
 
 
 extern Coordinator coordinator;
 extern Controller controller;
+
+#include <cmath>
+
+bool isNearbyOrSameContinent(Unit* a, Unit* b, float maxDistance = 3.0f) {
+    float dx = static_cast<float>(a->latitude - b->latitude);
+    float dz = static_cast<float>(a->longitude - b->longitude);
+    float dist = std::sqrt(dx * dx + dz * dz);
+    // TODO: Replace with continent check if available
+    return dist <= maxDistance;
+}
+
 
 int getNumberOfCities(int f_id)
 {
@@ -449,13 +460,29 @@ void autoPlayer()
                 }
             }
 
+            if (Swordman* w = dynamic_cast<Swordman*>(units[coordinator.a_u_id]))
+            for(auto& [uid,u]:units)
+            {
+                // Attack unit.
+                if (u->faction != unit->faction)
+                {
+                    bool ok;
+                    coordinate co = goTo(unit, ok, u->latitude, u->longitude);
+                    if (ok)
+                        unit->goTo(u->latitude,u->longitude);
+                }
+            }
+
             if (Horseman* w = dynamic_cast<Horseman*>(units[coordinator.a_u_id]))
             for(auto& [uid,u]:units)
             {
                 // Attack unit.
                 if (u->faction != unit->faction)
                 {
-                    unit->goTo(u->latitude,u->longitude);
+                    bool ok;
+                    coordinate co = goTo(unit, ok, u->latitude, u->longitude);
+                    if (ok)
+                        unit->goTo(u->latitude,u->longitude);
                 }
             }
 
@@ -501,8 +528,7 @@ void autoPlayer()
             {
                 if (c->pop>1)
                 {
-                    int rand = getRandomInteger(0,3);
-
+                    int rand = getRandomInteger(0,4);
                     switch (rand) 
                     {
                         case 0:
@@ -512,7 +538,9 @@ void autoPlayer()
                         {
                             int numberOfCities = getNumberOfCities(c->faction);
 
-                            if (numberOfCities<5)
+                            // Calculate the density of cities and stop from a limit there.
+
+                            if (numberOfCities<50)
                             {
                                 c->productionQueue.push(new SettlerFactory());
                             }
@@ -521,10 +549,14 @@ void autoPlayer()
                         case 2:
                             c->productionQueue.push(new HorsemanFactory());
                             break;
-                        case 3:default:
+                        case 3:
+                            c->productionQueue.push(new SwordmanFactory());
+                            break;
+                        default:
                             c->productionQueue.push(new ArcherFactory());
                             break;
                     }
+
                 }
             }
         }
