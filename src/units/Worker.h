@@ -9,7 +9,7 @@ class Worker : public Unit
 {
     public:
     Worker();
-
+    int getSubType();
     bool canBuildCity();
 };
 

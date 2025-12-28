@@ -9,6 +9,7 @@ class Archer : public Unit
 {
     public:
     Archer();
+    int getSubType() override;
 };
 
 class ArcherFactory : public BuildableFactory

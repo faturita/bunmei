@@ -9,6 +9,7 @@ class Horsearcher : public Unit
 {
     public:
     Horsearcher();
+    int getSubType();
 };
 
 class HorsearcherFactory : public BuildableFactory

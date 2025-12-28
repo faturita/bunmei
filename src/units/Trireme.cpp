@@ -78,6 +78,11 @@ Trireme* TriremeFactory::create()
     return new Trireme();
 }
 
+int Trireme::getSubType()
+{
+    return UNIT_TRIREME;
+}
+
 TriremeFactory::TriremeFactory()
 {
     strncpy(this->name,"Trireme",256);  
@@ -87,4 +92,6 @@ int TriremeFactory::cost(int r_id)
 {
     return 40;
 }
+
+
 

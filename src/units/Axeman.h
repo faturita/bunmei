@@ -9,6 +9,7 @@ class Axeman : public Unit
 {
     public:
     Axeman();
+    int getSubType();
 };
 
 class AxemanFactory : public BuildableFactory

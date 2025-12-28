@@ -203,3 +203,8 @@ void Unit::goBackOnCompletion()
     goBack = true;
 }
 
+int Unit::getSubType()
+{
+    return -1;
+}
+

@@ -15,6 +15,10 @@ Settler::Settler()
     aw = 0;
 }
 
+int Settler::getSubType()
+{
+    return UNIT_SETTLER;
+}
 bool Settler::canBuildCity()
 {
     return true;
@@ -35,3 +39,4 @@ int SettlerFactory::cost(int r_id)
     // @FIXME: Add also the cost in terms of food (and modify the loop to include all the required resources)
     return 100;
 }
+

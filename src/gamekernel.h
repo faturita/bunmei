@@ -7,5 +7,6 @@ void initResources();
 
 void initWorldModelling();
 void worldStep(int value);
+void loadWorldModelling();
 
 #endif // GAMEKERNEL_H

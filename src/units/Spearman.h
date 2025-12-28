@@ -9,6 +9,7 @@ class Spearman : public Unit
 {
     public:
     Spearman();
+    int getSubType();
 };
 
 class SpearmanFactory : public BuildableFactory

@@ -7,6 +7,14 @@
 #include <cstring>
 #include "../buildable.h"
 
+enum BUILDING_SUBTYPE
+{
+    BUILDING_PALACE = 0,
+    BUILDING_BARRACKS = 1,
+    BUILDING_GRANARY = 2,
+    BUILDING_COLLOSSEUM = 3
+};
+
 class Building : public Buildable
 {
     public:
@@ -16,6 +24,7 @@ class Building : public Buildable
     char assetname[256];
     void setName(const char* name);
     BuildableType getType();
+    int virtual getSubType();
 };
 
 #endif   //BUILDING_H

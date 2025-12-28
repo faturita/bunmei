@@ -13,6 +13,11 @@ Archer::Archer()
     dw = 2;
 }
 
+int Archer::getSubType()
+{
+    return UNIT_ARCHER;
+}
+
 Archer* ArcherFactory::create()
 {
     return new Archer();

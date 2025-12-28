@@ -9,6 +9,7 @@ class Horseman : public Unit
 {
     public:
     Horseman();
+    int getSubType();
 };
 
 class HorsemanFactory : public BuildableFactory

@@ -13,7 +13,10 @@ Horseman::Horseman()
     aw = 2;
 }
 
-
+int Horseman::getSubType()
+{
+    return UNIT_HORSEMAN;
+}
 // ----------------------------
 
 Horseman* HorsemanFactory::create()
@@ -30,3 +33,4 @@ int HorsemanFactory::cost(int r_id)
 {
     return 40;
 }
+

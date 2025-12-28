@@ -13,6 +13,12 @@ Swordman::Swordman()
     aw = 4;
 }
 
+int Swordman::getSubType()
+{
+    return UNIT_SWORDMAN;
+}
+
+
 Swordman* SwordmanFactory::create()
 {
     return new Swordman();

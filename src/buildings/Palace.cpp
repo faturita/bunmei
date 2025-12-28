@@ -6,6 +6,11 @@ Palace::Palace()
     strncpy(this->assetname,"assets/assets/city/palace.png",256);
 }
 
+int Palace::getSubType()
+{
+    return BUILDING_PALACE;
+}
+
 // --------------------------------------------------------
 Buildable* PalaceFactory::create()
 {

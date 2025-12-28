@@ -14,3 +14,8 @@ BuildableType Building::getType()
 {
     return BuildableType::BUILDING;
 }
+
+int Building::getSubType()
+{
+    return -1; // Base Building has no subtype
+}

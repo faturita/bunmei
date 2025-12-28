@@ -14,6 +14,12 @@ Axeman::Axeman()
     aw = 3;
 }
 
+int Axeman::getSubType()
+{
+    return UNIT_AXEMAN;
+}
+
+
 Axeman* AxemanFactory::create()
 {
     return new Axeman();

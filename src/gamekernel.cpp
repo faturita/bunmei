@@ -18,6 +18,8 @@
 
 #include "tiles.h"
 
+#include "savegame.h"
+
 extern Coordinator coordinator;
 extern Controller controller;
 
@@ -37,6 +39,8 @@ void update(int value);
 extern int year;
 
 extern bool preloadmap;
+
+extern char filegame[256];
 
 void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
 {
@@ -682,4 +686,35 @@ void initWorldModelling()
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();     
+}
+
+void loadWorldModelling()
+{
+    std::ifstream in(filegame, std::ios::binary);
+    if (!in) {
+        printf("Error opening savegame.dat for reading.\n");
+        return;
+    }
+
+    printf("Loading saved game from %s...\n", filegame);
+
+    // Load year, this is the first thing saved in the savegame file.
+    in.read(reinterpret_cast<char*>(&year), sizeof(year));
+
+    initFactions();
+
+    loadCities(in);
+
+    loadUnits(in);
+
+    //initUnits();
+
+    coordinator.a_f_id = factions[0]->id;
+    coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
+    factions[0]->autoPlayer = false;
+
+    centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
+    zoommapin();
+
+    in.close();
 }

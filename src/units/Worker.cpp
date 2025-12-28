@@ -14,6 +14,10 @@ Worker::Worker()
     dw = 0;
 }
 
+int Worker::getSubType()
+{
+    return UNIT_WORKER;
+}
 
 bool Worker::canBuildCity()
 {
@@ -34,3 +38,4 @@ int WorkerFactory::cost(int r_id)
 {
     return 40;
 }
+

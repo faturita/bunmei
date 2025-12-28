@@ -13,6 +13,11 @@ Horsearcher::Horsearcher()
     aw = 2;
 }
 
+int Horsearcher::getSubType()
+{
+    return UNIT_HORSEARCHER;
+}
+
 // ----------------------------
 
 Horsearcher* HorsearcherFactory::create()
@@ -29,3 +34,4 @@ int HorsearcherFactory::cost(int r_id)
 {
     return 40;
 }
+

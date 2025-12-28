@@ -13,6 +13,11 @@ Spearman::Spearman()
     dw = 3;
 }
 
+int Spearman::getSubType()
+{
+    return UNIT_SPEARMAN;
+}
+
 Spearman* SpearmanFactory::create()
 {
     return new Spearman();
@@ -27,4 +32,6 @@ int SpearmanFactory::cost(int r_id)
 {
     return 40;
 }
+
+
 

@@ -6,6 +6,11 @@ Collosseum::Collosseum()
     strncpy(this->assetname,"assets/assets/city/collosseum.png",256);
 }
 
+int Collosseum::getSubType()
+{
+    return BUILDING_COLLOSSEUM;
+}
+
 // --------------------------------------------------------
 
 CollosseumFactory::CollosseumFactory()

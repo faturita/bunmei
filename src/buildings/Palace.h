@@ -7,6 +7,7 @@ class Palace : public Building
 {
     public:
     Palace();
+    int getSubType() override;
 };
 
 class PalaceFactory : public BuildableFactory

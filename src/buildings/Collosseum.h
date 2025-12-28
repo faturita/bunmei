@@ -7,6 +7,7 @@ class Collosseum : public Building
 {
     public:
     Collosseum();
+    int getSubType() override;
 };
 
 // --------------------------------------------------------

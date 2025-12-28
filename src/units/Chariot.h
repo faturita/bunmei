@@ -9,6 +9,7 @@ class Chariot : public Unit
 {
     public:
     Chariot();
+    int getSubType();
 };
 
 class ChariotFactory : public BuildableFactory

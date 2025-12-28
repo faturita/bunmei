@@ -22,6 +22,8 @@ class Trireme : public Unit
         virtual int manifest();
 
         virtual void update(int lat, int lon);
+
+        int getSubType();
 };
 
 // -----------------------------------------------

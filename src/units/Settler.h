@@ -9,7 +9,7 @@ class Settler : public Unit
 {
     public:
     Settler();
-
+    int getSubType();
     bool canBuildCity();
 };
 

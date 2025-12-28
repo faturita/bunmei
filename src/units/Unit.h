@@ -15,6 +15,23 @@ enum MOVEMENT_TYPE
     AIRTYPE
 };
 
+
+enum UNIT_SUBTYPE
+{
+    UNIT_ARCHER = 0,
+    UNIT_WARRIOR = 1,
+    UNIT_SPEARMAN = 2,
+    UNIT_SWORDMAN = 3,
+    UNIT_AXEMAN = 4,
+    UNIT_HORSEMAN = 5,
+    UNIT_HORSEARCHER = 6,
+    UNIT_SETTLER = 7,
+    UNIT_WORKER = 8,
+    UNIT_TRIREME = 9,
+    UNIT_GALLEY = 10,
+    UNIT_CHARIOT = 11
+};
+
 class Unit : public Buildable
 {
     protected:
@@ -58,6 +75,7 @@ class Unit : public Buildable
     bool virtual canBuildCity();
     int virtual cost(int r_id);
     BuildableType getType();
+    int virtual getSubType();
     MOVEMENT_TYPE virtual getMovementType();
 
     void goTo(int lat, int lon);

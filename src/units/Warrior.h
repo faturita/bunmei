@@ -9,6 +9,7 @@ class Warrior : public Unit
 {
     public:
     Warrior();
+    int getSubType();
 
 };
 

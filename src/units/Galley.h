@@ -9,7 +9,7 @@ class Galley : public Unit
 {
     public:
     Galley();
-
+    int getSubType();
     MOVEMENT_TYPE virtual getMovementType();
 };
 

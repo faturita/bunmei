@@ -12,6 +12,10 @@ Galley::Galley()
     moves = 4;
 }
 
+int Galley::getSubType()
+{
+    return UNIT_GALLEY;
+}
 
 MOVEMENT_TYPE Galley::getMovementType()
 {
@@ -34,3 +38,4 @@ int GalleyFactory::cost(int r_id)
 {
     return 40;
 }
+

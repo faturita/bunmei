@@ -14,6 +14,11 @@ Chariot::Chariot()
     aw = 3;
 }
 
+int Chariot::getSubType()
+{
+    return UNIT_CHARIOT;
+}
+
 Chariot* ChariotFactory::create()
 {
     return new Chariot();
@@ -28,4 +33,6 @@ int ChariotFactory::cost(int r_id)
 {
     return 40;
 }
+
+
 

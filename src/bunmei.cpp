@@ -116,6 +116,9 @@ bool mute;
 
 bool preloadmap;
 
+bool loadgame;
+char filegame[256];
+
 
 void disclaimer()
 {
@@ -127,7 +130,10 @@ void setupWorldModelling()
 {
     initMap();
 
-    initWorldModelling();
+    if (loadgame)
+        loadWorldModelling();
+    else
+        initWorldModelling();
 }
 
 void initRendering()
@@ -196,7 +202,8 @@ inline void processCommandOrders()
 
 
         City *city = new City(&map, units[coordinator.a_u_id]->faction,getNextCityId(),units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
-        city->setName(citynames[coordinator.a_f_id].front().c_str());citynames[coordinator.a_f_id].pop();
+        city->setName(citynames[coordinator.a_f_id].front().c_str());
+        citynames[coordinator.a_f_id].pop();
 
         // @NOTE: When the population is zero, the first city is the capital city.
         if (factions[coordinator.a_f_id]->pop==0)
@@ -971,6 +978,18 @@ int main(int argc, char** argv) {
     if (isPresentCommandLineParameter(argc,argv,"-loadmap"))
     {
         preloadmap = true;
+    }
+
+    loadgame = false;
+    if (isPresentCommandLineParameter(argc,argv,"-loadgame"))
+    {
+        loadgame = true;
+        strcpy(filegame, getCommandLineParameter(argc,argv,"-loadgame"));
+        struct stat buffer;
+        if (stat(filegame, &buffer) != 0) {
+            std::cerr << "Error: The file " << filegame << " does not exist." << std::endl;
+            exit(1);
+        }
     }
 
     setupWorldModelling();

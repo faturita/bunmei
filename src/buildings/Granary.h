@@ -7,6 +7,7 @@ class Granary : public Building
 {
     public:
     Granary();
+    int getSubType() override;
 };
 
 class GranaryFactory : public BuildableFactory

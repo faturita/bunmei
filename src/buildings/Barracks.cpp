@@ -6,6 +6,11 @@ Barracks::Barracks()
     strncpy(this->assetname,"assets/assets/city/barracks.png",256);
 }
 
+int Barracks::getSubType()
+{
+    return BUILDING_BARRACKS;
+}
+
 // --------------------------------------------------------
 
 BarracksFactory::BarracksFactory()

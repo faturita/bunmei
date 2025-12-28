@@ -6,6 +6,11 @@ Granary::Granary()
     strncpy(this->assetname,"assets/assets/city/granary.png",256);
 }
 
+int Granary::getSubType()
+{
+    return BUILDING_GRANARY;
+}
+
 // --------------------------------------------------------
 GranaryFactory::GranaryFactory()
 {

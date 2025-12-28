@@ -12,6 +12,11 @@ Warrior::Warrior()
     moves = 2;
 }
 
+int Warrior::getSubType()
+{
+    return UNIT_WARRIOR;
+}
+
 Warrior* WarriorFactory::create()
 {
     return new Warrior();
@@ -26,4 +31,6 @@ int WarriorFactory::cost(int r_id)
 {
     return 40;
 }
+
+
 
