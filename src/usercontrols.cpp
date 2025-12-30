@@ -149,6 +149,12 @@ void handleKeypress(unsigned char key, int x, int y) {
             coordinator.push(co);
         }
         break;
+        case 'S':
+        {
+            CommandOrder co;
+            co.command = Command::SentryUnitOrder;
+            coordinator.push(co);
+        }
         default:break;
     }
 }
@@ -249,6 +255,13 @@ void processMouse(int button, int state, int x, int y)
                                     {
                                         u->packUp();
                                     }
+
+                                    if (u->isSentry())
+                                    {
+                                        u->wakeUp();
+                                    }
+
+
                                     break;
                                 } else {
                                     printf("This is not your unit\n"); //@FIXME debug message

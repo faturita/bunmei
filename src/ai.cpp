@@ -118,6 +118,78 @@ Tree buildTree()
     return tree;
 }
 
+template<typename Condition>
+Tree buildGenericTraversalTree(Condition condition)
+{
+    Tree tree;
+
+    // Add all the land vertices into the graph.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (condition(lat, lon))
+                auto v = add_vertex({lat,lon,0,0}, tree);
+        }
+
+    auto vv = boost::make_iterator_range(vertices(tree));
+
+    // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            if (condition(lat, lon))
+            {
+                auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+                
+                for(int i=-1;i<=1;i++)
+                    for(int j=-1;j<=1;j++)
+                    {
+                        if (i==0 && j==0)
+                            continue;
+
+                        if (condition(lat+i, lon+j))
+                        {
+                            auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
+                            // @FIXME: Add terrain cost here on the edge.
+                            add_edge(*start, *end, Edge{1}, tree);
+                        }
+                    }
+            }
+        }
+
+    return tree;
+}
+
+int determineLandMass(coordinate c)
+{
+
+    Tree tree = buildGenericTraversalTree([](int lat, int lon) {
+        return map.peek(lat,lon).code == LAND;
+    });
+
+    // Ok, now with the Tree I can start on the coordinate c and count how many nodes are reachable.
+    auto vv = boost::make_iterator_range(vertices(tree));
+    int lat = c.lat;
+    int lon = c.lon;
+    auto source = find_if(vv, [&, lat,lon](auto vd) {
+        return tree[vd].lat == lat && tree[vd].lon == lon;
+    });
+
+    if (source == vv.end())
+        return 0;
+
+    dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
+
+    int reachablecount = 0;
+    for(auto iter=vv.begin(); iter!=vv.end(); iter++)
+    {
+        auto vd = *iter;
+        if (tree[vd].dist < std::numeric_limits<int>::max())
+            reachablecount++;
+    }
+    return reachablecount;
+
+}
 
 Tree buildTraversalTree(int faction)
 {

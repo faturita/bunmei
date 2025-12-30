@@ -272,6 +272,14 @@ inline void processCommandOrders()
 
         coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
     }
+    else if (co.command == Command::SentryUnitOrder)
+    {
+        Unit *unit = units[coordinator.a_u_id];
+        unit->sentry();
+        unit->availablemoves = 0;
+
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+    }
 }
 
 inline void endOfYear()

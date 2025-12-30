@@ -8,6 +8,7 @@
 #include "City.h"
 #include "resources.h"
 #include "coordinator.h"
+#include "ai.h"
 
 #include "units/Unit.h"
 #include "units/Warrior.h"
@@ -215,7 +216,9 @@ void initMap()
     
     initCommodities(resourcesxbioma);
 
-    map.init();
+    map.init(MAPHALFHEIGHT,MAPHALFWIDTH);
+
+    std::vector<coordinate> landmassseeds;
 
     if (preloadmap)
         loadMap();
@@ -273,8 +276,8 @@ void initMap()
                 if (dir==1) lat+=1;
                 if (dir==2) lon+=1;
                 if (dir==3) lon-=1;
-
             }
+            landmassseeds.push_back(coordinate(lat,lon));
         }
 
         // Fill in randomly the land masses with land.
@@ -553,6 +556,14 @@ void initMap()
 
 
         saveMap();
+    }
+
+    for(auto &lm: landmassseeds)
+    {
+        printf("Landmass Seed at %d,%d\n",lm.lat,lm.lon) ;
+        coordinate c = lm;
+        int land = determineLandMass(c);
+        printf(" Landmass Size %d\n",land) ;
     }
    
     assignProductionRates(map, resources);

@@ -115,13 +115,18 @@ class Map
 
     public:
         int offsetlat, offsetlon;
-        int minlat = -MAPHALFHEIGHT;
-        int maxlat = MAPHALFHEIGHT;
-        int minlon = -MAPHALFWIDTH;
-        int maxlon = MAPHALFWIDTH;
+        int minlat;
+        int maxlat;
+        int minlon;
+        int maxlon;
 
-        void init()
+        void init(int halfheight, int halfwidth)
         {
+            minlat = -halfheight;
+            maxlat = halfheight;
+            minlon = -halfwidth;
+            maxlon = halfwidth;
+
             offsetlat = 0;
             offsetlon = 0;
             int no_of_cols = maxlon-minlon;
