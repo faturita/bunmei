@@ -505,7 +505,7 @@ void drawUnitsAndCities()
 
     if (factions[coordinator.a_f_id]->blinkingrate < 70) factions[coordinator.a_f_id]->blinkingrate++;
 
-    map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
+    map.setCenter(factions[coordinator.a_f_id]->vmapoffset,factions[coordinator.a_f_id]->mapoffset);
 }
 
 

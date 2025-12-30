@@ -725,10 +725,12 @@ void adjustMovements()
         int lat = units[coordinator.a_u_id]->latitude;
 
         // Affect the coordinates according to the desired movement.
-        coordinate s = map.spheroid_displacement(lat,lon,controller.registers.pitch,controller.registers.roll);
+        coordinate s = map.displacement(lat,lon,controller.registers.pitch,controller.registers.roll);
         lat = s.lat;
         lon = s.lon;
         coordinate c = map.to_real_without_offset(s);
+
+
 
         controller.registers.pitch= controller.registers.roll = 0;     
 
@@ -744,7 +746,13 @@ void adjustMovements()
     {
         factions[coordinator.a_f_id]->mapoffset += controller.registers.yaw;
         controller.registers.yaw = 0;
-    }      
+    }   
+    
+    if ( (controller.registers.precesion !=0) )
+    {
+        factions[coordinator.a_f_id]->vmapoffset += controller.registers.precesion;
+        controller.registers.precesion = 0;
+    }
 }
 
 void setUpFaction()

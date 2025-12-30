@@ -92,6 +92,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'c':controller.registers.pitch+=1.0;controller.registers.roll+=1.0f;break;
         case 'f':controller.registers.yaw+=1.0;break;
         case 'g':controller.registers.yaw-=1.0;break;
+        case 'y':controller.registers.precesion+=1.0f;break;
+        case 'h':controller.registers.precesion-=1.0f;break;
         case 'r':controller.registers.bank+=1.0f;break;
         case 'v':controller.registers.bank-=1.0f;break;
         case ' ':coordinator.endofturn=true;break;

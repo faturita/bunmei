@@ -16,6 +16,7 @@ class Faction {
         bool autoPlayer = true; //@NOTE Change this if you want to be able to control the other factions.
 
         int mapoffset;
+        int vmapoffset;
 
         int blinkingrate = 70;
 
@@ -26,7 +27,7 @@ class Faction {
     Faction ()
     {
         doneThisTurn = false;
-        mapoffset = 0;
+        mapoffset = vmapoffset=0;
     };
 
     void done()
