@@ -210,6 +210,55 @@ void loadMap()
 }
 
 
+#include <set>
+#include <map>
+#include <queue>
+
+// Returns a vector of vectors, each inner vector contains coordinates of a landmass
+std::vector<std::vector<coordinate>> findLandmasses() {
+    std::set<std::pair<int, int>> visited;
+    std::vector<std::vector<coordinate>> landmasses;
+
+    Map m = map;
+
+    for (int lat = m.minlat; lat < m.maxlat; ++lat) {
+        for (int lon = m.minlon; lon < m.maxlon; ++lon) {
+            if (m(lat, lon).code == LAND && visited.count({lat, lon}) == 0) {
+                std::vector<coordinate> landmass;
+                std::queue<coordinate> q;
+                q.push(coordinate(lat, lon));
+                visited.insert({lat, lon});
+
+                while (!q.empty()) {
+                    coordinate c = q.front(); q.pop();
+                    landmass.push_back(c);
+
+                    // Check 4 neighbors (N, S, E, W)
+                    int dlat[] = {-1, 1, 0, 0};
+                    int dlon[] = {0, 0, 1, -1};
+                    for (int d = 0; d < 4; ++d) 
+                    {
+                        int nlat;
+                        int nlon;
+                        coordinate co = m.displacement(c.lat,c.lon,dlat[d],dlon[d]);
+                        nlat = co.lat;
+                        nlon = co.lon;
+                        if (nlat >= m.minlat && nlat < m.maxlat &&
+                            nlon >= m.minlon && nlon < m.maxlon &&
+                            m(nlat, nlon).code == LAND &&
+                            visited.count({nlat, nlon}) == 0) {
+                            q.push(coordinate(nlat, nlon));
+                            visited.insert({nlat, nlon});
+                        }
+                    }
+                }
+                landmasses.push_back(landmass);
+            }
+        }
+    }
+    return landmasses;
+}
+
 void initMap()
 {
     initTiles(tiles);
@@ -218,7 +267,7 @@ void initMap()
 
     map.init(MAPHALFHEIGHT,MAPHALFWIDTH);
 
-    std::vector<coordinate> landmassseeds;
+    //std::vector<coordinate> landmassseeds;
 
     if (preloadmap)
         loadMap();
@@ -277,7 +326,7 @@ void initMap()
                 if (dir==2) lon+=1;
                 if (dir==3) lon-=1;
             }
-            landmassseeds.push_back(coordinate(lat,lon));
+            //landmassseeds.push_back(coordinate(lat,lon));
         }
 
         // Fill in randomly the land masses with land.
@@ -558,8 +607,13 @@ void initMap()
         saveMap();
     }
 
-    for(auto &lm: landmassseeds)
+    std::vector<std::vector<coordinate>> landmassseeds = findLandmasses();
+
+    printf("Detected %d landmasses\n",landmassseeds.size()) ;
+
+    for(auto &llm: landmassseeds)
     {
+        coordinate lm = llm[0];
         printf("Landmass Seed at %d,%d\n",lm.lat,lm.lon) ;
         coordinate c = lm;
         int land = determineLandMass(c);

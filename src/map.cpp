@@ -80,14 +80,14 @@ void centermap(int ccx, int ccy)  // lon,lat
     float dcx = (cx+8)-(width/2-MAPHALFWIDTH*16);
     float dcy = (cy+8)-(height/2-MAPHALFHEIGHT*16);
 
-    printf("Center  adjustd %f,%f\n",dcx,dcy);
+    printf("Center adjusted %f,%f\n",dcx,dcy);
 
     int lon = (int)(dcx/16) - MAPHALFWIDTH;
     int lat = (int)(dcy/16) - MAPHALFHEIGHT;
 
     coordinate c = map.to_real(lat,lon);
 
-    //printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
+    printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
 }
 
 // Returns Real Lat,Lon of the current center of the screen (this can be compared to real locations of units and cities)
