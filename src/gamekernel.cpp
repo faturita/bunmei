@@ -619,6 +619,28 @@ void initMap()
         int land = determineLandMass(c);
         printf(" Landmass Size %d\n",land) ;
     }
+
+
+    int lat = 23;
+    int lon = 35;
+
+    coordinate s = map.adjust(lat,lon,1,0);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    s = map.adjust(lat,lon,1,1);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    s = map.adjust(lat,lon,0,1);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    //exit(-1);
+
+
+
+
    
     assignProductionRates(map, resources);
 }
@@ -642,30 +664,30 @@ void initFactions()
     
     factions.push_back(faction);
 
-    faction = new Faction();
-    faction->id = 1;
-    strcpy(faction->name,"Romans");
-    faction->red = 255;
-    faction->green = 255;
-    faction->blue = 255;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    factions.push_back(faction);
+    // faction = new Faction();
+    // faction->id = 1;
+    // strcpy(faction->name,"Romans");
+    // faction->red = 255;
+    // faction->green = 255;
+    // faction->blue = 255;
+    // faction->rates[0] = 1;
+    // faction->rates[1] = 0;
+    // faction->rates[2] = 0;
+    // faction->rates[3] = 0;
+    // factions.push_back(faction);
 
 
-    faction = new Faction();
-    faction->id = 2;
-    strcpy(faction->name,"Greeks");
-    faction->red = 0;
-    faction->green = 0;
-    faction->blue = 255;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    factions.push_back(faction);
+    // faction = new Faction();
+    // faction->id = 2;
+    // strcpy(faction->name,"Greeks");
+    // faction->red = 0;
+    // faction->green = 0;
+    // faction->blue = 255;
+    // faction->rates[0] = 1;
+    // faction->rates[1] = 0;
+    // faction->rates[2] = 0;
+    // faction->rates[3] = 0;
+    // factions.push_back(faction);
 
 
     initNaming(citynames);

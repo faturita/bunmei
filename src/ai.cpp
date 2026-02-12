@@ -77,47 +77,6 @@ extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 
 
-Tree buildTree()
-{
-    Tree tree;
-
-    // Add all the land vertices into the graph.
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for(int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            if (map.peek(lat,lon).code == LAND)
-                auto v = add_vertex({lat,lon,0,0}, tree);
-        }
-
-    auto vv = boost::make_iterator_range(vertices(tree));
-
-    // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for(int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            if (map.peek(lat,lon).code == LAND)
-            {
-                auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
-                
-                for(int i=-1;i<=1;i++)
-                    for(int j=-1;j<=1;j++)
-                    {
-                        if (i==0 && j==0)
-                            continue;
-
-                        if (map.peek(lat+i,lon+j).code == LAND)
-                        {
-                            auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
-                            // @FIXME: Add terrain cost here on the edge.
-                            add_edge(*start, *end, Edge{1}, tree);
-                        }
-                    }
-            }
-        }
-
-    return tree;
-}
-
 template<typename Condition>
 Tree buildGenericTraversalTree(Condition condition)
 {
@@ -134,7 +93,7 @@ Tree buildGenericTraversalTree(Condition condition)
     auto vv = boost::make_iterator_range(vertices(tree));
 
     // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
+    for(int lat=map.minlat;lat<map.maxlat;lat++ )
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
             if (condition(lat, lon))
@@ -147,11 +106,22 @@ Tree buildGenericTraversalTree(Condition condition)
                         if (i==0 && j==0)
                             continue;
 
-                        if (condition(lat+i, lon+j))
+                        coordinate s = map.adjust(lat,lon,i,j);
+
+                        int latt = s.lat;
+                        int lonn = s.lon;
+
+                        if (condition(latt, lonn))
                         {
-                            auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
+                            auto end = find_if(vv, [&, latt,lonn,i,j](auto vd) { return tree[vd].lat == latt && tree[vd].lon == lonn; });
                             // @FIXME: Add terrain cost here on the edge.
-                            add_edge(*start, *end, Edge{1}, tree);
+
+                            //printf("Adding edge from %d,%d >> %d,%d >> %d,%d\n", lat, lon,i,j, latt, lonn);
+                            
+                            if (end != vv.end())
+                            {
+                                add_edge(*start, *end, Edge{1}, tree);
+                            }
                         }
                     }
             }
@@ -229,16 +199,24 @@ Tree buildTraversalTree(int faction)
                         if (i==0 && j==0)
                             continue;
 
-                        if (map.peek(lat+i,lon+j).code == LAND && 
+                        coordinate s = map.adjust(lat,lon,i,j);
+
+                        int latt = s.lat;
+                        int lonn = s.lon;
+
+                        if (map.peek(latt,lonn).code == LAND && 
                         (
-                        map.peek(lat+i,lon+j).isUnassignedLand() || 
-                        map.peek(lat+i,lon+j).getOwnedBy() == faction || 
-                        (map.peek(lat+i,lon+j).getOwnedBy() != faction && war)
+                        map.peek(latt,lonn).isUnassignedLand() || 
+                        map.peek(latt,lonn).getOwnedBy() == faction || 
+                        (map.peek(latt,lonn).getOwnedBy() != faction && war)
                         ) )
                         {
-                            auto end = find_if(vv, [&, lat,lon,i,j](auto vd) { return tree[vd].lat == lat+i && tree[vd].lon == lon+j; });
+                            auto end = find_if(vv, [&, latt,lonn,i,j](auto vd) { return tree[vd].lat == latt && tree[vd].lon == lonn; });
                             // @FIXME: Add terrain cost here on the edge.
-                            add_edge(*start, *end, Edge{1}, tree);
+                            if (end != vv.end())
+                            {
+                                add_edge(*start, *end, Edge{1}, tree);
+                            }
                         }
                     }
             }
@@ -247,99 +225,6 @@ Tree buildTraversalTree(int faction)
     return tree;
 }
 
-
-
-coordinate reachableHorizon(Unit* unit, int jumpingdistance, int f_id, bool &ok)
-{
-    Tree tree = buildTraversalTree(f_id);
-    auto vv = boost::make_iterator_range(vertices(tree));
-    
-
-    auto vpair = vertices(tree);
-    for(auto iter=vpair.first; iter!=vpair.second; iter++)
-    {
-        auto vd = *iter;
-        std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
-    }
-
-    auto vedges = edges(tree);
-    for(auto iter=vedges.first; iter!=vedges.second; iter++)
-    {
-        auto ed = *iter;
-        std::cout << "Edge " << ed << " has cost " << tree[ed].cost << std::endl;
-    }
-    // At this point, the tree is built.
-
-    int lat = unit->latitude;
-    int lon = unit->longitude;
-    auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
-
-    printf("Start %d %d\n", lat, lon);
-
-    dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
-
-    int vertexid = *source;
-    auto nextStep = find_if(vv, [&, vertexid](auto vd) { return tree[vd].pred == vertexid; });
-    
-    // This can be nonexistant
-    if (nextStep == vv.end())
-    {
-        ok = false;
-        return coordinate(0,0);
-    }
-
-    // Move forward towards somewhere
-    int jumps = 1;
-    while(jumps < jumpingdistance)
-    {
-        printf("Next to %d: %d,%d\n",*nextStep, lat,lon);
-        vertexid = *nextStep;
-        nextStep = find_if(vv, [&, vertexid](auto vd) { return tree[vd].pred == vertexid; });
-
-        if (nextStep == vv.end())
-        {
-            ok = false;
-            return coordinate(0,0);
-        }
-        jumps++;
-    }
-
-    ok = true;
-    return coordinate(tree[vertexid].lat, tree[vertexid].lon);
-        
-}
-
-
-// Build the tree and the path to the destination.
-// Calculate the next movement based on Dijkstra algorithm.
-// @FIXME: Only works for land, it should consider water, the terrain cost, and also the presence of enemy units and cities.
-int reachableLand(Unit* unit, bool &ok)
-{
-
-    Tree tree = buildTree();
-    auto vv = boost::make_iterator_range(vertices(tree));
-    
-    // At this point, the tree is built.
-
-    int lat = unit->latitude;
-    int lon = unit->longitude;
-    auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
-
-    printf("Start %d %d\n", lat, lon);
-
-    dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
-            
-    auto vpair = vertices(tree);
-    int reachableland=0;
-    for(auto iter=vpair.first; iter!=vpair.second; iter++)
-    {
-        auto vd = *iter;
-        reachableland++;
-        //std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
-    }
-
-    return reachableland;
-}
 
 
 // Build the tree and the path to the destination.
@@ -355,7 +240,14 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     }
 
 
-    Tree tree = buildTraversalTree(unit->faction);
+    //Tree tree = buildTraversalTree(unit->faction);
+
+
+    Tree tree = buildGenericTraversalTree([](int lat, int lon) {
+        return map.peek(lat,lon).code == LAND;
+    });
+
+
     auto vv = boost::make_iterator_range(vertices(tree));
     
     // At this point, the tree is built.
@@ -364,20 +256,21 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     int lon = unit->longitude;
     auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
 
-    printf("Start %d %d\n", lat, lon);
+    printf("Start %03d: %02d %02d - ", *source, lat, lon);
 
     dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
-            
 
     // Track back the result until you find where the unit is located now.
     lat = targetlat;
     lon = targetlon;
     auto target = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
 
+    printf("Target %03d: %02d,%d\n",*target, lat,lon);
+
     int lasttarget=-1;
     while(tree[*target].pred != *target)
     {
-        printf("Target %d: %d,%d Predecessor %d\n",*target, lat,lon,tree[*target].pred);
+        printf("Target %03d: %02d,%d Predecessor %03d\n",*target, lat,lon,tree[*target].pred);
         int pred = tree[*target].pred;
 
         // Check if prd is a valid element in the graph.
@@ -400,13 +293,13 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     for(auto iter=vpair.first; iter!=vpair.second; iter++)
     {
         auto vd = *iter;
-        std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
+        //std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " Predecessor: " << tree[vd].pred << std::endl;
     }
 
     if (lasttarget == -1)
     {
         ok = false;
-        printf("There is no way to get there...\n");
+        printf("No way to get there...\n");
         return coordinate(0,0);
     }
 
@@ -634,4 +527,3 @@ void autoPlayer()
         }
     }
 }
-

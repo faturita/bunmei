@@ -344,12 +344,12 @@ class MapSpheroid
             lon = lon + 0 + offsetlon;
 
             if (val>=maxlat) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=maxlat-1;
             }
 
             if ((val-lat)<0) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=minlat;
             }     
 
@@ -384,12 +384,12 @@ class MapSpheroid
             lon = lon + 0;
 
             if (val>=maxlat) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=maxlat-1;
             }
 
             if ((val-lat)<0) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=minlat;
             }     
 
@@ -421,12 +421,12 @@ class MapSpheroid
             lon = lon + 0;
 
             if (val>=maxlat) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=maxlat-1;
             }
 
             if ((val-lat)<0) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=minlat;
             }     
 
@@ -525,6 +525,34 @@ class MapSpheroid
             return coordinate(lat,lon);
         }
 
+        coordinate adjust(int lat, int lon, int i, int j) 
+        {
+            int val = lat;
+            val = ((int)val+i); // val is 24
+            lat = clipped(val,minlat,maxlat-1); // lat is clipped to 23
+
+            lon = lon + j; // lon is 35
+
+            if (val>=maxlat) {
+                lon=lon*(-1)-1; // -35
+                lat=maxlat-1; // lat is clipped to 23
+            }
+
+            if ((val-lat)<0) {
+                lon=lon*(-1)-1;
+                lat=minlat;
+            }     
+
+            lon += abs(minlon);  // -35 + 36 = 1
+
+            lon = rotclipped(lon,0,maxlon-minlon-1);
+
+            lon -= abs(minlon);
+
+            return coordinate(lat,lon);
+        
+        }
+
         // Convert SCREEN lat,lon (zero,zero is the center of the screen) to REAL lat,lon
         coordinate to_real_without_offset(int lat, int lon)
         {
@@ -554,12 +582,12 @@ class MapSpheroid
             lon = lon + roll;
 
             if (val>=maxlat) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=maxlat-1;
             }
 
             if ((val-lat)<0) {
-                lon=lon*(-1);
+                lon=lon*(-1)-1;
                 lat=minlat;
             }     
 
