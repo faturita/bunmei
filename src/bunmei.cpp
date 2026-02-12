@@ -888,9 +888,11 @@ void update(int value)
             
             if (!found)
             {
-                // Fallback to old logic if somehow we don't find the neighbor
-                controller.registers.roll = sgnz(c.lon-units[coordinator.a_u_id]->longitude );
-                controller.registers.pitch = sgnz(c.lat-units[coordinator.a_u_id]->latitude );
+                // The pathfinding returned a coordinate that is not a valid neighbor!
+                // This shouldn't happen, but if it does, cancel the goto to avoid getting stuck
+                printf("ERROR: Pathfinding returned non-neighbor coordinate! Current: (%d,%d), Target step: (%d,%d)\n", 
+                       current_lat, current_lon, c.lat, c.lon);
+                units[coordinator.a_u_id]->resetGoTo();
             }
 
         }

@@ -118,7 +118,10 @@ Tree buildGenericTraversalTree(Condition condition)
 
                             //printf("Adding edge from %d,%d >> %d,%d >> %d,%d\n", lat, lon,i,j, latt, lonn);
                             
-                            add_edge(*start, *end, Edge{1}, tree);
+                            if (end != vv.end())
+                            {
+                                add_edge(*start, *end, Edge{1}, tree);
+                            }
                         }
                     }
             }
@@ -210,7 +213,10 @@ Tree buildTraversalTree(int faction)
                         {
                             auto end = find_if(vv, [&, latt,lonn,i,j](auto vd) { return tree[vd].lat == latt && tree[vd].lon == lonn; });
                             // @FIXME: Add terrain cost here on the edge.
-                            add_edge(*start, *end, Edge{1}, tree);
+                            if (end != vv.end())
+                            {
+                                add_edge(*start, *end, Edge{1}, tree);
+                            }
                         }
                     }
             }
