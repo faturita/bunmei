@@ -862,8 +862,37 @@ void update(int value)
         
         if (ok)
         {
-            controller.registers.roll = sgnz(c.lon-units[coordinator.a_u_id]->longitude );
-            controller.registers.pitch = sgnz(c.lat-units[coordinator.a_u_id]->latitude );
+            // Find which direction (i,j) leads from current position to next position c
+            // by checking all 8 neighbors using map.adjust()
+            bool found = false;
+            int current_lat = units[coordinator.a_u_id]->latitude;
+            int current_lon = units[coordinator.a_u_id]->longitude;
+            
+            for(int i=-1; i<=1 && !found; i++)
+            {
+                for(int j=-1; j<=1 && !found; j++)
+                {
+                    if (i==0 && j==0)
+                        continue;
+                    
+                    coordinate neighbor = map.adjust(current_lat, current_lon, i, j);
+                    
+                    if (neighbor.lat == c.lat && neighbor.lon == c.lon)
+                    {
+                        controller.registers.pitch = i;
+                        controller.registers.roll = j;
+                        found = true;
+                    }
+                }
+            }
+            
+            if (!found)
+            {
+                // Fallback to old logic if somehow we don't find the neighbor
+                controller.registers.roll = sgnz(c.lon-units[coordinator.a_u_id]->longitude );
+                controller.registers.pitch = sgnz(c.lat-units[coordinator.a_u_id]->latitude );
+            }
+
         }
         else
         {
