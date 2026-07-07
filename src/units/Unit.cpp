@@ -89,9 +89,12 @@ MOVEMENT_TYPE Unit::getMovementType()
 
 void Unit::goTo(int lat, int lon)
 {
-    printf("GoTo: Target (Lat,Lon)=(%d, %d)\n",lat,lon);
+    // Normalize the target into real map coordinates (the spheroid wraps),
+    // so pathfinding lookups and arrived() compare against the same values.
+    coordinate c = map.adjust(lat,lon,0,0);
+    printf("GoTo: Target (Lat,Lon)=(%d, %d)\n",c.lat,c.lon);
     autoMode = true;
-    target = coordinate(lat,lon);
+    target = c;
 }
 
 void Unit::resetGoTo()

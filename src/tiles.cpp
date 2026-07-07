@@ -251,54 +251,48 @@ void initCommodities(std::unordered_map<int, std::vector<int>> &commodities)
     commodities[OCEANBIOMA] = {FISH,OIL};
 }
 
+#define CITY_NAMES_PER_CIVILIZATION 100
+
 void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
 {
+    std::vector<std::string> vikings = {
+        "Kattegate","Jorvik","Hedeby","Trondheim","Bergen","Stavanger",
+        "Kristiansand","Oslo","Stockholm","Copenhagen","Helsinki","Reykjavik",
+        "Uppsala","Birka","Ribe","Aarhus","Roskilde","Odense",
+        "Viborg","Aalborg","Lund","Sigtuna","Visby","Kaupang",
+        "Tonsberg","Jelling","Fyrkat","Trelleborg","Torshavn","Kirkwall",
+        "Dublin","Waterford","Wexford","Limerick","Cork","Rouen",
+        "Holmgard","Aldeigjuborg","Skara","Hamar"
+    };
+
+    std::vector<std::string> romans = {
+        "Roma","Caesarea","Carthage","Nicopolis","Byzantium","Brundisium",
+        "Camulodunum","Syracuse","Antioch","Palmyra","Cyrene","Alexandria",
+        "Gordion","Jerusalem","Ravenna","Artaxata",
+        "Neapolis","Pompeii","Mediolanum","Ostia","Capua","Tarentum",
+        "Verona","Aquileia","Londinium","Eboracum","Lutetia","Lugdunum",
+        "Massilia","Tarraco","Hispalis","Corduba","Emerita","Vindobona",
+        "Nicomedia","Sirmium","Salona","Utica","Leptis Magna","Hippo Regius"
+    };
+
+    std::vector<std::string> greeks = {
+        "Atenas","Sparta","Corinto","Delfos","Olimpia","Micenas",
+        "Tebas","Argos","Mileto","Efeso","Samos","Rodas",
+        "Cnosos","Halicarnaso","Pergamo","Megara","Calcis","Eretria",
+        "Mitilene","Esmirna","Focea","Naxos","Paros","Delos",
+        "Egina","Patras","Larisa","Abdera","Olinto","Anfipolis",
+        "Corcira","Maraton"
+    };
+
     citynames[0] = std::queue<std::string>();       // Vikings
     citynames[1] = std::queue<std::string>();       // Romans
     citynames[2] = std::queue<std::string>();       // Greeks
 
-    citynames[0].push("Kattegate");
-    citynames[0].push("Jorvik");
-    citynames[0].push("Hedeby");
-    citynames[0].push("Trondheim");
-    citynames[0].push("Bergen");
-    citynames[0].push("Stavanger");
-    citynames[0].push("Kristiansand");
-    citynames[0].push("Oslo");
-    citynames[0].push("Stockholm");
-    citynames[0].push("Copenhagen");
-    citynames[0].push("Helsinki");
-    citynames[0].push("Reykjavik");
-
-    citynames[1].push("Roma");
-    citynames[1].push("Caesarea");
-    citynames[1].push("Carthage");
-    citynames[1].push("Nicopolis");
-    citynames[1].push("Byzantium");
-    citynames[1].push("Brundisium");
-    citynames[1].push("Camulodunum");
-    citynames[1].push("Syracuse");
-    citynames[1].push("Antioch");
-    citynames[1].push("Palmyra");
-    citynames[1].push("Cyrene");
-    citynames[1].push("Alexandria");
-    citynames[1].push("Gordion");
-    citynames[1].push("Jerusalem");
-    citynames[1].push("Ravenna");
-    citynames[1].push("Artaxata");
-
-    citynames[2].push("Atenas");
-    citynames[2].push("Sparta");
-    citynames[2].push("Corinto");
-    citynames[2].push("Tevas");
-    citynames[2].push("Delfos");
-    citynames[2].push("Olimpia");
-    citynames[2].push("Micenas");
-    citynames[2].push("Tebas");
-    citynames[2].push("Argos");
-    citynames[2].push("Mileto");
-    citynames[2].push("Efeso");
-    citynames[2].push("Samos");
-    citynames[2].push("Rodas");    
+    for(int i=0;i<CITY_NAMES_PER_CIVILIZATION;i++)
+    {
+        citynames[0].push(vikings[i % vikings.size()]);
+        citynames[1].push(romans[i % romans.size()]);
+        citynames[2].push(greeks[i % greeks.size()]);
+    }
 }
 

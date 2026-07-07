@@ -28,6 +28,8 @@ namespace mpl=boost::mpl;
 #include <iostream>
 #include <deque>
 #include <iterator>
+#include <set>
+#include <queue>
 
 
 using boost::phoenix::arg_names::arg1;
@@ -264,9 +266,21 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     
     // At this point, the tree is built.
 
+    // Normalize the target into real map coordinates (the spheroid wraps), so the vertex lookup can find it.
+    coordinate normalized = map.adjust(targetlat,targetlon,0,0);
+    targetlat = normalized.lat;
+    targetlon = normalized.lon;
+
     int lat = unit->latitude;
     int lon = unit->longitude;
     auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+
+    if (source == vv.end())
+    {
+        ok = false;
+        printf("Start (%d,%d) is not in the traversal tree...\n", lat, lon);
+        return coordinate(0,0);
+    }
 
     printf("Start %03d: %02d %02d - ", *source, lat, lon);
 
@@ -276,6 +290,13 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     lat = targetlat;
     lon = targetlon;
     auto target = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+
+    if (target == vv.end())
+    {
+        ok = false;
+        printf("Target (%d,%d) is not in the traversal tree...\n", lat, lon);
+        return coordinate(0,0);
+    }
 
     printf("Target %03d: %02d,%d\n",*target, lat,lon);
 
@@ -361,6 +382,87 @@ int getNumberOfCities(int f_id)
     return count;
 }
 
+#define CITY_SPACING 3          // Chebyshev distance to any other city must exceed this (cities work a 7x7 area).
+#define MIN_FREE_LAND 6         // Minimum unassigned land tiles around a spot for the new city to grow.
+
+// Check if any city is closer than (or at) mindist, considering the longitude wrap.
+bool cityCloserThan(int lat, int lon, int mindist)
+{
+    int width = map.maxlon - map.minlon;
+    for(auto& [cid,c]:cities)
+    {
+        int dlat = abs(c->latitude - lat);
+        int dlon = abs(c->longitude - lon);
+        if (dlon > width/2) dlon = width - dlon;
+        if (std::max(dlat,dlon) <= mindist)
+            return true;
+    }
+    return false;
+}
+
+// A good spot for a new city: free land, far enough from other cities, and with enough free land around to grow.
+bool isGoodCitySpot(int lat, int lon)
+{
+    coordinate n = map.adjust(lat,lon,0,0);
+
+    if (map.peek(n.lat,n.lon).code != LAND || !map.peek(n.lat,n.lon).isUnassignedLand())
+        return false;
+
+    if (cityCloserThan(n.lat,n.lon,CITY_SPACING))
+        return false;
+
+    int freeland = 0;
+    for(int i=-3;i<=3;i++)
+        for(int j=-3;j<=3;j++)
+        {
+            coordinate s = map.adjust(n.lat,n.lon,i,j);
+            if (map.peek(s.lat,s.lon).code == LAND && map.peek(s.lat,s.lon).isUnassignedLand())
+                freeland++;
+        }
+
+    return freeland >= MIN_FREE_LAND;
+}
+
+// Find the closest good spot for a new city on the same landmass (BFS over land from the starting coordinate).
+coordinate findCitySpot(coordinate from, bool &found)
+{
+    std::set<std::pair<int,int>> visited;
+    std::queue<coordinate> q;
+
+    coordinate start = map.adjust(from.lat,from.lon,0,0);
+    q.push(start);
+    visited.insert({start.lat,start.lon});
+
+    while(!q.empty())
+    {
+        coordinate c = q.front(); q.pop();
+
+        if (isGoodCitySpot(c.lat,c.lon))
+        {
+            found = true;
+            return c;
+        }
+
+        for(int i=-1;i<=1;i++)
+            for(int j=-1;j<=1;j++)
+            {
+                if (i==0 && j==0)
+                    continue;
+
+                coordinate s = map.adjust(c.lat,c.lon,i,j);
+
+                if (map.peek(s.lat,s.lon).code == LAND && visited.count({s.lat,s.lon})==0)
+                {
+                    visited.insert({s.lat,s.lon});
+                    q.push(s);
+                }
+            }
+    }
+
+    found = false;
+    return from;
+}
+
 void autoPlayer()
 {
     if (units.find(coordinator.a_u_id)!=units.end())
@@ -370,40 +472,27 @@ void autoPlayer()
         {
             if (!s->isAuto())
             {
-                // Find the nearest city, and move AWAY from it as far as possible, 
-                //    and if there is no city, build it here.
-                City* nc = nullptr;
-                float distance = 6;
-                for(auto& [cid,c]:cities)
+                // If the settler is standing on a good spot, build the city here.
+                // Otherwise walk to the closest good spot on this landmass.
+                if (isGoodCitySpot(s->latitude, s->longitude) && s->canBuildCity())
                 {
-                    float d = (Vec3f(s->latitude,0,s->longitude)-Vec3f(c->latitude,0,c->longitude)).magnitudeSquared();
-                    if (d<distance)
-                    {
-                        distance = d;
-                        nc = c;
-                    }
-                }
-
-                if (nc!=nullptr)
-                {
-                    Vec3f rad = getRandomCircularSpot(Vec3f(s->latitude,0,s->longitude),6);
-
-                    while (map.peek(rad[0],rad[2]).code != LAND || !map.peek(rad[0],rad[2]).isUnassignedLand())
-                    {
-                        rad = getRandomCircularSpot(Vec3f(s->latitude,0,s->longitude),6);
-                    }
-
-                    s->goTo(rad[0],rad[2]);
-
-                    
+                    CommandOrder co;
+                    co.command = Command::BuildCityOrder;
+                    coordinator.push(co);
                 }
                 else
                 {
-                    if (s->canBuildCity())
+                    bool found = false;
+                    coordinate spot = findCitySpot(s->getCoordinate(), found);
+
+                    if (found)
                     {
-                        CommandOrder co;
-                        co.command = Command::BuildCityOrder;
-                        coordinator.push(co);
+                        s->goTo(spot.lat, spot.lon);
+                    }
+                    else
+                    {
+                        // No place left to settle on this landmass.
+                        s->availablemoves = 0;
                     }
                 }
             }
@@ -505,35 +594,34 @@ void autoPlayer()
             {
                 if (c->pop>1)
                 {
-                    int rand = getRandomInteger(0,4);
-                    switch (rand) 
+                    // Populate the world first: as long as there is room for a new city
+                    // on this city's landmass, keep building settlers.
+                    bool found = false;
+                    findCitySpot(c->getCoordinate(), found);
+
+                    if (found && getNumberOfCities(c->faction)<50)
                     {
-                        case 0:
-                            c->productionQueue.push(new WarriorFactory());
-                            break;
-                        case 1:
-                        {
-                            int numberOfCities = getNumberOfCities(c->faction);
-
-                            // Calculate the density of cities and stop from a limit there.
-
-                            if (numberOfCities<50)
-                            {
-                                c->productionQueue.push(new SettlerFactory());
-                            }
-                        }
-                            break;
-                        case 2:
-                            c->productionQueue.push(new HorsemanFactory());
-                            break;
-                        case 3:
-                            c->productionQueue.push(new SwordmanFactory());
-                            break;
-                        default:
-                            c->productionQueue.push(new ArcherFactory());
-                            break;
+                        c->productionQueue.push(new SettlerFactory());
                     }
-
+                    else
+                    {
+                        int rand = getRandomInteger(0,3);
+                        switch (rand)
+                        {
+                            case 0:
+                                c->productionQueue.push(new WarriorFactory());
+                                break;
+                            case 1:
+                                c->productionQueue.push(new HorsemanFactory());
+                                break;
+                            case 2:
+                                c->productionQueue.push(new SwordmanFactory());
+                                break;
+                            default:
+                                c->productionQueue.push(new ArcherFactory());
+                                break;
+                        }
+                    }
                 }
             }
         }

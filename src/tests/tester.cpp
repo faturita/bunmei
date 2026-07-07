@@ -56,6 +56,12 @@ void initResources()
 
 }
 
+// Test cases never load a saved game.
+void loadWorldModelling()
+{
+
+}
+
 void initWorldModelling()
 {
     t = pickTestCase(0);
