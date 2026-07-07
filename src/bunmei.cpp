@@ -677,8 +677,10 @@ void moveUnit(Unit* unit, int lat, int lon)
 
 
         // @NOTE: moving into a ship
-        if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || (map.set(lat,lon).code==OCEAN && navalunit!=nullptr) ||
-            (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) || (map.set(lat,lon).code==LAND && dynamic_cast<Trireme*>(unit)->manifest()>0) )
+        if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
+            (map.set(lat,lon).code==OCEAN && navalunit!=nullptr) ||
+            (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) || 
+            (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
         {
 
             if (!land(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))

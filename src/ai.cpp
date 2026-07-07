@@ -229,22 +229,34 @@ Tree buildTraversalTree(int faction)
 
 // Build the tree and the path to the destination.
 // Calculate the next movement based on Dijkstra algorithm.
-// @FIXME: Only works for land, it should consider water, the terrain cost, and also the presence of enemy units and cities.
 coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
 {
-
-    if (map.peek(unit->latitude,unit->longitude).code != LAND || (!(map.peek(unit->latitude,unit->longitude).isUnassignedLand() || map.peek(unit->latitude,unit->longitude).getOwnedBy() == unit->faction)))
+    MOVEMENT_TYPE movementType = unit->getMovementType();
+    
+    // Determine what terrain this unit can traverse
+    int validTerrain = (movementType == OCEANTYPE) ? OCEAN : LAND;
+    
+    // Check if unit is on valid terrain for its type
+    if (map.peek(unit->latitude,unit->longitude).code != validTerrain)
     {
         ok = false;
         return coordinate(0,0);
     }
+    
+    // For land units, also check ownership (ocean units don't need ownership checks)
+    if (movementType == LANDTYPE)
+    {
+        if (!(map.peek(unit->latitude,unit->longitude).isUnassignedLand() || 
+              map.peek(unit->latitude,unit->longitude).getOwnedBy() == unit->faction))
+        {
+            ok = false;
+            return coordinate(0,0);
+        }
+    }
 
-
-    //Tree tree = buildTraversalTree(unit->faction);
-
-
-    Tree tree = buildGenericTraversalTree([](int lat, int lon) {
-        return map.peek(lat,lon).code == LAND;
+    // Build the traversal tree based on unit's movement type
+    Tree tree = buildGenericTraversalTree([validTerrain](int lat, int lon) {
+        return map.peek(lat,lon).code == validTerrain;
     });
 
 

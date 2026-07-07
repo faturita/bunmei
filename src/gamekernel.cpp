@@ -766,7 +766,7 @@ void initWorldModelling()
 
     coordinator.a_f_id = factions[0]->id;
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
-    factions[0]->autoPlayer = false;
+    factions[0]->autoPlayer = true;
 
 
     message(year, coordinator.a_f_id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
