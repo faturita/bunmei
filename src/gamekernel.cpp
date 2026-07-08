@@ -39,6 +39,9 @@ void update(int value);
 
 extern int year;
 
+extern int mapsize;
+extern float mapzoom;
+
 extern bool preloadmap;
 
 extern char filegame[256];
@@ -262,10 +265,13 @@ std::vector<std::vector<coordinate>> findLandmasses() {
 void initMap()
 {
     initTiles(tiles);
-    
+
     initCommodities(resourcesxbioma);
 
-    map.init(MAPHALFHEIGHT,MAPHALFWIDTH);
+    MapDimension dimension = getMapDimension(mapsize);
+    map.init(dimension.halfheight,dimension.halfwidth);
+    mapzoom = dimension.defaultzoom;
+    printf("Map size %d: %dx%d, covers the screen at mapzoom %f\n",mapsize,dimension.halfwidth*2,dimension.halfheight*2,dimension.defaultzoom);
 
     //std::vector<coordinate> landmassseeds;
 

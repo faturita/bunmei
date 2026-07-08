@@ -48,6 +48,10 @@ void zoommapin()
 
 void zoommapout()
 {
+    // Do not zoom out beyond the level where the whole map already covers the screen.
+    if (width/mapzoom >= (map.maxlon-map.minlon)*16 && height/mapzoom >= (map.maxlat-map.minlat)*16)
+        return;
+
     mapzoom=mapzoom/2;
 }
 
@@ -77,13 +81,13 @@ void centermap(int ccx, int ccy)  // lon,lat
 
     printf("Center %f,%f\n",cx,cy);
 
-    float dcx = (cx+8)-(width/2-MAPHALFWIDTH*16);
-    float dcy = (cy+8)-(height/2-MAPHALFHEIGHT*16);
+    float dcx = (cx+8)-(width/2-map.maxlon*16);
+    float dcy = (cy+8)-(height/2-map.maxlat*16);
 
     printf("Center adjusted %f,%f\n",dcx,dcy);
 
-    int lon = (int)(dcx/16) - MAPHALFWIDTH;
-    int lat = (int)(dcy/16) - MAPHALFHEIGHT;
+    int lon = (int)(dcx/16) - map.maxlon;
+    int lat = (int)(dcy/16) - map.maxlat;
 
     coordinate c = map.to_real(lat,lon);
 
@@ -95,13 +99,13 @@ coordinate getCurrentCenter()
 {
     //printf("Center %f,%f\n",cx,cy);
 
-    float dcx = (cx+8)-(width/2-MAPHALFWIDTH*16);
-    float dcy = (cy+8)-(height/2-MAPHALFHEIGHT*16);
+    float dcx = (cx+8)-(width/2-map.maxlon*16);
+    float dcy = (cy+8)-(height/2-map.maxlat*16);
 
     //printf("Center  adjustd %f,%f\n",dcx,dcy);
 
-    int lon = (int)(dcx/16) - MAPHALFWIDTH;
-    int lat = (int)(dcy/16) - MAPHALFHEIGHT;
+    int lon = (int)(dcx/16) - map.maxlon;
+    int lat = (int)(dcy/16) - map.maxlat;
 
     coordinate c = map.to_real(lat,lon);
 
@@ -120,11 +124,11 @@ coordinate convertToMap(int ccx, int ccy, int gridsize)
     ccx = fccx;
     ccy = fccy; 
 
-    float dcx = (ccx+gridsize/2)-(width/2-MAPHALFWIDTH*gridsize);
-    float dcy = (ccy+gridsize/2)-(height/2-MAPHALFHEIGHT*gridsize);
+    float dcx = (ccx+gridsize/2)-(width/2-map.maxlon*gridsize);
+    float dcy = (ccy+gridsize/2)-(height/2-map.maxlat*gridsize);
 
-    int lon = (int)(dcx/gridsize) - MAPHALFWIDTH;
-    int lat = (int)(dcy/gridsize) - MAPHALFHEIGHT;
+    int lon = (int)(dcx/gridsize) - map.maxlon;
+    int lat = (int)(dcy/gridsize) - map.maxlat;
 
     //coordinate c = map.to_real(lat,lon);            // With offset
     coordinate c(lat,lon);                              // Without offset
@@ -287,7 +291,9 @@ void drawMap()
     int xsize = width/mapzoom;
     int ysize = height/mapzoom;
 
-    if (mapzoom==1)
+    // Lock the camera to the map center when the whole map fits in the viewport
+    // (for the 72x48 map this happens at mapzoom=1, for the 144x96 map at mapzoom=0.5).
+    if (xsize >= (map.maxlon-map.minlon)*16 && ysize >= (map.maxlat-map.minlat)*16)
     {
         cx = width/2;
         cy = height/2;

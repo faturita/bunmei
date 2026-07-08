@@ -4,8 +4,35 @@
 #include "math/yamathutil.h"
 #include "coordinate.h"
 
-#define MAPHALFWIDTH 36
-#define MAPHALFHEIGHT 24
+// Map dimension presets.  Each mapsize covers the whole screen exactly at its default zoom:
+// zoom level N means the N-th zoom out step, which is mapzoom = 2^-(N-1) internally.
+struct MapDimension
+{
+    int halfwidth;
+    int halfheight;
+    float defaultzoom;      // mapzoom value at which the whole map covers the screen.
+};
+
+static const MapDimension MAPDIMENSIONS[] = {
+    {36,  24,  1.0f},       // mapsize 1:   72x48 covers the screen at zoom level 1 (mapzoom 1)
+    {72,  48,  0.5f},       // mapsize 2:  144x96 covers the screen at zoom level 2 (mapzoom 0.5)
+    {144, 96,  0.25f},      // mapsize 3: 288x192 covers the screen at zoom level 3 (mapzoom 0.25)
+    {288, 192, 0.125f},     // mapsize 4: 576x384 covers the screen at zoom level 4 (mapzoom 0.125)
+    {576, 384, 0.0625f}     // mapsize 5: 1152x768 covers the screen at zoom level 5 (mapzoom 0.0625)
+};
+
+#define NUMBER_OF_MAPSIZES  ((int)(sizeof(MAPDIMENSIONS)/sizeof(MAPDIMENSIONS[0])))
+#define DEFAULT_MAPSIZE 1
+
+inline MapDimension getMapDimension(int mapsize)
+{
+    if (mapsize < 1) mapsize = 1;
+    if (mapsize > NUMBER_OF_MAPSIZES) mapsize = NUMBER_OF_MAPSIZES;
+    return MAPDIMENSIONS[mapsize-1];
+}
+
+#define MAPHALFWIDTH  (MAPDIMENSIONS[DEFAULT_MAPSIZE-1].halfwidth)
+#define MAPHALFHEIGHT (MAPDIMENSIONS[DEFAULT_MAPSIZE-1].halfheight)
 
 #define UNASSIGNED_LAND -1
 #define FREE_LAND       -1

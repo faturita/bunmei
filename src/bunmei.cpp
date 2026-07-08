@@ -114,6 +114,8 @@ int year;
 
 bool mute;
 
+int mapsize;
+
 bool preloadmap;
 
 bool loadgame;
@@ -1027,6 +1029,8 @@ int main(int argc, char** argv) {
 
     printf("Width:%d\n", glutGet(GLUT_SCREEN_WIDTH) );
     printf("Height:%d\n", glutGet(GLUT_SCREEN_HEIGHT) );
+
+    mapsize = getDefaultedIntCommandLineParameter(argc,argv,"-mapsize",DEFAULT_MAPSIZE);
 
     preloadmap = false;
     if (isPresentCommandLineParameter(argc,argv,"-loadmap"))
