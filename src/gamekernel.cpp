@@ -270,7 +270,11 @@ void initMap()
 
     MapDimension dimension = getMapDimension(mapsize);
     map.init(dimension.halfheight,dimension.halfwidth);
-    mapzoom = dimension.defaultzoom;
+
+    // The game always starts at the standard zoom (mapzoom 2, after the zoommapin() done at
+    // initWorldModelling), independently of the mapsize.  Zooming out N times from there reaches
+    // dimension.defaultzoom, where the whole map covers the screen and the camera locks centered.
+    mapzoom = 1;
     printf("Map size %d: %dx%d, covers the screen at mapzoom %f\n",mapsize,dimension.halfwidth*2,dimension.halfheight*2,dimension.defaultzoom);
 
     //std::vector<coordinate> landmassseeds;

@@ -1,8 +1,10 @@
 .DS_Store
 **/DS_Store
 src/*.o
+src/*.d
 bunmei
 src/**/*.o
+src/**/*.d
 bunmei
 .vscode/*
 src/*.o

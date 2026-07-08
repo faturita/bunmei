@@ -314,7 +314,11 @@ void drawMap()
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix(); {
-        glTranslatef(0, -(height/2), 1);
+        // z must be 0: with z=1 the quads sit exactly on the far plane of glOrtho(...,-1,1) and the
+        // float imprecision of the 180-degree rotations (sin(180) ~ -8.7e-8) tilts the clip test by
+        // ~1e-7*x, so every quad placed at NEGATIVE x (west half of maps larger than 72 tiles) is
+        // silently clipped away.  Depth test is disabled in this pass, so z has no other effect.
+        glTranslatef(0, -(height/2), 0);
 
         glDepthMask(GL_FALSE);
 

@@ -25,8 +25,15 @@ $(PROG):	$(OBJS)
 	@echo "Object files are $(OBJS)"
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-.cpp.o:		$(SSRC)
-	$(CC) $(CFLAGS) -c $< -o $@
+# Compile with automatic header dependency tracking: -MMD writes a .d file next to
+# each .o listing every project header it includes, so touching a .h recompiles exactly
+# the .cpp files that use it (no more make clean after a header change).  -MP adds
+# phony targets so deleting a header does not break the build.
+%.o: %.cpp
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+
+DEPS = $(OBJS:.o=.d) $(TCOBJS:.o=.d) $(OSSM:.o=.d)
+-include $(DEPS)
 
 clean:
 	rm -f $(PROG)
@@ -35,6 +42,8 @@ clean:
 	rm -f $(TCOBJS)
 	rm -f testcase
 	rm -f simulate
+	rm -f $(DEPS)
+	rm -f src/tests/testcase_*.d src/tests/testcase_*.o
 
 testcase:	$(TCOBJS)
 	@echo "Building test cases"
