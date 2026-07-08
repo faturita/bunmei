@@ -670,17 +670,18 @@ void initFactions()
     
     factions.push_back(faction);
 
-    // faction = new Faction();
-    // faction->id = 1;
-    // strcpy(faction->name,"Romans");
-    // faction->red = 255;
-    // faction->green = 255;
-    // faction->blue = 255;
-    // faction->rates[0] = 1;
-    // faction->rates[1] = 0;
-    // faction->rates[2] = 0;
-    // faction->rates[3] = 0;
-    // factions.push_back(faction);
+    faction = new Faction();
+    faction->id = 1;
+    strcpy(faction->name,"Romans");
+    faction->red = 255;
+    faction->green = 255;
+    faction->blue = 255;
+    faction->rates[0] = 1;
+    faction->rates[1] = 0;
+    faction->rates[2] = 0;
+    faction->rates[3] = 0;
+    faction->autoPlayer = false;
+    factions.push_back(faction);
 
 
     // faction = new Faction();
