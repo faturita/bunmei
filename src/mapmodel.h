@@ -22,7 +22,7 @@ static const MapDimension MAPDIMENSIONS[] = {
 };
 
 #define NUMBER_OF_MAPSIZES  ((int)(sizeof(MAPDIMENSIONS)/sizeof(MAPDIMENSIONS[0])))
-#define DEFAULT_MAPSIZE 2
+#define DEFAULT_MAPSIZE 1
 
 inline MapDimension getMapDimension(int mapsize)
 {

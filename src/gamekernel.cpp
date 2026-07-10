@@ -319,7 +319,19 @@ void initMap()
         // map.set(0,0).bioma = 0xa0;
 
 
+        // The world generation constants below (landmass seeds, fill repetitions, biomas,
+        // rivers, resources) were tuned for the size-1 map (72x48).  Scale them with the
+        // map area so every mapsize generates a world with the same land density and the
+        // same look as size 1 (size 2 has 4 times the area, so it gets 4 times of everything).
+        int areascale = ((map.maxlat-map.minlat)*(map.maxlon-map.minlon)) /
+                        ((MAPDIMENSIONS[0].halfheight*2)*(MAPDIMENSIONS[0].halfwidth*2));
+        if (areascale<1) areascale = 1;
+
         // Pick a random number and use it to seed the land masses.
+        // The NUMBER of landmasses does not scale with the map: a bigger map gets the same
+        // 2..15 continents, but each seed walks areascale times longer so the continents
+        // grow with the map area (a random walk of 4x the steps spans 2x the diameter,
+        // exactly the linear scale of the size-2 map).
         int r=getRandomInteger(2,15);
 
         for(int i=0;i<r;i++)
@@ -327,6 +339,7 @@ void initMap()
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
 
+            for(int stretch=0;stretch<areascale;stretch++)
             while (getRandomInteger(0,100)>2)
             {
                 map.set(lat,lon) = mapcell(LAND);
@@ -340,8 +353,12 @@ void initMap()
         }
 
         // Fill in randomly the land masses with land.
-        int energy = 100000;
-        for(int rep=0;rep<5000;rep++)
+        // The fill only succeeds next to existing land, and a continent 4 times bigger has
+        // only 2 times the coastline, so the attempts must scale with areascale^1.5 (not
+        // just the area) to grow the continents proportionally.
+        int fillreps = (int)(5000.0*areascale*sqrt((double)areascale));
+        int energy = 100000*areascale;
+        for(int rep=0;rep<fillreps;rep++)
         {
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
@@ -376,7 +393,7 @@ void initMap()
             }
 
         // Pick the land biomas.
-        for(int i=0;i<1000;i++)
+        for(int i=0;i<1000*areascale;i++)
         {
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
@@ -414,7 +431,7 @@ void initMap()
         // Pick the river sources.
         std::vector<coordinate> riversources;
 
-        for(int i=0;i<100;i++)
+        for(int i=0;i<100*areascale;i++)
         {
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
@@ -439,8 +456,16 @@ void initMap()
 
             int counter = 0;
 
+            // Rivers that start deep inside a big continent can wander for an extremely long
+            // time before touching the ocean (each step retries up to 100 candidates), which
+            // froze the generation on mapsize 2+.  Give the walk a budget that grows with the
+            // linear size of the map; a river that runs out of budget simply ends inland.
+            int rivermaxsteps = (int)(1000.0*sqrt((double)areascale));
+
             while (map(lat,lon).code==LAND)
             {
+                if (counter++ >= rivermaxsteps) break;
+
                 map.set(lat,lon).bioma = bioma;
 
                 if (map.north(lat,lon).code==OCEAN)
@@ -512,7 +537,7 @@ void initMap()
         // Now, pick several places where to put special resources.
         std::vector<coordinate> resourcelocations;
 
-        for(int i=0;i<300;i++)
+        for(int i=0;i<300*areascale;i++)
         {
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
@@ -525,7 +550,7 @@ void initMap()
         }
 
         // Pick water spots where to put some resources.
-        for(int i=0;i<50;i++)
+        for(int i=0;i<50*areascale;i++)
         {
             int lat = getRandomInteger(map.minlat,map.maxlat-1);
             int lon = getRandomInteger(map.minlon,map.maxlon-1);
@@ -617,6 +642,17 @@ void initMap()
         saveMap();
     }
 
+    // Summary of the world: how much of it is land.
+    {
+        int landcount = 0;
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for (int lon=map.minlon;lon<map.maxlon;lon++)
+                if (map(lat,lon).code==LAND) landcount++;
+        int totalcells = (map.maxlat-map.minlat)*(map.maxlon-map.minlon);
+        printf("Generated world: %d land cells of %d (%d%%)\n",landcount,totalcells,landcount*100/totalcells);
+        fflush(stdout);
+    }
+
     std::vector<std::vector<coordinate>> landmassseeds = findLandmasses();
 
     printf("Detected %d landmasses\n",landmassseeds.size()) ;
@@ -629,6 +665,7 @@ void initMap()
         int land = determineLandMass(c);
         printf(" Landmass Size %d\n",land) ;
     }
+    fflush(stdout);
 
 
     int lat = 23;

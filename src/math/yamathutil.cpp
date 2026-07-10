@@ -5,6 +5,8 @@
  *      Author: faturita
  */
 
+#include <random>
+
 #include "yamathutil.h"
 
 /**
@@ -208,7 +210,7 @@ int sgnz(int val)
 
 Vec3f getRandomCircularSpot(Vec3f origin, float radius)
 {
-    float t = (rand() % 360 + 1);
+    float t = getRandomInteger(1,360);
 
     t = t * PI/180.0f;
 
@@ -222,13 +224,23 @@ Vec3f getRandomCircularSpot(Vec3f origin, float radius)
     return origin+Vec3f(x,0,z);
 }
 
+// Mersenne Twister seeded once from the system entropy source: unlike srand(time)+rand(),
+// the first draws are already well distributed (rand()'s first output barely changed with
+// the seed, so e.g. the landmass seed count came out 8 on virtually every run).
+static std::mt19937 generator(std::random_device{}());
+
+// Reseed the generator for reproducible runs (the -seed command line parameter).
+void setRandomSeed(unsigned int seed)
+{
+    generator.seed(seed);
+}
+
 // [min,max]
 int getRandomInteger(int min, int max)
 {
-    int range = abs(max - min);
-    int val = ((rand() % (range+1)));   //arc4random() % (range+1);
-    val = val + min;
-    return val;
+    // Same semantics as the old rand()-based version: min + uniform[0, abs(max-min)].
+    std::uniform_int_distribution<int> distribution(min, min + abs(max - min));
+    return distribution(generator);
 }
 
 float _acos(float val)

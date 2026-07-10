@@ -773,14 +773,15 @@ void adjustMovements()
 
 void setUpFaction()
 {
+    printf("Setting up faction %d - %s\n",coordinator.a_f_id,factions[coordinator.a_f_id]->name);
     controller.reset();
     coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
     if (units.find(coordinator.a_u_id)!=units.end())
     {
-        map.setCenter(0,factions[coordinator.a_f_id]->mapoffset);
         coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
         c = map.to_screen(c.lat,c.lon);
-        if (controller.bcenterinmap) centermapinmap(c.lat, c.lon);   
+        centermapinmap(c.lat, c.lon);
+        resetzoom();
     }      
 }
 
@@ -997,6 +998,7 @@ int main(int argc, char** argv) {
         int seed = getDefaultedIntCommandLineParameter(argc,argv,"-seed",0);
         srand( seed );
         srand48(seed);
+        setRandomSeed(seed);        // getRandomInteger uses its own <random> generator.
     }
     else
     {

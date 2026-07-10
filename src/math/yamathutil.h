@@ -45,6 +45,7 @@ int clipInt(int val, int min, int max);
 
 
 Vec3f getRandomCircularSpot(Vec3f origin, float radius);
+void setRandomSeed(unsigned int seed);
 int getRandomInteger(int min, int max);
 
 typedef uint8_t crc;
