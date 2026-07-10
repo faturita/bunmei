@@ -342,7 +342,7 @@ inline void endOfYear()
                     unit->faction = c->faction;
                     unit->availablemoves = unit->getUnitMoves();
 
-                    units[unit->id] = unit;  
+                    units[unit->id] = unit;
                 }
                 else
                 {
@@ -537,7 +537,19 @@ bool captureCity(Unit* invader, int lat, int lon)
                 // Perhaps we should do some form of cleaning first, and a reassignment.
                 city->reAssignWorkingTiles(invader->faction);
                 city->faction = invader->faction;
-                city->setDefense();              
+                city->setDefense();
+
+                // Units caught inside the city could not defend it (or it would not have been
+                // captured): they are captured too and flip to the conquering faction.
+                for (auto& [k, u] : units)
+                {
+                    if (u->latitude == lat && u->longitude == lon && u->faction != invader->faction)
+                    {
+                        u->faction = invader->faction;
+                        u->availablemoves = 0;
+                        message(year, invader->faction, "A %s in %s has been captured by %s.", u->name, city->name, factions[invader->faction]->name);
+                    }
+                }
 
                 march();
                 message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
@@ -828,9 +840,12 @@ void update(int value)
     {
         factions[c->faction]->pop += c->pop;
         c->noDefense();
-        for(auto& [k, u] : units) 
+        for(auto& [k, u] : units)
         {
-            if (u->latitude == c->latitude && u->longitude == c->longitude)
+            // Only units of the city's own faction that can actually fight defend the city:
+            // a settler (defense 0) cannot hold a city, it is captured with it.
+            if (u->latitude == c->latitude && u->longitude == c->longitude &&
+                u->faction == c->faction && u->getDefense() > 0)
             {
                 c->setDefense();
             }

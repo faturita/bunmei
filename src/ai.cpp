@@ -245,16 +245,11 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
         return coordinate(0,0);
     }
     
-    // For land units, also check ownership (ocean units don't need ownership checks)
-    if (movementType == LANDTYPE)
-    {
-        if (!(map.peek(unit->latitude,unit->longitude).isUnassignedLand() || 
-              map.peek(unit->latitude,unit->longitude).getOwnedBy() == unit->faction))
-        {
-            ok = false;
-            return coordinate(0,0);
-        }
-    }
+    // Do NOT refuse pathfinding because of who owns the tile the unit is STANDING on:
+    // enemy cities claim working tiles every year, so land can flip owner under a unit
+    // (or a unit can be left inside conquered territory), and refusing to path out froze
+    // the game: autoPlayer re-issued the same GoTo every tick and the turn never ended.
+    // Each step of the path is still validated by moveUnit/attack when it is executed.
 
     // Build the traversal tree based on unit's movement type
     Tree tree = buildGenericTraversalTree([validTerrain](int lat, int lon) {
