@@ -300,6 +300,20 @@ void drawMap()
     }
 
 
+    // Cull the tile drawing to the viewport: tiles are drawn at logical (width/2+lon*16,
+    // height/2+lat*16), so only the tiles inside the ortho window need to be submitted and
+    // the drawing cost depends on the zoom level, not on the map size.  One extra tile of
+    // margin covers the half-tile offsets and the coast fringes drawn on neighbour tiles.
+    int vlonmin = (int)floorf((cx - xsize/2.0f - width/2.0f )/16.0f) - 1;
+    int vlonmax = (int)ceilf ((cx + xsize/2.0f - width/2.0f )/16.0f) + 1;
+    int vlatmin = (int)floorf((cy - ysize/2.0f - height/2.0f)/16.0f) - 1;
+    int vlatmax = (int)ceilf ((cy + ysize/2.0f - height/2.0f)/16.0f) + 1;
+
+    if (vlonmin < map.minlon)   vlonmin = map.minlon;
+    if (vlonmax > map.maxlon-1) vlonmax = map.maxlon-1;
+    if (vlatmin < map.minlat)   vlatmin = map.minlat;
+    if (vlatmax > map.maxlat-1) vlatmax = map.maxlat-1;
+
     glOrtho(cx-xsize/2, cx+xsize/2, cy+ysize/2, cy-ysize/2, -1, 1);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
@@ -328,26 +342,26 @@ void drawMap()
         //drawGrid();
 
         // Water or Land
-        for(int lat=map.minlat;lat<=map.maxlat-1;lat++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
         {
-            for(int lon=map.minlon;lon<=map.maxlon-1;lon++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 if (map(lat,lon).visible) placeTile(lon,lat,tiles[map(lat,lon).code].c_str());
             }
         }
 
         // Biomas, including biomas on ocean (like river mouths)
-        for(int lat=map.minlat;lat<=map.maxlat-1;lat++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
         {
-            for(int lon=map.minlon;lon<=map.maxlon-1;lon++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 if (map(lat,lon).visible && map(lat,lon).bioma!=0) placeTile(lon,lat,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
         // Coasts
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 int land = map(lat,lon).code;
                 mapcell next = map.south(lat,lon);
@@ -421,9 +435,9 @@ void drawMap()
             }
 
         // Add Resources
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
         {
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 int size = 15;
                 if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
@@ -431,8 +445,8 @@ void drawMap()
             }
         }
 
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 if (map(lat,lon).visible)
                 {
@@ -444,8 +458,8 @@ void drawMap()
                 }
             }
 
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 if (controller.showLandOwnership)
                 if (!map(lat,lon).isFreeLand())

@@ -63,7 +63,10 @@ extern Coordinator coordinator;
 void TestCase_006::init()
 {
 
-    map.init(MAPHALFHEIGHT,MAPHALFWIDTH);
+    // The test needs the 144x96 map (mapsize 2) regardless of DEFAULT_MAPSIZE:
+    // the unit coordinates do not exist on the 72x48 map.
+    MapDimension dimension = getMapDimension(2);
+    map.init(dimension.halfheight,dimension.halfwidth);
 
     initTiles(tiles);
 
