@@ -776,13 +776,17 @@ void setUpFaction()
     printf("Setting up faction %d - %s\n",coordinator.a_f_id,factions[coordinator.a_f_id]->name);
     controller.reset();
     coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
-    if (units.find(coordinator.a_u_id)!=units.end())
-    {
-        coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
-        c = map.to_screen(c.lat,c.lon);
-        centermapinmap(c.lat, c.lon);
-        resetzoom();
-    }      
+
+    // @NOTE: Forcing the map centering only for the user player, not for the AI players.
+    if (!(factions[coordinator.a_f_id]->autoPlayer))
+        if (units.find(coordinator.a_u_id)!=units.end())
+        {
+            map.setCenter(factions[coordinator.a_f_id]->vmapoffset,factions[coordinator.a_f_id]->mapoffset);
+            coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
+            c = map.to_screen(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);
+            resetzoom();
+        }      
 }
 
 bool noMoreMovementsLeft(int fid)

@@ -116,12 +116,17 @@ void drawCityScreen(int cla, int clo, City *city)
         placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
         drawBoundingBox(clo,cla,-10,-8,-4,-4);
 
+        // In the box 16 resources fit with a colsepar of 7.
         for(int i=0;i<resources.size();i++)
         {
             Resource* r = resources[i];
             int consumptionrate = city->getConsumptionRate(r->id);
             int productionrate = city->getProductionRate(r->id)-consumptionrate;
-            int colsepar = 7;
+
+            // @FIXME: This works but it is not very good.
+            // @TODO: Pick an icon to highlight the situation where resources are not enough to cover the consumption rate.  This is a very important situation and should be highlighted.
+            // @TODO: Allow clicking on the resources to see the number of resources (when there are a lot is going to be hard to count)
+            int colsepar = clipInt( floor(7*(16.0/((consumptionrate+productionrate)))),1,7);
             int j;
 
 
