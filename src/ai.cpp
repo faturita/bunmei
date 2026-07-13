@@ -84,15 +84,22 @@ Tree buildGenericTraversalTree(Condition condition)
 {
     Tree tree;
 
+    // (lat,lon) -> vertex descriptor index: the per-tile find_if lookups made this
+    // function O(V^2) and dominated the cost of every goTo call on big maps.
+    std::unordered_map<int, Tree::vertex_descriptor> index;
+    int width = map.maxlon - map.minlon;
+    auto key = [width](int lat, int lon) { return (lat - map.minlat)*width + (lon - map.minlon); };
+
     // Add all the land vertices into the graph.
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
             if (condition(lat, lon))
+            {
                 auto v = add_vertex({lat,lon,0,0}, tree);
+                index[key(lat,lon)] = v;
+            }
         }
-
-    auto vv = boost::make_iterator_range(vertices(tree));
 
     // Now, map all the connections between land mapcells.  This allow a unit to move from one land cell to another.
     for(int lat=map.minlat;lat<map.maxlat;lat++ )
@@ -100,8 +107,8 @@ Tree buildGenericTraversalTree(Condition condition)
         {
             if (condition(lat, lon))
             {
-                auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
-                
+                auto start = index[key(lat,lon)];
+
                 for(int i=-1;i<=1;i++)
                     for(int j=-1;j<=1;j++)
                     {
@@ -115,14 +122,12 @@ Tree buildGenericTraversalTree(Condition condition)
 
                         if (condition(latt, lonn))
                         {
-                            auto end = find_if(vv, [&, latt,lonn,i,j](auto vd) { return tree[vd].lat == latt && tree[vd].lon == lonn; });
+                            auto end = index.find(key(latt,lonn));
                             // @FIXME: Add terrain cost here on the edge.
 
-                            //printf("Adding edge from %d,%d >> %d,%d >> %d,%d\n", lat, lon,i,j, latt, lonn);
-                            
-                            if (end != vv.end())
+                            if (end != index.end())
                             {
-                                add_edge(*start, *end, Edge{1}, tree);
+                                add_edge(start, end->second, Edge{1}, tree);
                             }
                         }
                     }
@@ -342,6 +347,58 @@ coordinate goTo(Unit* unit, bool &ok)
     return goTo(unit, ok, unit->target.lat, unit->target.lon);
 }
 
+// Send the unit towards the CLOSEST reachable candidate with a single Dijkstra run.
+// Calling goTo once per candidate (one full Dijkstra each) froze the game when many
+// units were alive.  Returns false when no candidate is reachable.
+bool goToNearest(Unit* unit, const std::vector<coordinate> &candidates)
+{
+    if (candidates.empty())
+        return false;
+
+    MOVEMENT_TYPE movementType = unit->getMovementType();
+    int validTerrain = (movementType == OCEANTYPE) ? OCEAN : LAND;
+
+    if (map.peek(unit->latitude,unit->longitude).code != validTerrain)
+        return false;
+
+    Tree tree = buildGenericTraversalTree([validTerrain](int lat, int lon) {
+        return map.peek(lat,lon).code == validTerrain;
+    });
+
+    auto vv = boost::make_iterator_range(vertices(tree));
+
+    int lat = unit->latitude;
+    int lon = unit->longitude;
+    auto source = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
+
+    if (source == vv.end())
+        return false;
+
+    dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
+
+    // Every vertex now holds its distance from the unit: pick the closest candidate.
+    int bestdist = std::numeric_limits<int>::max();
+    coordinate best(0,0);
+    for(auto &c:candidates)
+    {
+        coordinate n = map.adjust(c.lat,c.lon,0,0);
+        auto t = find_if(vv, [&, n](auto vd) { return tree[vd].lat == n.lat && tree[vd].lon == n.lon; });
+        // dist 0 is the unit's own tile: goTo cannot path to itself and the AI
+        // would re-issue the same target forever, stalling the turn.
+        if (t != vv.end() && tree[*t].dist > 0 && tree[*t].dist < bestdist)
+        {
+            bestdist = tree[*t].dist;
+            best = n;
+        }
+    }
+
+    if (bestdist == std::numeric_limits<int>::max())
+        return false;
+
+    unit->goTo(best.lat, best.lon);
+    return true;
+}
+
 #include "Faction.h"
 #include "usercontrols.h"
 #include "coordinator.h"
@@ -486,8 +543,16 @@ void autoPlayerMoveUnits()
                     }
                     else
                     {
-                        // No place left to settle on this landmass.
+                        // No place left to settle on this landmass: disband the settler.
+                        // The DisbandUnitOrder handler also advances coordinator.a_u_id to the
+                        // next movable unit; without it the AI kept re-processing this settler
+                        // every tick (blinking) until the user pressed a movement key.
                         s->availablemoves = 0;
+                        printf("Settler %d (faction %d) disbanded: no good city spot left on this landmass.\n", s->id, s->faction);
+
+                        CommandOrder co;
+                        co.command = Command::DisbandUnitOrder;
+                        coordinator.push(co);
                     }
                 }
             }
@@ -521,48 +586,47 @@ void autoPlayerMoveUnits()
                 }
             }
 
+            // Pick a target only when the unit does not have one already (isAuto),
+            // and pick the CLOSEST reachable enemy with a single Dijkstra run:
+            // one goTo per enemy unit on every tick froze the game (sub-1 FPS) as
+            // soon as a military unit was active with many units alive.
             if (Swordman* w = dynamic_cast<Swordman*>(units[coordinator.a_u_id]))
-            for(auto& [uid,u]:units)
+            if (!unit->isAuto())
             {
-                // Attack unit.
-                if (u->faction != unit->faction)
-                {
-                    bool ok;
-                    coordinate co = goTo(unit, ok, u->latitude, u->longitude);
-                    if (ok)
-                        unit->goTo(u->latitude,u->longitude);
-                }
+                // Attack the closest enemy unit (not the dying ones: corpses stay
+                // in the units map until their death animation completes).
+                std::vector<coordinate> enemies;
+                for(auto& [uid,u]:units)
+                    if (u->faction != unit->faction && !u->isDying())
+                        enemies.push_back(u->getCoordinate());
+
+                goToNearest(unit, enemies);
             }
 
             if (Horseman* w = dynamic_cast<Horseman*>(units[coordinator.a_u_id]))
-            for(auto& [uid,u]:units)
+            if (!unit->isAuto())
             {
-                // Attack unit.
-                if (u->faction != unit->faction)
-                {
-                    bool ok;
-                    coordinate co = goTo(unit, ok, u->latitude, u->longitude);
-                    if (ok)
-                        unit->goTo(u->latitude,u->longitude);
-                }
+                // Attack the closest enemy unit (not the dying ones: corpses stay
+                // in the units map until their death animation completes).
+                std::vector<coordinate> enemies;
+                for(auto& [uid,u]:units)
+                    if (u->faction != unit->faction && !u->isDying())
+                        enemies.push_back(u->getCoordinate());
+
+                goToNearest(unit, enemies);
             }
 
-            if (nc == nullptr)
+            if (nc == nullptr && !unit->isAuto())
             {
-                // If there is a defenseless enemy city nearby, capture it.
-                City* cc = nullptr;
+                // If there is a defenseless enemy city, capture the closest one (single Dijkstra).
+                std::vector<coordinate> opencities;
                 for(auto& [cid,c]:cities)
                 {
                     if (c->faction != unit->faction && !c->isDefendedCity() && war)
-                    {
-                        bool ok;
-                        coordinate co = goTo(unit, ok, c->latitude, c->longitude);
-                        if (ok)
-                            cc = c;
-                    }                  
+                        opencities.push_back(c->getCoordinate());
                 }
 
-                if (cc == nullptr)
+                if (!goToNearest(unit, opencities))
                 {
                     // Boludeo
                     controller.registers.roll = getRandomInteger(-1.0,1.0);
@@ -572,8 +636,6 @@ void autoPlayerMoveUnits()
                     {
                         unit->availablemoves = 0;
                     }
-                } else {
-                    unit->goTo(cc->latitude,cc->longitude);
                 }
             }
         }

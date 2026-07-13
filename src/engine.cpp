@@ -60,7 +60,7 @@ int nextMovableUnitId(int f_id)
     std::vector<int> ids;
     for (auto& [k, u] : units) 
     {
-        if (u->faction==f_id && u->availablemoves>0 && u->isSentry()==false && u->isFortified()==false) 
+        if (u->faction==f_id && u->availablemoves>0 && u->isSentry()==false && u->isFortified()==false && u->isDying()==false)
         {
             ids.push_back(u->id);
         }

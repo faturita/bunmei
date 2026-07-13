@@ -44,7 +44,7 @@
 
 #include <iostream>
 #include <unordered_map>
-#include <algorithm> 
+#include <algorithm>
 
 #include "imageloader.h"
 #include "profiling.h"
@@ -754,12 +754,18 @@ void cleanUnits()
 
         units.erase(u->id);
         delete u;
-    }     
+
+        // The active unit can be a dying unit (killed in battle, erased here once its
+        // animation completes): the id in the coordinator would go stale and any
+        // units[a_u_id] access would insert a null pointer in the map (segfault in drawHUD).
+        if (uid == coordinator.a_u_id)
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+    }
 }
 
 void adjustMovements()
 {
-    if ( (coordinator.a_u_id != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
+    if ( (coordinator.a_u_id != CONTROLLING_NONE) && units.find(coordinator.a_u_id) != units.end() && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
     {
         // Receives real latitude and longitude (contained in the unit)
         int lon = units[coordinator.a_u_id]->longitude;
@@ -962,7 +968,7 @@ void update(int value)
     // Autoplayer
     if (factions[coordinator.a_f_id]->autoPlayer)
     {
-        autoPlayerMoveUnits(); 
+        autoPlayerMoveUnits();
     }
 
     processCommandOrders();

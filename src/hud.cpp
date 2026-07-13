@@ -159,7 +159,7 @@ void drawHUD()
     drawString(30,-150,1,str,0.2f);
 
 
-    if (coordinator.a_u_id != CONTROLLING_NONE)
+    if (coordinator.a_u_id != CONTROLLING_NONE && units.find(coordinator.a_u_id) != units.end())
     {
         sprintf (str, "(%s)",units[coordinator.a_u_id]->name);
         drawString(0,-180,1,str,0.2f);

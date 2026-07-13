@@ -181,6 +181,13 @@ void Unit::wakeUp()
     sentried = false;
 }
 
+// Dying units (killed in battle) stay in the units map until their animation completes:
+// they must not be selectable as the active unit.
+bool Unit::isDying()
+{
+    return markedForDeletion;
+}
+
 bool Unit::isMarkedForDeletion()
 {
     return (markedForDeletion && movementCompleted());

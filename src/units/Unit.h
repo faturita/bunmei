@@ -101,6 +101,7 @@ class Unit : public Buildable
     void wakeUp();
 
     bool isMarkedForDeletion();
+    bool isDying();
     void markForDeletion();
     void destroy();
     void goBackOnCompletion();
