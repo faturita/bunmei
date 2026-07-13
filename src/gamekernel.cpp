@@ -46,6 +46,8 @@ extern bool preloadmap;
 
 extern char filegame[256];
 
+extern bool autoEndOfTurn;
+
 void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
 {
     // @FIXME Encode all of this....
@@ -708,6 +710,7 @@ void initFactions()
     faction->rates[1] = 0;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
+    faction->autoPlayer = true;
     
     factions.push_back(faction);
 
@@ -721,7 +724,8 @@ void initFactions()
     faction->rates[1] = 0;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
-    faction->autoPlayer = false;
+    faction->autoPlayer = true;
+
     factions.push_back(faction);
 
 
@@ -814,10 +818,18 @@ void initWorldModelling()
 
     coordinator.a_f_id = factions[0]->id;
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
-    factions[0]->autoPlayer = true;
+    //factions[0]->autoPlayer = true;
 
+    for (auto& f: factions)
+    {
+        // Welcome message for all the factions.
+        message(year, f->id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
 
-    message(year, coordinator.a_f_id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
+    }
+
+    // @NOTE: Allow to finish the turn automatically when all units have moved, so the player does not have to click "End Turn" every time.
+    autoEndOfTurn = true;
+
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();     
@@ -846,7 +858,7 @@ void loadWorldModelling()
 
     coordinator.a_f_id = factions[0]->id;
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
-    factions[0]->autoPlayer = false;
+    //factions[0]->autoPlayer = false;
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();

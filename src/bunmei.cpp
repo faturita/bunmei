@@ -121,6 +121,8 @@ bool preloadmap;
 bool loadgame;
 char filegame[256];
 
+bool autoEndOfTurn;
+
 
 void disclaimer()
 {
@@ -732,6 +734,29 @@ void switchUnitIfNoMovesLeft()
             }
 }
 
+void cleanUnits()
+{
+    std::vector<int> unitstodelete;
+
+    for(auto& [k, u] : units) 
+    {
+        if (u->isMarkedForDeletion())
+        {
+            unitstodelete.push_back(u->id);
+        }
+    }
+
+    for(auto& uid:unitstodelete)
+    {
+        Unit* u = units[uid];
+
+        map.set(u->latitude, u->longitude).releaseOwner();
+
+        units.erase(u->id);
+        delete u;
+    }     
+}
+
 void adjustMovements()
 {
     if ( (coordinator.a_u_id != CONTROLLING_NONE) && (controller.registers.pitch!=0 || controller.registers.roll !=0) )
@@ -771,11 +796,66 @@ void adjustMovements()
     }
 }
 
+void reSetCities()
+{
+    for(auto& f:factions)
+    {
+        //printf("Faction %d - %s red %d\n",f->id,factions[f->id]->name,f->red);
+
+        // @NOTE: Pop and coins are reset here and recalculated later.
+        f->pop = 0;
+        f->coins = 0;
+    }
+
+    // Update all the time if the city is or not defended...
+    for(auto& [cid,c]:cities)
+    {
+        factions[c->faction]->pop += c->pop;
+        c->noDefense(); // Set the city as defenseless, and then check if there are units defending it.
+
+        for(auto& [k, u] : units)
+        {
+            // Only units of the city's own faction that can actually fight defend the city:
+            // a settler (defense 0) cannot hold a city, it is captured with it.
+            if (u->latitude == c->latitude && u->longitude == c->longitude &&
+                u->faction == c->faction && u->getDefense() > 0)
+            {
+                c->setDefense();
+                break;
+            }
+        }
+
+        // @FIXME: This is a workaround
+        if (!c->workingOn(0,0))
+        {
+            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
+        }
+        c->deAssigntWorkingTile();
+
+
+        // @NOTE Collect taxes....
+        factions[c->faction]->coins += c->resources[COINS];
+
+        // @FIXME: Spread culture
+
+        // @FIXME: Collect science.
+
+    }    
+}
+
 void setUpFaction()
 {
     printf("Setting up faction %d - %s\n",coordinator.a_f_id,factions[coordinator.a_f_id]->name);
     controller.reset();
     coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
+
+    reSetCities();
+
+    // Autoplayer
+    if (factions[coordinator.a_f_id]->autoPlayer)
+    {
+        autoPlayerCities();
+    }
 
     // @NOTE: Forcing the map centering only for the user player, not for the AI players.
     if (!(factions[coordinator.a_f_id]->autoPlayer))
@@ -802,8 +882,128 @@ bool noMoreMovementsLeft(int fid)
     return nomore;
 }
 
-// GAME Model Update
+
+void processGoTo()
+{
+    // GoTo Function
+    if (units.find(coordinator.a_u_id)!=units.end() && units[coordinator.a_u_id]->isAuto())
+    {
+        // First build the tree map of the available land.
+        // Calculate the path to the target.
+
+        bool ok = false;
+        
+        coordinate c = goTo(units[coordinator.a_u_id],ok);
+        
+        if (ok)
+        {
+            // Find which direction (i,j) leads from current position to next position c
+            // by checking all 8 neighbors using map.adjust()
+            bool found = false;
+            int current_lat = units[coordinator.a_u_id]->latitude;
+            int current_lon = units[coordinator.a_u_id]->longitude;
+            
+            for(int i=-1; i<=1 && !found; i++)
+            {
+                for(int j=-1; j<=1 && !found; j++)
+                {
+                    if (i==0 && j==0)
+                        continue;
+                    
+                    coordinate neighbor = map.adjust(current_lat, current_lon, i, j);
+                    
+                    if (neighbor.lat == c.lat && neighbor.lon == c.lon)
+                    {
+                        controller.registers.pitch = i;
+                        controller.registers.roll = j;
+                        found = true;
+                    }
+                }
+            }
+            
+            if (!found)
+            {
+                // The pathfinding returned a coordinate that is not a valid neighbor!
+                // This shouldn't happen, but if it does, cancel the goto to avoid getting stuck
+                printf("ERROR: Pathfinding returned non-neighbor coordinate! Current: (%d,%d), Target step: (%d,%d)\n", 
+                       current_lat, current_lon, c.lat, c.lon);
+                units[coordinator.a_u_id]->resetGoTo();
+            }
+
+        }
+        else
+        {
+            // Cancel goto operation and make a sound.
+            //if (!units[coordinator.a_u_id]->arrived()) blocked();
+            units[coordinator.a_u_id]->resetGoTo();
+        }
+
+        units[coordinator.a_u_id]->arrived();
+
+    }    
+}
+
+
+
 void update(int value)
+{
+    // Derive the control to the correct object
+    if (controller.isInterrupted())
+    {
+        exit(0);
+    }
+
+    cleanUnits();
+
+    reSetCities();
+
+    processGoTo();
+
+    // Autoplayer
+    if (factions[coordinator.a_f_id]->autoPlayer)
+    {
+        autoPlayerMoveUnits(); 
+    }
+
+    processCommandOrders();
+
+    adjustMovements();
+
+    // @NOTE: Remove me if you want to wait until the user press the space bar to move ahead the end of turn.
+    if (autoEndOfTurn && noMoreMovementsLeft(coordinator.a_f_id))
+    {
+        coordinator.endofturn = true;
+    }
+
+    if (coordinator.endofturn)
+    {
+        coordinator.endofturn=false;
+        factions[coordinator.a_f_id]->done();
+
+        if (coordinator.a_f_id<factions.size()-1) 
+        {
+            coordinator.a_f_id++;
+            setUpFaction();    
+        }
+
+    }
+
+    if (endOfTurnForAllFactions())
+    {
+        // Everybody played their turn, end of year, and start it over.....
+        endOfYear();
+        coordinator.a_f_id = 0;     // Restart the turn from the first faction.
+        setUpFaction();
+    }
+
+    glutPostRedisplay();
+    // @NOTE: update time should be adapted to real FPS (lower is faster).
+    glutTimerFunc(20, worldStep, 0);    
+}
+
+
+// GAME Model Update
+void updatde(int value)
 {
     // Derive the control to the correct object
     if (controller.isInterrupted())
@@ -844,7 +1044,8 @@ void update(int value)
     for(auto& [cid,c]:cities)
     {
         factions[c->faction]->pop += c->pop;
-        c->noDefense();
+        c->noDefense(); // Set the city as defenseless, and then check if there are units defending it.
+
         for(auto& [k, u] : units)
         {
             // Only units of the city's own faction that can actually fight defend the city:
@@ -853,6 +1054,7 @@ void update(int value)
                 u->faction == c->faction && u->getDefense() > 0)
             {
                 c->setDefense();
+                break;
             }
         }
 

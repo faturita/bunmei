@@ -458,7 +458,7 @@ coordinate findCitySpot(coordinate from, bool &found)
     return from;
 }
 
-void autoPlayer()
+void autoPlayerMoveUnits()
 {
     if (units.find(coordinator.a_u_id)!=units.end())
     {
@@ -578,8 +578,11 @@ void autoPlayer()
             }
         }
 
-    }
+    }    
+}
 
+void autoPlayerCities()
+{
     // Control city production.
     for(auto& [k,c]:cities)
     {
@@ -620,5 +623,12 @@ void autoPlayer()
                 }
             }
         }
-    }
+    }    
+}
+
+void autoPlayer()
+{
+    autoPlayerMoveUnits();
+
+    autoPlayerCities();
 }

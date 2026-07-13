@@ -108,6 +108,7 @@ void placeMark4(float x, float y, int size, const char* modelName)
     glDisable(GL_TEXTURE_2D);
 }
 
+
 void drawHUD()
 {
 
@@ -126,11 +127,13 @@ void drawHUD()
     glRotatef(180.0f,0,0,1);
     glRotatef(180.0f,0,1,0);
 
+    float fps = getFPS();
+
     int aimc=0,crossc=0;
 
     char str[256];
 
-    sprintf (str, "Bunmei - %s", factions[coordinator.a_f_id]->name);
+    sprintf (str, "Bunmei (FPS: %.2f) - %s  ", fps, factions[coordinator.a_f_id]->name);
     // width, height, 0 0 upper left
     drawString(0,-30,1,str,0.2f);
 

@@ -11,5 +11,7 @@ bool isGoodCitySpot(int lat, int lon);
 coordinate findCitySpot(coordinate from, bool &found);
 
 void autoPlayer();
+void autoPlayerMoveUnits();
+void autoPlayerCities();
 
 #endif // AI_H

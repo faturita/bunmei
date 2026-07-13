@@ -80,7 +80,7 @@ make
  # Running
 
 ```bash
-./bunmei [-nointro] [-seed seed]
+./bunmei [-nointro] [-seed seed] [-mapsize size]
 ```
 
 That's all folks.
@@ -88,15 +88,15 @@ That's all folks.
 # Game logic
 
 ## Map
-Map size is 72x48.  Latitud determines the relation to the equator, increasing towards south, and longitud are the meridians increasing towards east.  Zero, Zero, is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course when there is possible to move according to the unit.  This can change sea warfare.    
-
-There are special resources around.  
+The standard map size is 72x48.  Latitud determines the relation to the equator, increasing towards south, and longitud are the meridians increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course when as long as is possible to make the movement according to the unit.  This can change sea warfare.     
 
 ## Land Ownership
 
 Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determine by tile ownership rules.
 
 ## Resources
+There are special resources around. 
+
 There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.
 
 ## Trade
@@ -106,7 +106,7 @@ Food and all the special resources can be directly traded, by loading them into 
 
 ## Population
 
-Population represents humans, so they are handled like human population.  So the basic rule of increase population when food storage is completed, there is an logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  This also opens the possibility of indentured servants, slaves and so on.
+Population represents humans, so they are handled like human population.  So the basic rule of increase population when food storage is completed, there is a logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  This also opens the possibility of indentured servants, slaves and so on.
 
 ## Science
 
