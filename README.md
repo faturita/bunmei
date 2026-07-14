@@ -88,16 +88,48 @@ That's all folks.
 # Game logic
 
 ## Map
-The standard map size is 72x48.  Latitud determines the relation to the equator, increasing towards south, and longitud are the meridians increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course when as long as is possible to make the movement according to the unit.  This can change sea warfare.     
+The standard map size is 72x48. 
+
+| Map Size | Effective Size | Default Zoom Level |
+|---|---|---|
+| 1 | 72x48 | 1.0 |
+| 2 | 144x96 | 0.5 |
+| 3 | 288x192 | 0.25 |
+| 4 | 576x384 | 0.125 |
+| 5 | 1152x768 | 0.0625 |
+
+Latitud determines the relation to the equator, increasing towards south, and longitud are the meridians increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course as long as is possible to make the movement according to the unit.  This can change sea warfare.   
+
+## Diplomacy and Wars
+
+Civs have a relation between each other which goes from 1 (foe), 2 (ceasefire), 3 (armistice), 4 (peace), 5 (non agression agreement), 6 (trade agreement), 7 (coalition), etc (@TODO)   Indeed, it is a transition graph, a finite state machine.  Each state has a property which identifies the seizure or not of land.
 
 ## Land Ownership
 
-Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determine by tile ownership rules.
+Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  However, units execute this land seizure when they are at war with other civilizations (it depends on the diplomacy between them).  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determined by tile ownership rules.  Land ownership allows to access resources on the map, and it is also required in combat.
 
 ## Resources
 There are special resources around. 
 
-There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.
+There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.  Access to resources depend on the LoS to the resource itself and requires a road to it.
+
+Tradable resourcees are:
+
+| Resource |   |  |
+|---|---|---|
+| Tobacco | 72x48 | 1.0 |
+| Cotton | 144x96 | 0.5 |
+| Sugar | 288x192 | 0.25 |
+| Furs | 576x384 | 0.125 |
+| Lumber | 1152x768 | 0.0625 |
+| Silver | 576x384 | 0.125 |
+| Gold | 1152x768 | 0.0625 |
+| Iron | 576x384 | 0.125 |
+| Copper | 1152x768 | 0.0625 |
+| Carbon | 576x384 | 0.125 |
+| Uranium | 1152x768 | 0.0625 |
+| Oil | 576x384 | 0.125 |
+| Lumber | 1152x768 | 0.0625 |
 
 ## Trade
 
@@ -110,7 +142,7 @@ Population represents humans, so they are handled like human population.  So the
 
 ## Science
 
-Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know.  
+Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know (like other games like this do).  So the idea is have like a multilayered neural network where the each node correspond to a concrete scientific discovery and the sigmoid function depends on weights that are increased as long as they are invested.  This will produce the triggering of each one of the discoveries, which now will look more random and it will depend on what do you invest.  
 
 ## Combat
 
@@ -175,3 +207,4 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * https://github.com/boostorg/graph
 * https://github.com/rajko-horvat/OpenCiv1
 * https://github.com/SWY1985/CivOne
+

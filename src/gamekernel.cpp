@@ -696,7 +696,7 @@ void initMap()
 
 
 
-
+//@FIXME: This need to be picked at some point in the game or by the parameters.
 void initFactions()
 {
 
