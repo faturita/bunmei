@@ -146,12 +146,13 @@ Instead of selecting what scientific advance do you seek, you can invest researc
 
 ## Combat
 
-The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  Terrain and city are bilinear with additional weights that depend on the terrain itself and on the city.  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die (this is the stochastic component) according to the power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers.  The unit needs to gather population from somewhere to increase their numbers !
+The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  Terrain and city are bilinear with additional weights that depend on the terrain itself and on the city.  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die (this is the stochastic component) according to the power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a pop number (and this make sense with workers and settlers).
 
 
 
 # Working issues
 
+* Ui for investing in science.
 * Allow GoTo with naval units.
 * <strike>Replace controllingid with activeid.</strike>
 * Iterate on improving the AI: focus more on production on cities and build defensive units.

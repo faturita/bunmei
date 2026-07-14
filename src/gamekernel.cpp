@@ -710,7 +710,7 @@ void initFactions()
     faction->rates[1] = 0;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
-    faction->autoPlayer = true;
+    faction->autoPlayer = false;
     
     factions.push_back(faction);
 
