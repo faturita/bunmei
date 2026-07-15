@@ -227,6 +227,7 @@ inline void processCommandOrders()
         city->buildable.push_back(new BarracksFactory());
         city->buildable.push_back(new PalaceFactory());
         city->buildable.push_back(new SettlerFactory());
+        city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new GranaryFactory());
         city->buildable.push_back(new CollosseumFactory());
         city->buildable.push_back(new WarriorFactory());
@@ -280,6 +281,27 @@ inline void processCommandOrders()
     {
         Unit *unit = units[coordinator.a_u_id];
         unit->sentry();
+        unit->availablemoves = 0;
+
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+    } else if (co.command == Command::BuildRoadOrder)
+    {
+        Unit *unit = units[coordinator.a_u_id];
+        map.set(unit->latitude,unit->longitude).buildRoad();
+        unit->availablemoves = 0;
+
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+    } else if (co.command == Command::BuildIrrigationOrder)
+    {
+        Unit *unit = units[coordinator.a_u_id];
+        map.set(unit->latitude,unit->longitude).buildIrrigation();
+        unit->availablemoves = 0;
+
+        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+    } else if (co.command == Command::BuildMineOrder)
+    {
+        Unit *unit = units[coordinator.a_u_id];
+        map.set(unit->latitude,unit->longitude).buildMine();
         unit->availablemoves = 0;
 
         coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);

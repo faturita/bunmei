@@ -6,7 +6,11 @@ enum class Command {
     BuildCityOrder=1,
     DisbandUnitOrder=2,
     FortifyUnitOrder=3,
-    SentryUnitOrder=4
+    SentryUnitOrder=4,
+    BuildRoadOrder=5,
+    BuildIrrigationOrder=6,
+    BuildRailroadOrder=7,
+    BuildMineOrder=8
 };
 
 struct commandparameters

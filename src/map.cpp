@@ -445,6 +445,43 @@ void drawMap()
             }
         }
 
+        // Land improvements (irrigation, mine, road) bitmap (irrigation is lsb, road is bit 1, railroad is bit 2, mine is bit 3)
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+        {
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
+            {
+                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,tiles[0xe0].c_str());
+                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,tiles[0xf0].c_str());
+            }
+        }
+
+
+        // Roads sprites by cardinal-direction mask:
+        //   W=0x01, S=0x02, E=0x04, N=0x08, base index 0xe0
+
+        // Third bit active (0x04): draw road using active neighboring sides.
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+        {
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
+            {
+                if (!map(lat,lon).visible) continue;
+                if ((map(lat,lon).improvements & 0x04) != 0x04) continue;
+
+                int roadMask = 0x00;
+
+                if ((map.west(lat,lon).improvements  & 0x04) == 0x04) roadMask |= 0x01;
+                if ((map.south(lat,lon).improvements & 0x04) == 0x04) roadMask |= 0x02;
+                if ((map.east(lat,lon).improvements  & 0x04) == 0x04) roadMask |= 0x04;
+                if ((map.north(lat,lon).improvements & 0x04) == 0x04) roadMask |= 0x08;
+
+                int tileId = 0xe0 + roadMask;
+                if (roadMask != 0x00 && tiles.find(tileId) != tiles.end())
+                    placeTile(lon,lat,tiles[tileId].c_str());
+            }
+        }
+
+
+
         for(int lat=vlatmin;lat<=vlatmax;lat++)
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {

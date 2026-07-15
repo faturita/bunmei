@@ -52,12 +52,14 @@ struct mapcell
         this->visible = true;      // make it a vector per faction
         this->bioma = 0;// By default, nothing
         this->resource = 0;  // This is a special resource that can be obtained from the map.
+        this->improvements = 0;  // Improvements bitmap.  Each bit represents a different improvement.  For instance, bit 0 is road, bit 1 is irrigation, etc.
     }
 
     int code;
     bool visible;
     int bioma;
     int resource;
+    int improvements;
 
     std::vector<int> resource_production_rate;   // List of resource production per tile.
 
@@ -131,6 +133,21 @@ struct mapcell
             f_id_owner = f_id;
             owners = 1;
         }
+    }
+
+    void buildIrrigation()
+    {
+        improvements |= 0x01;
+    }
+
+    void buildMine()
+    {
+        improvements |= 0x02;
+    }
+
+    void buildRoad()
+    {
+        improvements |= 0x04;
     }
 };
 

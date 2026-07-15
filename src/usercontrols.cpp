@@ -144,6 +144,27 @@ void handleKeypress(unsigned char key, int x, int y) {
             coordinator.push(co);
         }
         break;
+        case 'R':
+        {
+            CommandOrder co;
+            co.command = Command::BuildRoadOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'I':
+        {
+            CommandOrder co;
+            co.command = Command::BuildIrrigationOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'M':
+        {
+            CommandOrder co;
+            co.command = Command::BuildMineOrder;
+            coordinator.push(co);
+        }
+        break;
         case 'F':
         {
             CommandOrder co;
