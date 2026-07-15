@@ -217,8 +217,10 @@ void processMouse(int button, int state, int x, int y)
                         }
                         goToMode = false;
                     }
-
-                    if (specialKey == GLUT_ACTIVE_SHIFT)
+                    // The GoTo-target click is consumed above: it must not fall through
+                    // and open the city screen (or select another unit) when the chosen
+                    // destination is a city tile.
+                    else if (specialKey == GLUT_ACTIVE_SHIFT)
                     {
                         zoommapin();
                     } else {

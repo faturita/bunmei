@@ -256,20 +256,27 @@ coordinate goTo(Unit* unit, bool &ok, int targetlat, int targetlon)
     // the game: autoPlayer re-issued the same GoTo every tick and the turn never ended.
     // Each step of the path is still validated by moveUnit/attack when it is executed.
 
+    // Normalize the target into real map coordinates (the spheroid wraps), so the vertex lookup can find it.
+    coordinate normalized = map.adjust(targetlat,targetlon,0,0);
+    targetlat = normalized.lat;
+    targetlon = normalized.lon;
+
+    // Naval units can GoTo a LAND target (a coast to disembark on, a city to dock in):
+    // include the target tile in the ocean tree so the path ends with one step onto it.
+    // moveUnit resolves that final step (land()/dockInCity()).
+    bool navalToLand = (movementType == OCEANTYPE) && map.peek(targetlat,targetlon).code == LAND;
+
     // Build the traversal tree based on unit's movement type
-    Tree tree = buildGenericTraversalTree([validTerrain](int lat, int lon) {
+    Tree tree = buildGenericTraversalTree([validTerrain, navalToLand, targetlat, targetlon](int lat, int lon) {
+        if (navalToLand && lat==targetlat && lon==targetlon)
+            return true;
         return map.peek(lat,lon).code == validTerrain;
     });
 
 
     auto vv = boost::make_iterator_range(vertices(tree));
-    
-    // At this point, the tree is built.
 
-    // Normalize the target into real map coordinates (the spheroid wraps), so the vertex lookup can find it.
-    coordinate normalized = map.adjust(targetlat,targetlon,0,0);
-    targetlat = normalized.lat;
-    targetlon = normalized.lon;
+    // At this point, the tree is built.
 
     int lat = unit->latitude;
     int lon = unit->longitude;

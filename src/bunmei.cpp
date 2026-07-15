@@ -669,6 +669,47 @@ bool land(Unit* navalunit, int lat, int lon)
 
 }
 
+// A naval unit entering a city of its OWN faction: the ship docks on the city tile and
+// everything it is shipping is unboarded and awakened (enemy cities go through captureCity).
+bool dockInCity(Unit* navalunit, int lat, int lon)
+{
+    if (navalunit->getMovementType()!=OCEANTYPE || map.set(lat,lon).code != LAND || !map.set(lat,lon).belongsToCity())
+        return false;
+
+    City* city = findCityAt(lat,lon);
+
+    if (city==nullptr || city->faction != navalunit->faction)
+        return false;
+
+    if (Trireme* trireme = dynamic_cast<Trireme*>(navalunit))
+    {
+        map.set(trireme->latitude, trireme->longitude).releaseOwner();
+
+        // Trireme::update also moves the passengers onto the city tile.
+        trireme->update(lat,lon);
+
+        map.set(trireme->latitude, trireme->longitude).setOwnedBy(trireme->faction);
+
+        trireme->availablemoves--;
+
+        while (trireme->manifest()>0)
+        {
+            Unit* passenger = trireme->unboard();
+
+            passenger->wakeUp();
+
+            map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+            passenger->availablemoves=0;
+        }
+
+        printf("Dock in city condition\n");
+        return true;
+    }
+
+    return false;
+}
+
 Trireme* findNavalUnit(int lat, int lon)
 {
     Trireme* navalunit = nullptr;
@@ -699,7 +740,7 @@ void moveUnit(Unit* unit, int lat, int lon)
             (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
         {
 
-            if (!land(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
+            if (!land(unit,lat,lon) && !dockInCity(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
             {
                 if (!war)
                 {
@@ -935,6 +976,14 @@ void processGoTo()
                        current_lat, current_lon, c.lat, c.lon);
                 units[coordinator.a_u_id]->resetGoTo();
             }
+            else if (units[coordinator.a_u_id]->getMovementType()==OCEANTYPE && map.peek(c.lat,c.lon).code==LAND)
+            {
+                // A naval unit's final step is onto its LAND target (disembark on a coast,
+                // dock in a city).  A coast landing never moves the SHIP onto the target,
+                // so arrived() would never clear the GoTo and it would re-trigger every
+                // tick (stall): the landing step is one-shot.
+                units[coordinator.a_u_id]->resetGoTo();
+            }
 
         }
         else
@@ -946,7 +995,7 @@ void processGoTo()
 
         units[coordinator.a_u_id]->arrived();
 
-    }    
+    }
 }
 
 
