@@ -94,8 +94,6 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'g':controller.registers.yaw-=1.0;break;
         case 'y':controller.registers.precesion+=1.0f;break;
         case 'h':controller.registers.precesion-=1.0f;break;
-        case 'r':controller.registers.bank+=1.0f;break;
-        case 'v':controller.registers.bank-=1.0f;break;
         case ' ':coordinator.endofturn=true;break;
         case 't':controller.teletype=true;break;
         case 'l':controller.showLandOwnership = !controller.showLandOwnership;break;
@@ -144,10 +142,17 @@ void handleKeypress(unsigned char key, int x, int y) {
             coordinator.push(co);
         }
         break;
-        case 'R':
+        case 'r':
         {
             CommandOrder co;
             co.command = Command::BuildRoadOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'R':
+        {
+            CommandOrder co;
+            co.command = Command::BuildRailroadOrder;
             coordinator.push(co);
         }
         break;

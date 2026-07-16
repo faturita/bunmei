@@ -286,25 +286,40 @@ inline void processCommandOrders()
         coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
     } else if (co.command == Command::BuildRoadOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
-        map.set(unit->latitude,unit->longitude).buildRoad();
-        unit->availablemoves = 0;
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            map.set(worker->latitude,worker->longitude).buildRoad();
+            worker->availablemoves = 0;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        }
     } else if (co.command == Command::BuildIrrigationOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
-        map.set(unit->latitude,unit->longitude).buildIrrigation();
-        unit->availablemoves = 0;
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            map.set(worker->latitude,worker->longitude).buildIrrigation();
+            worker->availablemoves = 0;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        }
     } else if (co.command == Command::BuildMineOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
-        map.set(unit->latitude,unit->longitude).buildMine();
-        unit->availablemoves = 0;
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            map.set(worker->latitude,worker->longitude).buildMine();
+            worker->availablemoves = 0;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        }
+    } else if (co.command == Command::BuildRailroadOrder)
+    {
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            map.set(worker->latitude,worker->longitude).buildRailroad();
+            worker->availablemoves = 0;
+
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        }
     }
 }
 

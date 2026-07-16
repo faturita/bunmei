@@ -456,10 +456,9 @@ void drawMap()
         }
 
 
-        // Roads sprites by cardinal-direction mask:
-        //   W=0x01, S=0x02, E=0x04, N=0x08, base index 0xe0
-
-        // Third bit active (0x04): draw road using active neighboring sides.
+        // Roads (improvements bit 0x04).  Each road sprite is a half-segment from the tile
+        // center to one edge (road_w/s/e/n) or one corner (road_sw/se/nw/ne): a road tile is
+        // drawn by COMPOSITING one segment per neighbouring road tile, diagonals included.
         for(int lat=vlatmin;lat<=vlatmax;lat++)
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
@@ -467,20 +466,34 @@ void drawMap()
                 if (!map(lat,lon).visible) continue;
                 if ((map(lat,lon).improvements & 0x04) != 0x04) continue;
 
-                int roadMask = 0x00;
-
-                if ((map.west(lat,lon).improvements  & 0x04) == 0x04) roadMask |= 0x01;
-                if ((map.south(lat,lon).improvements & 0x04) == 0x04) roadMask |= 0x02;
-                if ((map.east(lat,lon).improvements  & 0x04) == 0x04) roadMask |= 0x04;
-                if ((map.north(lat,lon).improvements & 0x04) == 0x04) roadMask |= 0x08;
-
-                int tileId = 0xe0 + roadMask;
-                if (roadMask != 0x00 && tiles.find(tileId) != tiles.end())
-                    placeTile(lon,lat,tiles[tileId].c_str());
+                if ((map.west(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe1].c_str());
+                if ((map.south(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe2].c_str());
+                if ((map.east(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe4].c_str());
+                if ((map.north(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe8].c_str());
+                if ((map(lat+1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe3].c_str());  // SW
+                if ((map(lat+1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe6].c_str());  // SE
+                if ((map(lat-1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe9].c_str());  // NW
+                if ((map(lat-1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xec].c_str());  // NE
             }
         }
 
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+        {
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
+            {
+                if (!map(lat,lon).visible) continue;
+                if ((map(lat,lon).improvements & 0x08) != 0x08) continue;
 
+                if ((map.west(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf1].c_str());
+                if ((map.south(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf2].c_str());
+                if ((map.east(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf4].c_str());
+                if ((map.north(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf8].c_str());
+                if ((map(lat+1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf3].c_str());  // SW
+                if ((map(lat+1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf6].c_str());  // SE
+                if ((map(lat-1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf9].c_str());  // NW
+                if ((map(lat-1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xfc].c_str());  // NE
+            }
+        }
 
         for(int lat=vlatmin;lat<=vlatmax;lat++)
             for(int lon=vlonmin;lon<=vlonmax;lon++)

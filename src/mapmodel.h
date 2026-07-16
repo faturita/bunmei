@@ -149,6 +149,11 @@ struct mapcell
     {
         improvements |= 0x04;
     }
+
+    void buildRailroad()
+    {
+        improvements |= 0x08;
+    }
 };
 
 class MapCylindrical
