@@ -24,6 +24,9 @@ coordinate convertToMap(int ccx, int ccy, int gridsize);
 
 void unfog(int lat, int lon);
 
+// Cost in movement points of moving from a tile onto an adjacent one (real coordinates).
+float travelCost(int fromlat, int fromlon, int tolat, int tolon);
+
 void drawUnitsAndCities();
 void openCityScreen();
 

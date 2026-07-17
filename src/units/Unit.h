@@ -58,7 +58,13 @@ class Unit : public Buildable
 
         bool bDestroy = false;
         bool goBack = false;
-        
+
+        // A move onto a tile that costs more than the available movement is left pending:
+        // the unit stays, availablemoves goes negative (movement debt) and the move completes
+        // at the turn refresh (endOfYear) when availablemoves recovers to >= 0.
+        bool haspendingmove = false;
+        coordinate pendingmove = coordinate(0,0);
+
     public:
     Unit();
 
@@ -67,7 +73,7 @@ class Unit : public Buildable
     int latitude; // from the equator, north is positive, south is negative.
     int id;
     int faction;
-    int availablemoves;
+    float availablemoves;       // Can go NEGATIVE: movement debt for expensive tiles.
     char name[256];
 
     int getUnitMoves();
@@ -82,6 +88,11 @@ class Unit : public Buildable
     void resetGoTo();
     bool isAuto();
     bool arrived();
+
+    void setPendingMove(coordinate c);
+    bool hasPendingMove();
+    coordinate getPendingMove();
+    void clearPendingMove();
 
     void virtual update(int newlat, int newlon);
 

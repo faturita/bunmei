@@ -31,6 +31,13 @@ enum BIOMAS
     RIVER_MOUTH_N = 0x05
 };
 
+typedef std::unordered_map<int, float> MovementCost;
+
+// Moving along a road or a railroad (both tiles connected by it) overrides the
+// bioma movement cost with these values.
+#define ROAD_MOVEMENT_COST      (1.0f/3.0f)
+#define RAILROAD_MOVEMENT_COST  (1.0f/9.0f)
+
 enum SPECIALRESOURCES
 {
     MARBLE = 0x100,
@@ -55,5 +62,6 @@ typedef std::unordered_map<int, std::vector<int>> Commodities;
 void initTiles(std::unordered_map<int, std::string> &tiles);
 void initCommodities(std::unordered_map<int, std::vector<int>> &commodities);
 void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
+void initMovementCosts(MovementCost &movementcosts);
 
 #endif // TILES_H

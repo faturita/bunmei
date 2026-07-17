@@ -54,7 +54,7 @@ struct CoordinateVertex {
 
     int pred;
 
-    int dist;
+    double dist;        // Dijkstra distances are movement costs (fractional with roads).
 
 };
 
@@ -123,11 +123,12 @@ Tree buildGenericTraversalTree(Condition condition)
                         if (condition(latt, lonn))
                         {
                             auto end = index.find(key(latt,lonn));
-                            // @FIXME: Add terrain cost here on the edge.
 
                             if (end != index.end())
                             {
-                                add_edge(start, end->second, Edge{1}, tree);
+                                // The edge weight is the cost of ENTERING the destination
+                                // tile: its bioma, adjusted by roads/railroads (travelCost).
+                                add_edge(start, end->second, Edge{travelCost(lat,lon,latt,lonn)}, tree);
                             }
                         }
                     }
@@ -161,7 +162,7 @@ int determineLandMass(coordinate c)
     for(auto iter=vv.begin(); iter!=vv.end(); iter++)
     {
         auto vd = *iter;
-        if (tree[vd].dist < std::numeric_limits<int>::max())
+        if (tree[vd].dist < std::numeric_limits<double>::max())
             reachablecount++;
     }
     return reachablecount;
@@ -384,7 +385,7 @@ bool goToNearest(Unit* unit, const std::vector<coordinate> &candidates)
     dijkstra_shortest_paths(tree, *source, predecessor_map( get(&CoordinateVertex::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&CoordinateVertex::dist, tree)));
 
     // Every vertex now holds its distance from the unit: pick the closest candidate.
-    int bestdist = std::numeric_limits<int>::max();
+    double bestdist = std::numeric_limits<double>::max();
     coordinate best(0,0);
     for(auto &c:candidates)
     {
@@ -399,7 +400,7 @@ bool goToNearest(Unit* unit, const std::vector<coordinate> &candidates)
         }
     }
 
-    if (bestdist == std::numeric_limits<int>::max())
+    if (bestdist == std::numeric_limits<double>::max())
         return false;
 
     unit->goTo(best.lat, best.lon);

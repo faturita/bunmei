@@ -14,7 +14,10 @@
 #include "Faction.h"
 #include "resources.h"
 #include "coordinator.h"
+#include "tiles.h"
 #include "map.h"
+
+extern MovementCost movementcosts;
 
 extern Controller controller;
 extern Coordinator coordinator;
@@ -144,6 +147,28 @@ void centermapinmap(int lat, int lon)
     cy = height/2.0 + lat*16.0 ;            // 0-800
 
     //printf("Center %f,%f\n",cx,cy);
+}
+
+// Cost in movement points of moving from a tile onto an adjacent one (real coordinates):
+// the bioma of the DESTINATION tile decides (initMovementCosts), unless the two tiles are
+// connected by a road or a railroad, which override the terrain cost.
+float travelCost(int fromlat, int fromlon, int tolat, int tolon)
+{
+    mapcell &from = map.peek(fromlat,fromlon);
+    mapcell &to   = map.peek(tolat,tolon);
+
+    if (from.hasRailroad() && to.hasRailroad())
+        return RAILROAD_MOVEMENT_COST;
+
+    if ((from.hasRoad() || from.hasRailroad()) && (to.hasRoad() || to.hasRailroad()))
+        return ROAD_MOVEMENT_COST;
+
+    // The bioma variants (grassland_w, ...) share the cost of their base bioma (high nibble).
+    int basebioma = to.bioma & 0xf0;
+    if (movementcosts.find(basebioma) != movementcosts.end())
+        return movementcosts[basebioma];
+
+    return 1.0f;
 }
 
 void unfog(int lat, int lon)

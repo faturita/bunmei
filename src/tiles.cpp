@@ -17,6 +17,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[RIVER_MOUTH_E] = "assets/assets/terrain/river_mouth_e.png";
     tiles[RIVER_MOUTH_N] = "assets/assets/terrain/river_mouth_n.png";
 
+    // These are the basic building block tiles for all the biomas.
     tiles[ARCTIC] = "assets/assets/terrain/arctic.png";
     tiles[DESERT] = "assets/assets/terrain/desert.png";
     tiles[FOREST] = "assets/assets/terrain/forest.png";
@@ -258,6 +259,26 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[SEAL] = "assets/assets/terrain/seal.png";
     tiles[GEOSHIELD] = "assets/assets/terrain/shield.png";
 }
+
+// Defined here (and not in gamekernel.cpp) so that the testcase build, which does not
+// link gamekernel.o, can also use the travel costs.
+MovementCost movementcosts;
+
+void initMovementCosts(MovementCost &movementcosts)
+{
+    movementcosts[ARCTIC] = 1.0;
+    movementcosts[DESERT] = 1.0;
+    movementcosts[FOREST] = 1.5;
+    movementcosts[GRASSLAND] = 1.0;
+    movementcosts[HILLS] = 2.0;
+    movementcosts[JUNGLE] = 2.0;
+    movementcosts[MOUNTAINS] = 3.0;
+    movementcosts[PLAINS] = 1.0;
+    movementcosts[RIVER] = 1.0;
+    movementcosts[SWAMP] = 2.0;
+    movementcosts[TUNDRA] = 1.5;
+    movementcosts[OCEANBIOMA] = 1.0;
+}   
 
 void initCommodities(std::unordered_map<int, std::vector<int>> &commodities)
 {

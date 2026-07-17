@@ -323,12 +323,55 @@ inline void processCommandOrders()
     }
 }
 
+extern bool war;        // Defined below.
+
+// Execute a move that was left pending while the unit paid its movement debt.
+// The map may have changed in the meantime, so the move is re-validated; if it is no
+// longer possible the pending move is simply cancelled (the unit stays where it is).
+void completePendingMove(Unit* unit)
+{
+    coordinate t = unit->getPendingMove();
+    unit->clearPendingMove();
+
+    if (!((map.set(t.lat,t.lon).code==LAND && unit->getMovementType()==LANDTYPE) ||
+        (map.set(t.lat,t.lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) ))
+        return;
+
+    if (!(map.set(t.lat,t.lon).isFreeLand() || map.set(t.lat,t.lon).isOwnedBy(unit->faction) || (war && !map.set(t.lat,t.lon).isOwnedBy(unit->faction))))
+        return;
+
+    // A plain move cannot end on an enemy unit or an enemy city (combat and capture are
+    // resolved by moveUnit at the moment the order is given, not here).
+    for (auto& [k, u] : units)
+        if (u->latitude == t.lat && u->longitude == t.lon && u->faction != unit->faction)
+            return;
+
+    for (auto& [k, c] : cities)
+        if (c->latitude == t.lat && c->longitude == t.lon && c->faction != unit->faction)
+            return;
+
+    map.set(unit->latitude, unit->longitude).releaseOwner();
+    unit->update(t.lat,t.lon);
+    map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
+
+    printf("Pending move completed: unit %d arrived at (%d,%d)\n", unit->id, t.lat, t.lon);
+}
+
 inline void endOfYear()
 {
     year++;
-    for (auto& [k, u] : units) 
+    for (auto& [k, u] : units)
     {
-        u->availablemoves = u->getUnitMoves();
+        // Units in movement debt (negative moves) recover one year of moves at a time
+        // instead of getting the full refresh: crossing a tile that costs more than the
+        // unit's moves-per-turn takes several turns.
+        if (u->availablemoves < 0)
+            u->availablemoves += u->getUnitMoves();
+        else
+            u->availablemoves = u->getUnitMoves();
+
+        if (u->hasPendingMove() && u->availablemoves >= 0)
+            completePendingMove(u);
     }
 
     std::vector<int> todelete;
@@ -624,13 +667,26 @@ bool moveForward(Unit* unit, int lat, int lon)
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
     if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)) || (war && !map.set(lat,lon).isOwnedBy(unit->faction)) )
     {
+        float cost = travelCost(unit->latitude, unit->longitude, lat, lon);
+
+        if (cost > unit->availablemoves)
+        {
+            // The tile costs more than the unit has: the unit stays, goes into movement
+            // DEBT (availablemoves negative) and the move completes at the endOfYear
+            // refresh once availablemoves recovers to >= 0.
+            unit->availablemoves -= cost;
+            unit->setPendingMove(coordinate(lat,lon));
+
+            printf("Pending move condition: cost %.2f, moves left %.2f\n", cost, unit->availablemoves);
+            return true;
+        }
+
         map.set(unit->latitude, unit->longitude).releaseOwner();
 
         // Normal, regular movement....
-        unit->update(lat,lon);  
+        unit->update(lat,lon);
 
-        // @FIXME: It should consider the terrain.
-        unit->availablemoves--;
+        unit->availablemoves -= cost;
 
         map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
 
@@ -798,7 +854,7 @@ void switchUnitIfNoMovesLeft()
 {
     if (coordinator.a_u_id != CONTROLLING_NONE)
         if (units.find(coordinator.a_u_id)!=units.end())
-            if (units[coordinator.a_u_id]->availablemoves==0)
+            if (units[coordinator.a_u_id]->availablemoves<=0)   // <=: movement debt is negative
             {
                 int cid = nextMovableUnitId(coordinator.a_f_id);
                 if (cid != CONTROLLING_NONE)

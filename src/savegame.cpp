@@ -353,7 +353,7 @@ void loadUnits(std::ifstream& in)
         strncpy(u->name, str, name_len);
         u->name[name_len] = '\0';
 
-        printf("Loaded unit: %s (ID: %d, Faction: %d, Location: (%d, %d), Available Moves: %d)\n",
+        printf("Loaded unit: %s (ID: %d, Faction: %d, Location: (%d, %d), Available Moves: %.2f)\n",
                u->name, u->id, u->faction, u->latitude, u->longitude, u->availablemoves);
 
         units[u->id] = u;

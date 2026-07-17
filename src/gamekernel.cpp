@@ -27,6 +27,7 @@ extern Controller controller;
 extern std::unordered_map<int, std::string> tiles;
 extern Map map;
 std::unordered_map<int, std::vector<int>> resourcesxbioma;
+extern MovementCost movementcosts;
 
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
@@ -78,21 +79,21 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
                 //printf("Bioma %x\n",mmp(lat,lon).bioma);
                 if (mmp.set(lat,lon).code == LAND && mmp.set(lat,lon).bioma == LANDBIOMA) // Regular land
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 2;
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
                 }
                 if (mmp.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
                     if (mmp.set(lat,lon).resource==GEOSHIELD) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
                 }
                 if (mmp.set(lat,lon).bioma/16==RIVER/16) // River
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD]  = 4;
+                    mmp.set(lat,lon).resource_production_rate[FOOD]  = 2;
                     mmp.set(lat,lon).resource_production_rate[TRADE] = 1;
                 }
                 if (mmp.set(lat,lon).bioma/16==DESERT/16) // Desert
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    mmp.set(lat,lon).resource_production_rate[FOOD] = 0;
                 }
                 if (mmp.set(lat,lon).bioma/16==SWAMP/16) // Swamps
                 {
@@ -269,6 +270,8 @@ void initMap()
     initTiles(tiles);
 
     initCommodities(resourcesxbioma);
+
+    initMovementCosts(movementcosts);
 
     MapDimension dimension = getMapDimension(mapsize);
     map.init(dimension.halfheight,dimension.halfwidth);

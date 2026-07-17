@@ -108,6 +108,27 @@ bool Unit::isAuto()
     return autoMode;
 }
 
+void Unit::setPendingMove(coordinate c)
+{
+    haspendingmove = true;
+    pendingmove = c;
+}
+
+bool Unit::hasPendingMove()
+{
+    return haspendingmove;
+}
+
+coordinate Unit::getPendingMove()
+{
+    return pendingmove;
+}
+
+void Unit::clearPendingMove()
+{
+    haspendingmove = false;
+}
+
 bool Unit::arrived()
 {
     if (latitude == target.lat && longitude == target.lon)

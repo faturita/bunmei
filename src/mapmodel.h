@@ -49,7 +49,7 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = true;      // make it a vector per faction
+        this->visible = false;      // @FIXME: this should be a mask per faction.
         this->bioma = 0;// By default, nothing
         this->resource = 0;  // This is a special resource that can be obtained from the map.
         this->improvements = 0;  // Improvements bitmap.  Each bit represents a different improvement.  For instance, bit 0 is road, bit 1 is irrigation, etc.
@@ -148,6 +148,16 @@ struct mapcell
     void buildRoad()
     {
         improvements |= 0x04;
+    }
+
+    bool hasRoad()
+    {
+        return (improvements & 0x04) == 0x04;
+    }
+
+    bool hasRailroad()
+    {
+        return (improvements & 0x08) == 0x08;
     }
 
     void buildRailroad()
