@@ -244,7 +244,16 @@ void drawCityScreen(int cla, int clo, City *city)
 
                 for(int i=0;i<resources.size();i++)
                 {
-                    for(int j=0;j<map(la,lo).resource_production_rate[i];j++)
+                    float resourceProductionRate = map(la,lo).resource_production_rate[i];
+
+                    std::vector<int> resourceProductionRateVector;
+
+                    // FOOD, PRODUCTION, TRADE, GOLD, SCIENCE, CULTURE
+                    //resourceProductionRateVector.push_back();
+
+
+
+                    for(int j=0;j<resourceProductionRate;j++)
                     {
                         resourcesToDisplay.push_back(resources[i]);
                     }

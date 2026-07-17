@@ -16,6 +16,7 @@
 #include "coordinator.h"
 #include "tiles.h"
 #include "map.h"
+#include "improvements.h"
 
 extern MovementCost movementcosts;
 
@@ -27,9 +28,12 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 
+std::unordered_map<int, Improvement*> improvements;
+
 std::unordered_map<int, std::string> tiles;
 Map map;
 std::unordered_map<std::string, GLuint> maptextures;
+
 
 
 extern int REAL_SCREEN_WIDTH;
@@ -475,8 +479,8 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,tiles[0xe0].c_str());
-                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,tiles[0xf0].c_str());
+                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,improvements[0xe0]->assetname);
+                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,improvements[0xf0]->assetname);
             }
         }
 
@@ -491,14 +495,14 @@ void drawMap()
                 if (!map(lat,lon).visible) continue;
                 if ((map(lat,lon).improvements & 0x04) != 0x04) continue;
 
-                if ((map.west(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe1].c_str());
-                if ((map.south(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe2].c_str());
-                if ((map.east(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe4].c_str());
-                if ((map.north(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe8].c_str());
-                if ((map(lat+1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe3].c_str());  // SW
-                if ((map(lat+1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe6].c_str());  // SE
-                if ((map(lat-1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xe9].c_str());  // NW
-                if ((map(lat-1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,tiles[0xec].c_str());  // NE
+                 if ((map.west(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe1]->assetname);
+                 if ((map.south(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe2]->assetname);
+                 if ((map.east(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe4]->assetname);
+                 if ((map.north(lat,lon).improvements  & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe8]->assetname);
+                 if ((map(lat+1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe3]->assetname);  // SW
+                 if ((map(lat+1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe6]->assetname);  // SE
+                 if ((map(lat-1,lon-1).improvements    & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe9]->assetname);  // NW
+                 if ((map(lat-1,lon+1).improvements    & 0x04) == 0x04) placeTile(lon,lat,improvements[0xec]->assetname);  // NE
             }
         }
 
@@ -509,14 +513,14 @@ void drawMap()
                 if (!map(lat,lon).visible) continue;
                 if ((map(lat,lon).improvements & 0x08) != 0x08) continue;
 
-                if ((map.west(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf1].c_str());
-                if ((map.south(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf2].c_str());
-                if ((map.east(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf4].c_str());
-                if ((map.north(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf8].c_str());
-                if ((map(lat+1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf3].c_str());  // SW
-                if ((map(lat+1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf6].c_str());  // SE
-                if ((map(lat-1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xf9].c_str());  // NW
-                if ((map(lat-1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,tiles[0xfc].c_str());  // NE
+                if ((map.west(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf1]->assetname);
+                if ((map.south(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf2]->assetname);
+                if ((map.east(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf4]->assetname);
+                if ((map.north(lat,lon).improvements  & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf8]->assetname);
+                if ((map(lat+1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf3]->assetname);  // SW
+                if ((map(lat+1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf6]->assetname);  // SE
+                if ((map(lat-1,lon-1).improvements    & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf9]->assetname);  // NW
+                if ((map(lat-1,lon+1).improvements    & 0x08) == 0x08) placeTile(lon,lat,improvements[0xfc]->assetname);  // NE
             }
         }
 

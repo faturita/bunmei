@@ -18,6 +18,7 @@
 #include "engine.h"
 
 #include "tiles.h"
+#include "improvements.h"
 
 #include "savegame.h"
 
@@ -34,6 +35,7 @@ extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
+extern std::unordered_map<int, Improvement*> improvements;
 
 void update(int value);
 //void replayupdate(int value);
@@ -272,6 +274,8 @@ void initMap()
     initCommodities(resourcesxbioma);
 
     initMovementCosts(movementcosts);
+
+    initImprovements(improvements);
 
     MapDimension dimension = getMapDimension(mapsize);
     map.init(dimension.halfheight,dimension.halfwidth);

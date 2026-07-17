@@ -220,30 +220,6 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
 
     tiles[0xd0] = "assets/assets/terrain/ocean.png";
 
-    tiles[0xe0] = "assets/assets/improvements/irrigation.png";
-
-    tiles[0xe1] = "assets/assets/improvements/road_w.png";
-    tiles[0xe2] = "assets/assets/improvements/road_s.png";
-    tiles[0xe3] = "assets/assets/improvements/road_sw.png";
-    tiles[0xe4] = "assets/assets/improvements/road_e.png"; 
-    tiles[0xe6] = "assets/assets/improvements/road_se.png";
-    tiles[0xe8] = "assets/assets/improvements/road_n.png";
-    tiles[0xe9] = "assets/assets/improvements/road_nw.png";
-    tiles[0xec] = "assets/assets/improvements/road_ne.png";
-
-    tiles[0xf0] = "assets/assets/improvements/mine.png";
-
-    tiles[0xf1] = "assets/assets/improvements/railroad_w.png";
-    tiles[0xf2] = "assets/assets/improvements/railroad_s.png";
-    tiles[0xf3] = "assets/assets/improvements/railroad_sw.png";
-    tiles[0xf4] = "assets/assets/improvements/railroad_e.png"; 
-    tiles[0xf6] = "assets/assets/improvements/railroad_se.png";
-    tiles[0xf8] = "assets/assets/improvements/railroad_n.png";
-    tiles[0xf9] = "assets/assets/improvements/railroad_nw.png";
-    tiles[0xfc] = "assets/assets/improvements/railroad_ne.png";
-
-
-
     tiles[MARBLE] = "assets/assets/terrain/marble.png"; 
     tiles[COAL] = "assets/assets/terrain/coal.png"; 
     tiles[IRON] = "assets/assets/terrain/iron.png";
