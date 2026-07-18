@@ -3,6 +3,8 @@
 
 #include "math/yamathutil.h"
 #include "coordinate.h"
+#include "resources.h"
+#include "improvements.h"
 
 // Map dimension presets.  Each mapsize covers the whole screen exactly at its default zoom:
 // zoom level N means the N-th zoom out step, which is mapzoom = 2^-(N-1) internally.
@@ -39,18 +41,31 @@ inline MapDimension getMapDimension(int mapsize)
 
 struct mapcell
 {
+    private:
+    std::vector<int> resource_production_rate;   // List of resource production per tile.
+
+
     public:
     int c_id_owner = UNASSIGNED_LAND;                           // Free land.
     int f_id_owner = FREE_LAND;                                 // Free land.
 
     int owners = 0;
 
+    float resource_factor[6][4][2] = { 
+        {{2.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}},   // FOOD
+        {{1.0f, 0.0f}, {2.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f}},   // SHIELDS
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // TRADE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {0.0f, 1.0f}, {2.0f, 1.0f}},   // COINS
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 1.0f}, {3.0f, 1.0f}},   // SCIENCE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 1.0f}, {3.0f, 1.0f}}    // CULTURE
+    };  // Irrigation, Mine, Road, Railroad.
+
 
     mapcell(int code)
     {
         this->code = code;
         this->visible = false;      // @FIXME: this should be a mask per faction.
-        this->bioma = 0;// By default, nothing
+        this->bioma = 0; // By default, nothing
         this->resource = 0;  // This is a special resource that can be obtained from the map.
         this->improvements = 0;  // Improvements bitmap.  Each bit represents a different improvement.  For instance, bit 0 is road, bit 1 is irrigation, etc.
     }
@@ -61,7 +76,40 @@ struct mapcell
     int resource;
     int improvements;
 
-    std::vector<int> resource_production_rate;   // List of resource production per tile.
+    int getResourceProductionRateSize()
+    {
+        return resource_production_rate.size();
+    }
+    int getResourceProductionRate(int resourceIndex)
+    {
+        if (resourceIndex < 0 || resourceIndex >= resource_production_rate.size())
+            return 0;
+
+        float resource_factor_value = 1.0f;
+        float resource_additive_value = 0.0f;
+
+        for (int i = 0; i < 4; ++i) {
+            if ((improvements & (1 << i)) != 0) {
+                resource_factor_value *= resource_factor[resourceIndex][i][0];
+                resource_additive_value += resource_factor[resourceIndex][i][1];
+            }
+        }
+
+        return (int)(((float)resource_production_rate[resourceIndex] * resource_factor_value) + resource_additive_value);
+    }
+
+    // @NOTE: Keep in mind that the resource indexes are the same as the RESOURCE_TYPES enum values, so you can use them directly to access the production rates.
+    void addResourceProductionRate(int rate)
+    {
+        resource_production_rate.push_back(rate);       
+    }
+    
+    void setResourceProductionRate(int resourceIndex, int rate)
+    {
+        if (resourceIndex < 0 || resourceIndex >= resource_production_rate.size())
+            return;
+        resource_production_rate[resourceIndex] = rate;
+    }
 
     bool belongsToCity()
     {

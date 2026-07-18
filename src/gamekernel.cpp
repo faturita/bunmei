@@ -61,89 +61,91 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
         {
             for(auto &r:resources)
             {
-                mmp.set(lat,lon).resource_production_rate.push_back(0);
+                mmp.set(lat,lon).addResourceProductionRate(0);
             }
 
             if (mmp.set(lat,lon).code==OCEAN)       // Water
             {
-                mmp.set(lat,lon).resource_production_rate[FOOD]     = 1;
-                mmp.set(lat,lon).resource_production_rate[TRADE]    = 1;
+                mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
+                mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
 
-                if (mmp.set(lat,lon).resource==FISH) mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
-                if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                if (mmp.set(lat,lon).resource==FISH) mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
+                if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
             }
             else
             if (mmp.set(lat,lon).code==LAND)       // Land
             {
                 // @FIXME Adjust the basic production rate of each tile
-                mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
 
                 //printf("Bioma %x\n",mmp(lat,lon).bioma);
                 if (mmp.set(lat,lon).code == LAND && mmp.set(lat,lon).bioma == LANDBIOMA) // Regular land
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
                 }
                 if (mmp.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
-                    if (mmp.set(lat,lon).resource==GEOSHIELD) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
+                    if (mmp.set(lat,lon).resource==GEOSHIELD) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
                 }
                 if (mmp.set(lat,lon).bioma/16==RIVER/16) // River
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD]  = 2;
-                    mmp.set(lat,lon).resource_production_rate[TRADE] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 2);
+                    mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
                 }
                 if (mmp.set(lat,lon).bioma/16==DESERT/16) // Desert
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 0;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 0);
                 }
                 if (mmp.set(lat,lon).bioma/16==SWAMP/16) // Swamps
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
-                    mmp.set(lat,lon).resource_production_rate[TRADE] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
+                    mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
                 }
                 if (mmp.set(lat,lon).bioma/16==PLAINS/16) // Plains
                 {
-                    mmp.set(lat,lon).resource_production_rate[FOOD] = 1;
-                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
+                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
 
-                    if (mmp.set(lat,lon).resource==GEOSHIELD)   mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                    if (mmp.set(lat,lon).resource==HORSE)       mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    if (mmp.set(lat,lon).resource==GEOSHIELD)   mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
+                    if (mmp.set(lat,lon).resource==HORSE)       mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
 
                 }
                 if (mmp.set(lat,lon).bioma/16==HILLS/16) // Hills
                 {
-                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
                 }
                 if (mmp.set(lat,lon).bioma/16==FOREST/16) // Forests
                 {
-                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).resource_production_rate[FOOD] = 2;
-                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 3;
+                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
+                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).setResourceProductionRate(FOOD, 2);
+                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 3);
                 }
                 if (mmp.set(lat,lon).bioma/16==DESERT/16)   // Deserts
                 {
-                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
-                    if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).resource_production_rate[SHIELDS] = 3;
-                    if (mmp.set(lat,lon).resource==OASIS) {mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
-                                                            mmp.set(lat,lon).resource_production_rate[TRADE] = 1;}
+                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
+                    
+                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
+                    if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 3);
+                    if (mmp.set(lat,lon).resource==OASIS) {mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
+                                                            mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);}
                 }
                 if (mmp.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
                 {
-                    mmp.set(lat,lon).resource_production_rate[SHIELDS] = 1;
-                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).resource_production_rate[SHIELDS] = 2;
+                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
+                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
                 }
 
                 if (mmp.set(lat,lon).bioma/16==ARCTIC/16) // Arctic
                 {
-                    if (mmp.set(lat,lon).resource==SEAL) mmp.set(lat,lon).resource_production_rate[FOOD] = 3;
+                    if (mmp.set(lat,lon).resource==SEAL) mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
                 }
 
-                if (mmp.set(lat,lon).resource==GEMS) mmp(lat,lon).resource_production_rate[CULTURE] = 2;
+                if (mmp.set(lat,lon).resource==GEMS) mmp.set(lat,lon).setResourceProductionRate(CULTURE, 2);
                 if (mmp.set(lat,lon).resource==GOLD) 
                 {
-                    mmp.set(lat,lon).resource_production_rate[COINS]    = 2;
-                    mmp.set(lat,lon).resource_production_rate[CULTURE]  = 1;
+                    mmp.set(lat,lon).setResourceProductionRate(COINS, 2);
+                    mmp.set(lat,lon).setResourceProductionRate(CULTURE, 1);
                 }
             }
         }
@@ -166,11 +168,13 @@ void saveMap()
             out.write(reinterpret_cast<const char*>(&cell.code), sizeof(cell.code));
             out.write(reinterpret_cast<const char*>(&cell.bioma), sizeof(cell.bioma));
             out.write(reinterpret_cast<const char*>(&cell.resource), sizeof(cell.resource));
-            // Save resource_production_rate vector size and data
-            size_t sz = cell.resource_production_rate.size();
+            // Save resource production rates using mapcell accessors.
+            size_t sz = static_cast<size_t>(cell.getResourceProductionRateSize());
             out.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
-            if (sz > 0)
-                out.write(reinterpret_cast<const char*>(cell.resource_production_rate.data()), sz * sizeof(int));
+            for (size_t i = 0; i < sz; ++i) {
+                int rate = cell.getResourceProductionRate(static_cast<int>(i));
+                out.write(reinterpret_cast<const char*>(&rate), sizeof(rate));
+            }
             // Save owner if present
             out.write(reinterpret_cast<const char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
             out.write(reinterpret_cast<const char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
@@ -198,15 +202,25 @@ void loadMap()
 
             auto &cell = map.set(file_lat, file_lon);
 
-            in.read(reinterpret_cast<char*>(&cell.code), sizeof(cell.code));
-            in.read(reinterpret_cast<char*>(&cell.bioma), sizeof(cell.bioma));
-            in.read(reinterpret_cast<char*>(&cell.resource), sizeof(cell.resource));
-            // Load resource_production_rate vector size and data
+            int code;
+            int bioma;
+            int resource;
+            in.read(reinterpret_cast<char*>(&code), sizeof(code));
+            in.read(reinterpret_cast<char*>(&bioma), sizeof(bioma));
+            in.read(reinterpret_cast<char*>(&resource), sizeof(resource));
+
+            cell = mapcell(code);
+            cell.bioma = bioma;
+            cell.resource = resource;
+
+            // Load resource production rates using mapcell accessors.
             size_t sz = 0;
             in.read(reinterpret_cast<char*>(&sz), sizeof(sz));
-            cell.resource_production_rate.resize(sz);
-            if (sz > 0)
-                in.read(reinterpret_cast<char*>(cell.resource_production_rate.data()), sz * sizeof(int));
+            for (size_t i = 0; i < sz; ++i) {
+                int rate = 0;
+                in.read(reinterpret_cast<char*>(&rate), sizeof(rate));
+                cell.addResourceProductionRate(rate);
+            }
             // Load owner if present
             in.read(reinterpret_cast<char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
             in.read(reinterpret_cast<char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));

@@ -4,12 +4,12 @@
 #include <string.h>
 
 enum RESOURCE_TYPES {
-    FOOD,
-    SHIELDS,
-    TRADE,
-    COINS,
-    SCIENCE,
-    CULTURE
+    FOOD = 0,
+    SHIELDS = 1,
+    TRADE = 2,
+    COINS = 3,
+    SCIENCE = 4,
+    CULTURE = 5
 };
 
 

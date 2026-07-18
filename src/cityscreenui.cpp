@@ -244,7 +244,7 @@ void drawCityScreen(int cla, int clo, City *city)
 
                 for(int i=0;i<resources.size();i++)
                 {
-                    float resourceProductionRate = map(la,lo).resource_production_rate[i];
+                    float resourceProductionRate = map(la,lo).getResourceProductionRate(i);
 
                     std::vector<int> resourceProductionRateVector;
 

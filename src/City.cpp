@@ -133,7 +133,7 @@ void City::assignWorkingTile()
         {
             if (!occupied(lat, lon) && !workingOn(lat,lon) && numberOfWorkingTiles()<(pop+1)) 
             {
-                int production = map->peek(latitude+lat, longitude+lon).resource_production_rate[0];
+                int production = map->peek(latitude+lat, longitude+lon).getResourceProductionRate(FOOD);
                 if (production>max)
                 {
                     max = production;
@@ -224,7 +224,7 @@ int City::getProductionRate(int r_id)
         {
             if (workingOn(lat,lon))
             {
-                production_rate += map->peek(latitude+lat,longitude+lon).resource_production_rate[r_id];
+                production_rate += map->peek(latitude+lat,longitude+lon).getResourceProductionRate(r_id);
             }
         }
 
