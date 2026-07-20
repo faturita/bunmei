@@ -440,16 +440,16 @@ inline void endOfYear()
         }
         
         // Balance city population according to available resources.
-        if (c->resources[0]>100)
+        if (c->resources[FOOD]>100*c->pop) 
         {
-            c->resources[0] = 0;
+            c->resources[FOOD] = 0;
             c->pop++;
 
             c->assignWorkingTile();
         } else 
-        if (c->resources[0]<0)
+        if (c->resources[FOOD]<0)
         {
-            c->resources[0] = 0;
+            c->resources[FOOD] = 0;
 
             if (c->pop>1)
             {
