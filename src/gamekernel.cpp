@@ -22,6 +22,8 @@
 
 #include "savegame.h"
 
+#include "sounds/sounds.h"
+
 extern Coordinator coordinator;
 extern Controller controller;
 
@@ -707,10 +709,6 @@ void initMap()
     printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
 
     //exit(-1);
-
-
-
-
    
     assignProductionRates(map, resources);
 }
@@ -732,6 +730,7 @@ void initFactions()
     faction->rates[2] = 0;
     faction->rates[3] = 0;
     faction->autoPlayer = false;
+    faction->song = &vikings;
     
     factions.push_back(faction);
 
@@ -746,6 +745,7 @@ void initFactions()
     faction->rates[2] = 0;
     faction->rates[3] = 0;
     faction->autoPlayer = true;
+    faction->song = &romans;
 
     factions.push_back(faction);
 
@@ -845,6 +845,8 @@ void initWorldModelling()
     {
         // Welcome message for all the factions.
         message(year, f->id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
+
+        if (!f->autoPlayer && f->song) f->song();
 
     }
 

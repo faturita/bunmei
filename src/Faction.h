@@ -24,6 +24,8 @@ class Faction {
 
         float rates[4];
 
+        void (*song)() = nullptr; // Pointer to a function that plays the faction's song.
+
     Faction ()
     {
         doneThisTurn = false;

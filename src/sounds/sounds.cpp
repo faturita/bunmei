@@ -198,3 +198,8 @@ void russians()
 {
     playthissound(Vec3f(0,0,0), "sounds/russians.wav");
 }
+
+void vikings()
+{
+    playthissound(Vec3f(0,0,0), "sounds/vikings.wav");
+}
