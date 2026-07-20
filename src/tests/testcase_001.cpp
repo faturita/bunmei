@@ -169,7 +169,7 @@ void TestCase_001::init()
         {
             for(auto &r:resources)
             {
-                map.set(lat,lon).resource_production_rate.push_back(2);
+                map.set(lat,lon).addResourceProductionRate(2);
             }
         }
 

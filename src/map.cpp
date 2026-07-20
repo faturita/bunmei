@@ -175,14 +175,16 @@ float travelCost(int fromlat, int fromlon, int tolat, int tolon)
     return 1.0f;
 }
 
-void unfog(int lat, int lon)
+// Reveal the map around lat,lon (screen coordinates) for ONE faction: each faction has its
+// own fog of war (mapcell::visible is a per-faction vector).
+void unfog(int f_id, int lat, int lon)
 {
     coordinate c = coordinate(lat,lon);
     for(int llat=-1;llat<=1;llat++)
         for (int llon=-1;llon<=1;llon++)
         {
             int lllat=c.lat+llat,lllon=c.lon+llon;
-            map(lllat,lllon).visible = true;
+            map(lllat,lllon).setVisible(f_id);
         }
 }
 
@@ -375,7 +377,7 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (map(lat,lon).visible) placeTile(lon,lat,tiles[map(lat,lon).code].c_str());
+                if (map(lat,lon).isVisible(coordinator.a_f_id)) placeTile(lon,lat,tiles[map(lat,lon).code].c_str());
             }
         }
 
@@ -384,7 +386,7 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (map(lat,lon).visible && map(lat,lon).bioma!=0) placeTile(lon,lat,tiles[map(lat,lon).bioma].c_str());
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && map(lat,lon).bioma!=0) placeTile(lon,lat,tiles[map(lat,lon).bioma].c_str());
             }
         }
 
@@ -396,7 +398,7 @@ void drawMap()
                 mapcell next = map.south(lat,lon);
                 coordinate c = map.isouth(lat,lon);
 
-                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && land == 1 && next.code == 0)
                 {
                     if ((map(lat,lon).bioma & 0xf2) != 0xa2) 
                     {
@@ -414,7 +416,7 @@ void drawMap()
                 next = map.north(lat,lon);
                 c = map.inorth(lat,lon);
 
-                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && land == 1 && next.code == 0)
                 {
                     if ((map(lat,lon).bioma & 0xf8) != 0xa8)
                     {
@@ -431,7 +433,7 @@ void drawMap()
                 next = map.east(lat,lon);
                 c = map.ieast(lat,lon);
 
-                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && land == 1 && next.code == 0)
                 {
                     if ((map(lat,lon).bioma & 0xf4) != 0xa4)
                     {
@@ -448,7 +450,7 @@ void drawMap()
                 next = map.west(lat,lon);
                 c = map.iwest(lat,lon);
 
-                if (map(lat,lon).visible && land == 1 && next.code == 0)
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && land == 1 && next.code == 0)
                 {
                     if ((map(lat,lon).bioma & 0xf1) != 0xa1) 
                     {
@@ -470,7 +472,7 @@ void drawMap()
             {
                 int size = 15;
                 if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
-                if (map(lat,lon).visible && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) placeTile(lon,lat,size,tiles[map(lat,lon).resource].c_str());
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) placeTile(lon,lat,size,tiles[map(lat,lon).resource].c_str());
             }
         }
 
@@ -479,8 +481,8 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,improvements[0xe0]->assetname);
-                if (map(lat,lon).visible && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,improvements[0xf0]->assetname);
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,improvements[0xe0]->assetname);
+                if (map(lat,lon).isVisible(coordinator.a_f_id) && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,improvements[0xf0]->assetname);
             }
         }
 
@@ -492,7 +494,7 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (!map(lat,lon).visible) continue;
+                if (!map(lat,lon).isVisible(coordinator.a_f_id)) continue;
                 if ((map(lat,lon).improvements & 0x04) != 0x04) continue;
 
                  if ((map.west(lat,lon).improvements   & 0x04) == 0x04) placeTile(lon,lat,improvements[0xe1]->assetname);
@@ -510,7 +512,7 @@ void drawMap()
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (!map(lat,lon).visible) continue;
+                if (!map(lat,lon).isVisible(coordinator.a_f_id)) continue;
                 if ((map(lat,lon).improvements & 0x08) != 0x08) continue;
 
                 if ((map.west(lat,lon).improvements   & 0x08) == 0x08) placeTile(lon,lat,improvements[0xf1]->assetname);
@@ -527,12 +529,12 @@ void drawMap()
         for(int lat=vlatmin;lat<=vlatmax;lat++)
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
-                if (map(lat,lon).visible)
+                if (map(lat,lon).isVisible(coordinator.a_f_id))
                 {
-                    if (!(map.south(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_s.png");
-                    if (!(map.north(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_n.png");
-                    if (!(map.west(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_w.png");
-                    if (!(map.east(lat,lon).visible)) placeTile(lon,lat,16,"assets/assets/map/fog_e.png");
+                    if (!(map.south(lat,lon).isVisible(coordinator.a_f_id))) placeTile(lon,lat,16,"assets/assets/map/fog_s.png");
+                    if (!(map.north(lat,lon).isVisible(coordinator.a_f_id))) placeTile(lon,lat,16,"assets/assets/map/fog_n.png");
+                    if (!(map.west(lat,lon).isVisible(coordinator.a_f_id))) placeTile(lon,lat,16,"assets/assets/map/fog_w.png");
+                    if (!(map.east(lat,lon).isVisible(coordinator.a_f_id))) placeTile(lon,lat,16,"assets/assets/map/fog_e.png");
 
                 }
             }
@@ -569,10 +571,14 @@ void drawUnitsAndCities()
 {
     static int count=0;
 
-    for (auto& [k,u] : units) 
+    for (auto& [k,u] : units)
     {
         coordinate c = map.to_screen(u->latitude,u->longitude);
-        unfog(c.lat,c.lon);
+        unfog(u->faction,c.lat,c.lon);
+
+        // Foreign units are hidden on tiles the active faction has not explored yet.
+        if (u->faction != coordinator.a_f_id && !map(c.lat,c.lon).isVisible(coordinator.a_f_id))
+            continue;
 
         // @NOTE: Show the units that are not currently being controlled, except if they are in the same lat,lon.
         if (coordinator.a_u_id != u->id && (units.find(coordinator.a_u_id)==units.end() || units[coordinator.a_u_id]->getCoordinate() != u->getCoordinate()))
@@ -582,7 +588,7 @@ void drawUnitsAndCities()
     for (auto& [k, c] : cities) 
     {
         coordinate co = map.to_screen(c->latitude,c->longitude);
-        if (map(co.lat,co.lon).visible)
+        if (map(co.lat,co.lon).isVisible(coordinator.a_f_id))
         {
             c->draw();
         }

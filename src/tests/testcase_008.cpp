@@ -111,6 +111,14 @@ void TestCase_008::init()
         }
     }
 
+    // Reveal the whole map for faction 0: this test verifies map COVERAGE at full zoom out,
+    // not the (per-faction) fog of war, which would leave unexplored tiles black.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            map.set(lat,lon).setVisible(0);
+        }
+
     resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
     resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
     resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
@@ -123,7 +131,7 @@ void TestCase_008::init()
         {
             for(auto &r:resources)
             {
-                map.set(lat,lon).resource_production_rate.push_back(2);
+                map.set(lat,lon).addResourceProductionRate(2);
             }
         }
 

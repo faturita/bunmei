@@ -43,6 +43,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 extern Tiles tiles;
+extern std::unordered_map<int, Improvement*> improvements;
 extern MovementCost movementcosts;
 
 extern float mapzoom;
@@ -74,6 +75,7 @@ void TestCase_016::init()
     map.init(dimension.halfheight,dimension.halfwidth);
 
     initTiles(tiles);
+    initImprovements(improvements);     // The road sprites: drawMap dereferences improvements[] entries.
     initMovementCosts(movementcosts);
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
@@ -106,7 +108,7 @@ void TestCase_016::init()
         {
             for(auto &r:resources)
             {
-                map.set(lat,lon).resource_production_rate.push_back(2);
+                map.set(lat,lon).addResourceProductionRate(2);
             }
         }
 

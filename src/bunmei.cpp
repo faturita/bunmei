@@ -380,7 +380,7 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
-        printf("City %s\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
+        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
         // Go through all the map locations and gather all the resources.
         for(auto &r:resources)
         {

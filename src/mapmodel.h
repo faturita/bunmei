@@ -64,17 +64,31 @@ struct mapcell
     mapcell(int code)
     {
         this->code = code;
-        this->visible = false;      // @FIXME: this should be a mask per faction.
+        this->visible.clear();      // Per-faction fog of war: everything starts fogged for every faction.
         this->bioma = 0; // By default, nothing
         this->resource = 0;  // This is a special resource that can be obtained from the map.
         this->improvements = 0;  // Improvements bitmap.  Each bit represents a different improvement.  For instance, bit 0 is road, bit 1 is irrigation, etc.
     }
 
     int code;
-    bool visible;
+    std::vector<bool> visible;      // visible[f_id] == true: faction f_id has explored this tile.
     int bioma;
     int resource;
     int improvements;
+
+    // Per-faction fog of war.  The vector grows on demand so mapcell does not need to know
+    // the number of factions in advance; a missing entry means "not explored".
+    bool isVisible(int f_id)
+    {
+        return (f_id >= 0 && f_id < (int)visible.size()) ? (bool)visible[f_id] : false;
+    }
+
+    void setVisible(int f_id)
+    {
+        if (f_id < 0) return;
+        if (f_id >= (int)visible.size()) visible.resize(f_id+1, false);
+        visible[f_id] = true;
+    }
 
     int getResourceProductionRateSize()
     {

@@ -42,6 +42,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 extern Tiles tiles;
+extern std::unordered_map<int, Improvement*> improvements;
 
 extern float mapzoom;
 extern int width;
@@ -110,6 +111,7 @@ void TestCase_015::init()
     map.init(dimension.halfheight,dimension.halfwidth);
 
     initTiles(tiles);
+    initImprovements(improvements);     // The road sprites: drawMap dereferences improvements[] entries.
 
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
@@ -126,6 +128,14 @@ void TestCase_015::init()
         }
     }
 
+    // Reveal the whole map for faction 0: this test verifies the ROAD SPRITES, not the
+    // (per-faction) fog of war, which would leave the center tiles undrawn.
+    for(int lat=map.minlat;lat<map.maxlat;lat++)
+        for (int lon=map.minlon;lon<map.maxlon;lon++)
+        {
+            map.set(lat,lon).setVisible(0);
+        }
+
     resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
     resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
     resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
@@ -138,7 +148,7 @@ void TestCase_015::init()
         {
             for(auto &r:resources)
             {
-                map.set(lat,lon).resource_production_rate.push_back(2);
+                map.set(lat,lon).addResourceProductionRate(2);
             }
         }
 

@@ -22,7 +22,7 @@ void centermapinmap(int lat, int lon);
 coordinate getCurrentCenter();
 coordinate convertToMap(int ccx, int ccy, int gridsize);
 
-void unfog(int lat, int lon);
+void unfog(int f_id, int lat, int lon);
 
 // Cost in movement points of moving from a tile onto an adjacent one (real coordinates).
 float travelCost(int fromlat, int fromlon, int tolat, int tolon);
