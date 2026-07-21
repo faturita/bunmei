@@ -745,6 +745,23 @@ void initFactions()
     // faction->rates[1] = 0;
     // faction->rates[2] = 0;
     // faction->rates[3] = 0;
+    // faction->autoPlayer = true;
+    // faction->song = &greeks;
+    // factions.push_back(faction);
+
+
+    // faction = new Faction();
+    // faction->id = 2;
+    // strcpy(faction->name,"Chinnese");
+    // faction->red = 0;
+    // faction->green = 255;
+    // faction->blue = 255;
+    // faction->rates[0] = 1;
+    // faction->rates[1] = 0;
+    // faction->rates[2] = 0;
+    // faction->rates[3] = 0;
+    // faction->autoPlayer = true;
+    // faction->song = &chinnese;
     // factions.push_back(faction);
 
 

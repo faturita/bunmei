@@ -203,3 +203,13 @@ void vikings()
 {
     playthissound(Vec3f(0,0,0), "sounds/vikings.wav");
 }
+
+void greeks()
+{
+    playthissound(Vec3f(0,0,0), "sounds/greeks.wav");
+}
+
+void chinnese()
+{
+    playthissound(Vec3f(0,0,0), "sounds/chinnese.wav");
+}

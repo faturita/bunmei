@@ -29,6 +29,8 @@ void intro();
 void romans();
 void russians();
 void vikings();
+void greeks();
+void chinnese();
 
 
 #endif // SOUNDS_H
