@@ -102,7 +102,21 @@ Latitud determines the relation to the equator, increasing towards south, and lo
 
 ## Diplomacy and Wars
 
-Civs have a relation between each other which goes from 1 (foe), 2 (ceasefire), 3 (armistice), 4 (peace), 5 (non agression agreement), 6 (trade agreement), 7 (coalition), etc (@TODO)   Indeed, it is a transition graph, a finite state machine.  Each state has a property which identifies the seizure or not of land.
+Civs have a relation between each other which goes from 1 to 8 (check table).  Indeed, it is a transition graph, a finite state machine.  Each state has a property which identifies the seizure or not of land: this means, what happen when a unit moves into a tile which belongs to the other, if it flips or not the ownership.  So all the factions are in a star configuration against all the other and their relations with each one of them is governed by a transition graph.
+
+
+| DefCon ID | Relation Status | Land Seizure | Open Borders |
+|---|---|---|---|
+| 0 | No contact | Yes | Yes |
+| 1 | Foe | Yes | Yes |
+| 2 | Ceasefire | No | No |
+| 3 | Armistice | No | No |
+| 4 | Peace | No | No |
+| 5 | Non Agression Agreement | No | No |
+| 6 | Trade Agreement | No | Yes |
+| 7 | Coalition | No | Yes |
+| 8 | Vassalage | No | Yes |
+
 
 ## Land Ownership
 
