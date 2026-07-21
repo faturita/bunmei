@@ -305,15 +305,25 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
         "Corcira","Maraton"
     };
 
+    std::vector<std::string> chinnese = {
+        "Beijing","Xian","Luoyang","Nanjing","Kaifeng","Hangzhou",
+        "Chengdu","Guangzhou","Suzhou","Wuhan","Chongqing","Shenyang",
+        "Datong","Dunhuang","Anyang","Handan","Linzi","Jinan",
+        "Taiyuan","Yangzhou","Ningbo","Fuzhou","Quanzhou","Kunming",
+        "Zhengzhou","Changsha","Nanchang","Guilin","Hefei","Jingzhou"
+    };
+
     citynames[0] = std::queue<std::string>();       // Vikings
     citynames[1] = std::queue<std::string>();       // Romans
     citynames[2] = std::queue<std::string>();       // Greeks
+    citynames[3] = std::queue<std::string>();       // Chinnese
 
     for(int i=0;i<CITY_NAMES_PER_CIVILIZATION;i++)
     {
         citynames[0].push(vikings[i % vikings.size()]);
         citynames[1].push(romans[i % romans.size()]);
         citynames[2].push(greeks[i % greeks.size()]);
+        citynames[3].push(chinnese[i % chinnese.size()]);
     }
 }
 

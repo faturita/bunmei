@@ -98,7 +98,7 @@ The standard map size is 72x48.
 | 4 | 576x384 | 0.125 |
 | 5 | 1152x768 | 0.0625 |
 
-Latitud determines the relation to the equator, increasing towards south. Longitud are the meridians, increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course as long as is possible to make the movement according to the unit.  This can change sea warfare.  The map geneartion system depends on the size map and it is very rough.   
+Latitud determines the relation to the equator, increasing towards south. Longitud are the meridians, increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course as long as is possible to make the movement according to the unit.  This can change sea warfare.  The map generation system depends on the size map and currently the generation procedure is very rough.
 
 ## Diplomacy and Wars
 
@@ -116,6 +116,10 @@ Civs have a relation between each other which goes from 1 to 8 (check table).  I
 | 6 | Trade Agreement | No | Yes |
 | 7 | Coalition | No | Yes |
 | 8 | Vassalage | No | Yes |
+
+So, 
+- **Open Borders**: this flag determines if the movement can be executed or not, i.e. if the unit invading a foreign land tile (owned by a another faction) if that can be done or not.  If the flag is false it is a place where the unit cannot move and should be excluded from the tree traversal algorithms.
+- **Land Seizure**: this flag determines what happen when an enemy unit moves into an enemy tile.  If this flag is true, it means that the invading unit captures the tile and change the ownership.  So a city will loose access to this working tile and should assign a different one.
 
 
 ## Land Ownership
@@ -167,7 +171,7 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 # Working issues
 
 * Ui for investing in science.
-* Allow GoTo with naval units.
+* <strike>Allow GoTo with naval units.</strike>
 * <strike>Replace controllingid with activeid.</strike>
 * Iterate on improving the AI: focus more on production on cities and build defensive units.
 * Show units in cityscreen.

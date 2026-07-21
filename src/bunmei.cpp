@@ -66,6 +66,7 @@
 
 #include "resources.h"
 #include "Faction.h"
+#include "diplomacy.h"
 #include "gamekernel.h"
 #include "engine.h"
 #include "messages.h"
@@ -105,6 +106,7 @@ std::unordered_map<int,std::queue<std::string>> citynames;
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
+std::vector<std::vector<Diplomacy>> diplomacy;
 std::vector<Resource*> resources;
 std::vector<Message> messages;
 
@@ -334,7 +336,28 @@ inline void processCommandOrders()
     }
 }
 
-extern bool war;        // Defined below.
+extern std::vector<std::vector<Diplomacy>> diplomacy;
+
+// Whether a unit of faction f_id may step onto cell, and whether doing so seizes it.  Free
+// land and the mover's own land are always ENTER_AND_CLAIM (claiming your own land again just
+// keeps the mapcell owners-stacking counter correct, see mapcell::setOwnedBy).  A foreign-owned
+// cell depends on the diplomacy status between f_id and the owner (README.md DefCon table):
+// landSeizure lets the mover in AND flips ownership, openBorders (without landSeizure) lets
+// the mover in but leaves the tile with its original owner, and neither blocks the move.
+enum class LandEntry { BLOCKED, ENTER, ENTER_AND_CLAIM };
+
+LandEntry evaluateLandEntry(int f_id, mapcell &cell)
+{
+    if (cell.isFreeLand() || cell.isOwnedBy(f_id))
+        return LandEntry::ENTER_AND_CLAIM;
+
+    int owner = cell.getOwnedBy();
+    if (diplomacy[f_id][owner].landSeizure)
+        return LandEntry::ENTER_AND_CLAIM;
+    if (diplomacy[f_id][owner].openBorders)
+        return LandEntry::ENTER;
+    return LandEntry::BLOCKED;
+}
 
 // Execute a move that was left pending while the unit paid its movement debt.
 // The map may have changed in the meantime, so the move is re-validated; if it is no
@@ -348,7 +371,8 @@ void completePendingMove(Unit* unit)
         (map.set(t.lat,t.lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) ))
         return;
 
-    if (!(map.set(t.lat,t.lon).isFreeLand() || map.set(t.lat,t.lon).isOwnedBy(unit->faction) || (war && !map.set(t.lat,t.lon).isOwnedBy(unit->faction))))
+    LandEntry entry = evaluateLandEntry(unit->faction, map.set(t.lat,t.lon));
+    if (entry == LandEntry::BLOCKED)
         return;
 
     // A plain move cannot end on an enemy unit or an enemy city (combat and capture are
@@ -363,7 +387,9 @@ void completePendingMove(Unit* unit)
 
     map.set(unit->latitude, unit->longitude).releaseOwner();
     unit->update(t.lat,t.lon);
-    map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
+
+    if (entry == LandEntry::ENTER_AND_CLAIM)
+        map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
 
     printf("Pending move completed: unit %d arrived at (%d,%d)\n", unit->id, t.lat, t.lon);
 }
@@ -510,15 +536,18 @@ inline bool endOfTurnForAllFactions()
     return true;
 }
 
-bool war = true;
-
 bool attack(Unit* attacker, int lat, int lon)
 {
     std::vector<int> unitstodelete;
     bool confirmed = false;
 
-    // War movement towards an enemy unit
-    if (war && !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(attacker->faction))
+    // Attacking requires landSeizure with the defender's faction (README.md DefCon table):
+    // an open-borders-only relation (trade agreement, coalition, vassalage) lets you walk in
+    // but not fight.
+    bool hostile = !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(attacker->faction) &&
+                   diplomacy[attacker->faction][map.set(lat,lon).getOwnedBy()].landSeizure;
+
+    if (hostile)
     {
         // Find the enemy unit located there
         Unit *defender = nullptr;
@@ -608,15 +637,20 @@ bool attack(Unit* attacker, int lat, int lon)
 bool captureCity(Unit* invader, int lat, int lon)
 {
     // Move into an empty city.
-    if (war && map.set(lat,lon).belongsToCity())
+    if (map.set(lat,lon).belongsToCity())
     {
         // Find the city located there
         City *city = findCityAt(lat,lon);
 
         if (city!=nullptr)
         {
+            // Capturing requires landSeizure with the city's faction (README.md DefCon
+            // table), same as attack().
+            bool hostile = city->faction != invader->faction &&
+                           diplomacy[invader->faction][city->faction].landSeizure;
+
             // Check if the city is not defended.
-            if (city->faction != invader->faction && !city->isDefendedCity())
+            if (hostile && !city->isDefendedCity())
             {
 
                 map.set(invader->latitude, invader->longitude).releaseOwner();
@@ -668,7 +702,9 @@ bool moveForward(Unit* unit, int lat, int lon)
     }
  
 
-    if (!map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(unit->faction) && !war)
+    LandEntry entry = evaluateLandEntry(unit->faction, map.set(lat,lon));
+
+    if (entry == LandEntry::BLOCKED)
     {
         if (!factions[coordinator.a_f_id]->autoPlayer)
             blocked();
@@ -676,7 +712,6 @@ bool moveForward(Unit* unit, int lat, int lon)
     }
 
     // March into a new tile (only allows movement in the tiles that I own @FIXME)
-    if (map.set(lat,lon).isFreeLand() || (map.set(lat,lon).isOwnedBy(unit->faction)) || (war && !map.set(lat,lon).isOwnedBy(unit->faction)) )
     {
         float cost = travelCost(unit->latitude, unit->longitude, lat, lon);
 
@@ -699,15 +734,15 @@ bool moveForward(Unit* unit, int lat, int lon)
 
         unit->availablemoves -= cost;
 
-        map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
+        if (entry == LandEntry::ENTER_AND_CLAIM)
+            map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
 
         printf("Move forward condition\n");
         return true;
 
     }
 
-    return false;
- 
+
 }
 
 bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
@@ -846,12 +881,9 @@ void moveUnit(Unit* unit, int lat, int lon)
 
             if (!land(unit,lat,lon) && !dockInCity(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
             {
-                if (!war)
-                {
-                    factions[coordinator.a_f_id]->blinkingrate = 10;
-                    if (!factions[coordinator.a_f_id]->autoPlayer) blocked();
-                }   
-            } 
+                // moveForward already shows blocked() itself when diplomacy is what stopped
+                // it (see evaluateLandEntry); nothing further to do here.
+            }
 
         } else
         {

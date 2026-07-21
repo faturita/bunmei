@@ -19,6 +19,7 @@
 #include "../units/Unit.h"
 #include "../City.h"
 #include "../Faction.h"
+#include "../diplomacy.h"
 #include "../resources.h"
 #include "../map.h"
 #include "../coordinator.h"
@@ -50,6 +51,7 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
+extern std::vector<std::vector<Diplomacy>> diplomacy;
 extern std::vector<Resource*> resources;
 extern Tiles tiles;
 
@@ -124,6 +126,8 @@ void TestCase_005::init()
     faction->autoPlayer = true;
 
     factions.push_back(faction);
+
+    initDiplomacy(diplomacy, factions.size());
 
     {
         coordinate c(0,0);

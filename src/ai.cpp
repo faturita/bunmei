@@ -45,8 +45,9 @@ using boost::phoenix::arg_names::arg1;
 #include "units/Settler.h"
 #include "engine.h"
 #include "tiles.h"
+#include "diplomacy.h"
 
-extern bool war;
+extern std::vector<std::vector<Diplomacy>> diplomacy;
 
 struct CoordinateVertex {
     int lat;
@@ -177,11 +178,11 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && 
+            if (map.peek(lat,lon).code == LAND &&
                 (
-                map.peek(lat,lon).isUnassignedLand() || 
-                map.peek(lat,lon).getOwnedBy() == faction || 
-                (map.peek(lat,lon).getOwnedBy() != faction && war)
+                map.peek(lat,lon).isUnassignedLand() ||
+                map.peek(lat,lon).getOwnedBy() == faction ||
+                (map.peek(lat,lon).getOwnedBy() != faction && diplomacy[faction][map.peek(lat,lon).getOwnedBy()].landSeizure)
                 ) )
                 auto v = add_vertex({lat,lon,0,0}, tree);
         }
@@ -192,11 +193,11 @@ Tree buildTraversalTree(int faction)
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for(int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            if (map.peek(lat,lon).code == LAND && 
+            if (map.peek(lat,lon).code == LAND &&
                 (
-                map.peek(lat,lon).isUnassignedLand() || 
-                map.peek(lat,lon).getOwnedBy() == faction || 
-                (map.peek(lat,lon).getOwnedBy() != faction && war)
+                map.peek(lat,lon).isUnassignedLand() ||
+                map.peek(lat,lon).getOwnedBy() == faction ||
+                (map.peek(lat,lon).getOwnedBy() != faction && diplomacy[faction][map.peek(lat,lon).getOwnedBy()].landSeizure)
                 ) )
             {
                 auto start = find_if(vv, [&, lat,lon](auto vd) { return tree[vd].lat == lat && tree[vd].lon == lon; });
@@ -212,11 +213,11 @@ Tree buildTraversalTree(int faction)
                         int latt = s.lat;
                         int lonn = s.lon;
 
-                        if (map.peek(latt,lonn).code == LAND && 
+                        if (map.peek(latt,lonn).code == LAND &&
                         (
-                        map.peek(latt,lonn).isUnassignedLand() || 
-                        map.peek(latt,lonn).getOwnedBy() == faction || 
-                        (map.peek(latt,lonn).getOwnedBy() != faction && war)
+                        map.peek(latt,lonn).isUnassignedLand() ||
+                        map.peek(latt,lonn).getOwnedBy() == faction ||
+                        (map.peek(latt,lonn).getOwnedBy() != faction && diplomacy[faction][map.peek(latt,lonn).getOwnedBy()].landSeizure)
                         ) )
                         {
                             auto end = find_if(vv, [&, latt,lonn,i,j](auto vd) { return tree[vd].lat == latt && tree[vd].lon == lonn; });
@@ -630,7 +631,7 @@ void autoPlayerMoveUnits()
                 std::vector<coordinate> opencities;
                 for(auto& [cid,c]:cities)
                 {
-                    if (c->faction != unit->faction && !c->isDefendedCity() && war)
+                    if (c->faction != unit->faction && !c->isDefendedCity() && diplomacy[unit->faction][c->faction].landSeizure)
                         opencities.push_back(c->getCoordinate());
                 }
 

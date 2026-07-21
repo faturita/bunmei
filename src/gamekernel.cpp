@@ -20,6 +20,7 @@
 
 #include "tiles.h"
 #include "improvements.h"
+#include "diplomacy.h"
 
 #include "savegame.h"
 
@@ -39,6 +40,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 extern std::unordered_map<int, Improvement*> improvements;
+extern std::vector<std::vector<Diplomacy>> diplomacy;
 
 void update(int value);
 //void replayupdate(int value);
@@ -700,69 +702,42 @@ void initMap()
 
 
 
-//@FIXME: This need to be picked at some point in the game or by the parameters.
+// Static definition of the game's civilizations.  id must match the row's position (it is
+// also the index used into the diplomacy table).
+struct FactionDefinition
+{
+    int id;
+    const char* name;
+    int red, green, blue;
+    float rates[4];
+    bool autoPlayer;
+    void (*song)();
+};
+
+static const FactionDefinition FACTION_DEFINITIONS[] = {
+    { 0, "Vikings",  255, 0,   0,   {1, 0, 0, 0}, false, vikings  },
+    { 1, "Romans",   255, 255, 255, {1, 0, 0, 0}, true,  romans   },
+    { 2, "Greeks",   0,   0,   255, {1, 0, 0, 0}, true,  greeks   },
+    { 3, "Chinnese", 0,   255, 255, {1, 0, 0, 0}, true,  chinnese },
+};
+
 void initFactions()
 {
+    for (auto &def : FACTION_DEFINITIONS)
+    {
+        Faction *faction = new Faction();
+        faction->id = def.id;
+        strcpy(faction->name, def.name);
+        faction->red = def.red;
+        faction->green = def.green;
+        faction->blue = def.blue;
+        for (int i = 0; i < 4; i++)
+            faction->rates[i] = def.rates[i];
+        faction->autoPlayer = def.autoPlayer;
+        faction->song = def.song;
 
-    Faction *faction = new Faction();
-    faction->id = 0;
-    strcpy(faction->name,"Vikings");
-    faction->red = 255;
-    faction->green = 0;
-    faction->blue = 0;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    faction->autoPlayer = false;
-    faction->song = &vikings;
-    
-    factions.push_back(faction);
-
-    faction = new Faction();
-    faction->id = 1;
-    strcpy(faction->name,"Romans");
-    faction->red = 255;
-    faction->green = 255;
-    faction->blue = 255;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    faction->autoPlayer = true;
-    faction->song = &romans;
-
-    factions.push_back(faction);
-
-
-    // faction = new Faction();
-    // faction->id = 2;
-    // strcpy(faction->name,"Greeks");
-    // faction->red = 0;
-    // faction->green = 0;
-    // faction->blue = 255;
-    // faction->rates[0] = 1;
-    // faction->rates[1] = 0;
-    // faction->rates[2] = 0;
-    // faction->rates[3] = 0;
-    // faction->autoPlayer = true;
-    // faction->song = &greeks;
-    // factions.push_back(faction);
-
-
-    // faction = new Faction();
-    // faction->id = 2;
-    // strcpy(faction->name,"Chinnese");
-    // faction->red = 0;
-    // faction->green = 255;
-    // faction->blue = 255;
-    // faction->rates[0] = 1;
-    // faction->rates[1] = 0;
-    // faction->rates[2] = 0;
-    // faction->rates[3] = 0;
-    // faction->autoPlayer = true;
-    // faction->song = &chinnese;
-    // factions.push_back(faction);
+        factions.push_back(faction);
+    }
 
 
     initNaming(citynames);
@@ -835,7 +810,8 @@ void initWorldModelling()
 {
     year = -4000;
 
-    initFactions();   
+    initFactions();
+    initDiplomacy(diplomacy, factions.size());
 
     initUnits();
 
@@ -874,6 +850,7 @@ void loadWorldModelling()
     in.read(reinterpret_cast<char*>(&year), sizeof(year));
 
     initFactions();
+    initDiplomacy(diplomacy, factions.size());
 
     loadCities(in);
 
