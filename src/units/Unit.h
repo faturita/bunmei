@@ -29,7 +29,11 @@ enum UNIT_SUBTYPE
     UNIT_WORKER = 8,
     UNIT_TRIREME = 9,
     UNIT_GALLEY = 10,
-    UNIT_CHARIOT = 11
+    UNIT_CHARIOT = 11,
+    UNIT_SCOUT = 12,
+    UNIT_WARELEPHANT = 13,
+    UNIT_PRETORIAN = 14,
+    UNIT_SPY = 15
 };
 
 class Unit : public Buildable

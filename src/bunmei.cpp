@@ -77,6 +77,7 @@
 #include "buildings/Barracks.h"
 #include "buildings/Granary.h"
 #include "buildings/Collosseum.h"
+#include "buildings/Market.h"
 
 #include "units/Unit.h"
 #include "units/Settler.h"
@@ -90,6 +91,11 @@
 #include "units/Axeman.h"
 #include "units/Horsearcher.h"
 #include "units/Galley.h"
+#include "units/Scout.h"
+#include "units/Warelephant.h"
+#include "units/Chariot.h"
+#include "units/Pretorian.h"
+#include "units/Spy.h"
 #include "City.h"
 
 extern Controller controller;
@@ -226,17 +232,22 @@ inline void processCommandOrders()
         // What the city can actually build.
         city->buildable.push_back(new BarracksFactory());
         city->buildable.push_back(new PalaceFactory());
+        city->buildable.push_back(new ScoutFactory());
         city->buildable.push_back(new SettlerFactory());
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new GranaryFactory());
         city->buildable.push_back(new CollosseumFactory());
+        city->buildable.push_back(new MarketFactory());
         city->buildable.push_back(new WarriorFactory());
         city->buildable.push_back(new ArcherFactory());
         city->buildable.push_back(new SpearmanFactory());
         city->buildable.push_back(new SwordmanFactory());
+        city->buildable.push_back(new PretorianFactory());
         city->buildable.push_back(new AxemanFactory());
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new HorsemanFactory());
+        city->buildable.push_back(new ChariotFactory());
+        city->buildable.push_back(new WarelephantFactory());
         city->buildable.push_back(new TriremeFactory());
         city->buildable.push_back(new GalleyFactory());
         city->buildable.push_back(new HorsearcherFactory());

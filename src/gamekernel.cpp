@@ -1,4 +1,5 @@
 #include <fstream>
+#include <array>
 
 #include "Faction.h"
 #include "gamekernel.h"
@@ -53,103 +54,87 @@ extern char filegame[256];
 
 extern bool autoEndOfTurn;
 
+// context keys for BASE_PRODUCTION_RATE / RESOURCE_RATE_OVERRIDE: real biomas (tiles.h
+// BIOMAS) are all >= 0x20, so these negative sentinels never collide with one.
+#define OCEAN_CONTEXT   -2   // any OCEAN-coded tile, regardless of bioma
+#define ANY_LAND_BIOMA  -1   // any LAND-coded tile, regardless of bioma (e.g. GEMS, GOLD)
+
+// Table 1: base production rate per terrain/bioma, before any special-resource bonus.
+// Array order matches RESOURCE_TYPES (resources.h): FOOD, SHIELDS, TRADE, COINS, SCIENCE,
+// CULTURE.  Bioma variants share their base bioma's rate (looked up by bioma & 0xf0, same
+// convention as travelCost in map.cpp).  A LAND bioma with no entry here (undecorated land,
+// jungle, tundra, ...) falls back to DEFAULT_LAND_RATE.
+static const std::array<int,6> DEFAULT_LAND_RATE = {1, 0, 0, 0, 0, 0};
+
+static const std::unordered_map<int, std::array<int,6>> BASE_PRODUCTION_RATE = {
+    { OCEAN_CONTEXT, {1, 0, 1, 0, 0, 0} },
+    { ARCTIC,        {1, 0, 0, 0, 0, 0} },
+    { DESERT,        {0, 1, 0, 0, 0, 0} },
+    { FOREST,        {1, 2, 0, 0, 0, 0} },
+    { GRASSLAND,     {1, 0, 0, 0, 0, 0} },
+    { HILLS,         {1, 1, 0, 0, 0, 0} },
+    { MOUNTAINS,     {1, 1, 0, 0, 0, 0} },
+    { PLAINS,        {1, 1, 0, 0, 0, 0} },
+    { RIVER,         {2, 0, 1, 0, 0, 0} },
+    { SWAMP,         {1, 0, 1, 0, 0, 0} },
+};
+
+// Table 2: how a special resource (tiles.h SPECIALRESOURCES) nudges rates on top of the base
+// for a given context.  Only the listed RESOURCE_TYPES indices are overridden; every other
+// rate keeps whatever BASE_PRODUCTION_RATE gave it.
+struct ResourceRateOverride
+{
+    int context;                              // OCEAN_CONTEXT, a BIOMAS constant, or ANY_LAND_BIOMA
+    int resource;                             // a SPECIALRESOURCES constant
+    std::vector<std::pair<int,int>> rates;    // (RESOURCE_TYPES index, value) pairs
+};
+
+static const std::vector<ResourceRateOverride> RESOURCE_RATE_OVERRIDE = {
+    { OCEAN_CONTEXT,  FISH,      {{FOOD,3}} },
+    { OCEAN_CONTEXT,  OIL,       {{SHIELDS,2}} },
+    { GRASSLAND,      GEOSHIELD, {{SHIELDS,1}} },
+    { PLAINS,         GEOSHIELD, {{SHIELDS,2}} },
+    { PLAINS,         HORSE,     {{SHIELDS,2}} },
+    { FOREST,         GAME,      {{FOOD,2},{SHIELDS,3}} },
+    { DESERT,         COAL,      {{SHIELDS,2}} },
+    { DESERT,         OIL,       {{SHIELDS,3}} },
+    { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
+    { MOUNTAINS,      COAL,      {{SHIELDS,2}} },
+    { ARCTIC,         SEAL,      {{FOOD,3}} },
+    { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2}} },
+    { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
+};
+
 void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
 {
-    // @FIXME Encode all of this....
     initResources(resources);
 
     for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
         for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
         {
+            mapcell &cell = mmp.set(lat,lon);
+
             for(auto &r:resources)
             {
-                mmp.set(lat,lon).addResourceProductionRate(0);
+                cell.addResourceProductionRate(0);
             }
 
-            if (mmp.set(lat,lon).code==OCEAN)       // Water
+            int context = (cell.code == OCEAN) ? OCEAN_CONTEXT : (cell.bioma & 0xf0);
+
+            auto baseit = BASE_PRODUCTION_RATE.find(context);
+            std::array<int,6> rates = (baseit != BASE_PRODUCTION_RATE.end()) ? baseit->second : DEFAULT_LAND_RATE;
+
+            for (auto &ov : RESOURCE_RATE_OVERRIDE)
             {
-                mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
-                mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
+                if (ov.resource != cell.resource) continue;
+                if (ov.context != context && !(ov.context == ANY_LAND_BIOMA && cell.code == LAND)) continue;
 
-                if (mmp.set(lat,lon).resource==FISH) mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
-                if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
+                for (auto &kv : ov.rates)
+                    rates[kv.first] = kv.second;
             }
-            else
-            if (mmp.set(lat,lon).code==LAND)       // Land
-            {
-                // @FIXME Adjust the basic production rate of each tile
-                mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
 
-                //printf("Bioma %x\n",mmp(lat,lon).bioma);
-                if (mmp.set(lat,lon).code == LAND && mmp.set(lat,lon).bioma == LANDBIOMA) // Regular land
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
-                }
-                if (mmp.set(lat,lon).bioma/16==GRASSLAND/16) // Grassland
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
-                    if (mmp.set(lat,lon).resource==GEOSHIELD) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
-                }
-                if (mmp.set(lat,lon).bioma/16==RIVER/16) // River
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 2);
-                    mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
-                }
-                if (mmp.set(lat,lon).bioma/16==DESERT/16) // Desert
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 0);
-                }
-                if (mmp.set(lat,lon).bioma/16==SWAMP/16) // Swamps
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
-                    mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);
-                }
-                if (mmp.set(lat,lon).bioma/16==PLAINS/16) // Plains
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(FOOD, 1);
-                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
-
-                    if (mmp.set(lat,lon).resource==GEOSHIELD)   mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
-                    if (mmp.set(lat,lon).resource==HORSE)       mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
-
-                }
-                if (mmp.set(lat,lon).bioma/16==HILLS/16) // Hills
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
-                }
-                if (mmp.set(lat,lon).bioma/16==FOREST/16) // Forests
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
-                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).setResourceProductionRate(FOOD, 2);
-                    if (mmp.set(lat,lon).resource==GAME) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 3);
-                }
-                if (mmp.set(lat,lon).bioma/16==DESERT/16)   // Deserts
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
-                    
-                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
-                    if (mmp.set(lat,lon).resource==OIL)  mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 3);
-                    if (mmp.set(lat,lon).resource==OASIS) {mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
-                                                            mmp.set(lat,lon).setResourceProductionRate(TRADE, 1);}
-                }
-                if (mmp.set(lat,lon).bioma/16==MOUNTAINS/16) // Mountains
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 1);
-                    if (mmp.set(lat,lon).resource==COAL) mmp.set(lat,lon).setResourceProductionRate(SHIELDS, 2);
-                }
-
-                if (mmp.set(lat,lon).bioma/16==ARCTIC/16) // Arctic
-                {
-                    if (mmp.set(lat,lon).resource==SEAL) mmp.set(lat,lon).setResourceProductionRate(FOOD, 3);
-                }
-
-                if (mmp.set(lat,lon).resource==GEMS) mmp.set(lat,lon).setResourceProductionRate(CULTURE, 2);
-                if (mmp.set(lat,lon).resource==GOLD) 
-                {
-                    mmp.set(lat,lon).setResourceProductionRate(COINS, 2);
-                    mmp.set(lat,lon).setResourceProductionRate(CULTURE, 1);
-                }
-            }
+            for (size_t i = 0; i < rates.size(); i++)
+                cell.setResourceProductionRate((int)i, rates[i]);
         }
 }
 

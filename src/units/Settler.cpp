@@ -10,7 +10,7 @@ Settler::Settler()
 {
     strcpy(name,"Settler");
     strcpy(assetname,"assets/assets/units/settlers.png");
-    moves = 2;
+    moves = 1;
     dw = 0;
     aw = 0;
 }
