@@ -213,3 +213,13 @@ void chinnese()
 {
     playthissound(Vec3f(0,0,0), "sounds/chinnese.wav");
 }
+
+void peace()
+{
+    playthissound(Vec3f(0,0,0), "sounds/peacesound.wav");
+}
+
+void war()
+{
+    playthissound(Vec3f(0,0,0), "sounds/warsound.wav");
+}

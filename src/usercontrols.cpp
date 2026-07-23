@@ -13,12 +13,19 @@
 #include "usercontrols.h"
 #include "messages.h"
 #include "savegame.h"
+#include "sounds/sounds.h"
+#include "diplomacy.h"
 
 
 extern Coordinator coordinator;
+extern std::vector<Faction*> factions;
 extern std::unordered_map<int, City*> cities;
 extern std::unordered_map<int, Unit*> units;
 extern Map map;
+
+extern std::vector<std::vector<Diplomacy>> diplomacy;
+
+extern bool autoEndOfTurn;
 
 // Mouse offset for camera zoom in and out.
 int _xoffset = 0;
@@ -81,6 +88,7 @@ void handleKeypress(unsigned char key, int x, int y) {
             }
         }
         break;
+        case 'p':autoEndOfTurn = !autoEndOfTurn;break;
         case '!':controller.view = 1;break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
@@ -94,6 +102,58 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'g':controller.registers.yaw-=1.0;break;
         case 'y':controller.registers.precesion+=1.0f;break;
         case 'h':controller.registers.precesion-=1.0f;break;
+        case 'k':
+        {
+            Unit* u = units[coordinator.a_u_id];
+
+            int targetFactionId = -1;
+            for (auto& [unitId, otherUnit] : units)
+            {
+                if (unitId == coordinator.a_u_id || otherUnit == nullptr)
+                {
+                    continue;
+                }
+
+                int dLat = otherUnit->latitude - u->latitude;
+                int dLon = otherUnit->longitude - u->longitude;
+                if ((dLat * dLat + dLon * dLon) <= 25)
+                {
+                    targetFactionId = otherUnit->faction;
+                    break;
+                }
+            }
+
+            if (targetFactionId == -1)
+            {
+                printf("No nearby unit found within 5 tiles.\n");
+                break;
+            }
+
+            controller.query.active = true;
+            char msg[128];
+            snprintf(msg, sizeof(msg), "Make peace with %s ?", factions[targetFactionId]->name);
+            controller.query.message = msg;
+            controller.query.options = {"Yes.", "No."};
+            controller.query.selected = [targetFactionId](int i)
+            {
+                if (i == 0)
+                {
+                    diplomacy[coordinator.a_f_id][targetFactionId].makePeace();
+                    char msg[128];
+                    snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[coordinator.a_f_id]->name, factions[targetFactionId]->name);
+                    message(year, coordinator.a_f_id, msg);
+                    peace();
+                } else {
+                    diplomacy[coordinator.a_f_id][targetFactionId].makeWar();
+                    char msg[128];
+                    snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[coordinator.a_f_id]->name, factions[targetFactionId]->name);
+                    message(year, coordinator.a_f_id, msg);
+                    war();
+                }
+                printf("Selected option %d\n", i);
+            };
+        }
+        break;
         case ' ':coordinator.endofturn=true;break;
         case 't':controller.teletype=true;break;
         case 'l':controller.showLandOwnership = !controller.showLandOwnership;break;
@@ -214,9 +274,18 @@ void processMouse(int button, int state, int x, int y)
     }
 
 
-    if ((state == GLUT_DOWN)) 
+    if ((state == GLUT_DOWN))
     {
         _xoffset = _yoffset = 0;
+
+        // The dialog is a modal overlay on top of whatever view is active: it must consume
+        // the click itself, before any view-specific handling below (city screen, unit/city
+        // selection, ...) sees it.
+        if (button == GLUT_LEFT_BUTTON && controller.query.active)
+        {
+            clickOnDialog(controller.query, x, y);
+            return;
+        }
 
         switch (controller.view)
         {

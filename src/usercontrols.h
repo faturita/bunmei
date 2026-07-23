@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "commandorder.h"
+#include "dialog.h"
 
 #define CONTROLLING_NONE (size_t)0
 
@@ -35,6 +36,8 @@ public:
 
     bool showLandOwnership = false;
     bool bcenterinmap = false;
+
+    querydialog query;
 
     std::string str;
 

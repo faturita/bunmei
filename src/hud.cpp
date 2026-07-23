@@ -11,6 +11,7 @@
 #include "Faction.h"
 #include "gamekernel.h"
 #include "messages.h"
+#include "dialog.h"
 #include "hud.h"
 
 extern std::unordered_map<std::string, GLuint> maptextures;
@@ -173,6 +174,9 @@ void drawHUD()
 
     //sprintf (str, "Military Advisor: enemy units are coming from the south.");
     //drawString(0,-700,1,str,0.1f);
+
+    if (controller.query.active)
+        drawDialog(controller.query);
 
     if (controller.isTeletype())
     {

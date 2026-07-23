@@ -32,5 +32,8 @@ void vikings();
 void greeks();
 void chinnese();
 
+void peace();
+void war();
+
 
 #endif // SOUNDS_H
