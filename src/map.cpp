@@ -222,6 +222,14 @@ void placeTile(int x, int y, int size, const char* modelName)
     place(x*16,y*16,size,size,modelName);      // x,y x-> column y-> row  
 }
 
+void placeTile(int lat, int lon, int size, const char* modelName, int red, int green, int blue)
+{
+    char modelName2[256];
+    sprintf(modelName2,"%s_%d_%d_%d", modelName, red, green, blue);
+    GLuint _texture = preloadUnitTexture(modelName,modelName2,red,green,blue);
+    place(lon*16,lat*16,size,size,_texture);      // x,y x-> column y-> row  
+}
+
 // Lat, lon are the real lat,lon coordinates of the map, and they will be converted to FIXED parameters on the screen.
 void placeThisTile(int lat, int lon, int size, const char* filename)
 {
@@ -550,7 +558,7 @@ void drawMap()
                     int green = factions[faction]->green;
                     int blue = factions[faction]->blue;
 
-                    placeThisUnit(lat,lon,16,"assets/assets/general/owned.png",red,green,blue);
+                    placeTile(lat,lon,16,"assets/assets/general/owned.png",red,green,blue);
                 }
             }
 
