@@ -11,8 +11,13 @@ struct Coordinator
     public:
     // Unit id of the active unit
     int a_u_id;
-    // Faction id of the active player
+
+    // Faction id of the active controlling player
     int a_f_id;
+
+    // Faction id of the visible controlling player (the view that is presented on the screen)
+    int v_f_id;
+
     bool endofturn = false;
 
     void push(CommandOrder co)

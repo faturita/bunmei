@@ -130,6 +130,7 @@ bool loadgame;
 char filegame[256];
 
 bool autoEndOfTurn;
+bool switchVisibleFaction;
 
 
 void disclaimer()
@@ -1174,6 +1175,10 @@ void update(int value)
         if (coordinator.a_f_id<factions.size()-1) 
         {
             coordinator.a_f_id++;
+
+            if (switchVisibleFaction)
+                coordinator.v_f_id = coordinator.a_f_id;
+
             setUpFaction();    
         }
 

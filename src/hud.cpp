@@ -134,7 +134,7 @@ void drawHUD()
 
     char str[256];
 
-    sprintf (str, "Bunmei (FPS: %.2f) - %s  ", fps, factions[coordinator.a_f_id]->name);
+    sprintf (str, "Bunmei (FPS: %.2f) - %s  ", fps, factions[coordinator.v_f_id]->name);
     // width, height, 0 0 upper left
     drawString(0,-30,1,str,0.2f);
 
@@ -148,14 +148,14 @@ void drawHUD()
     drawString(0,-60,1,str,0.2f);
 
 
-    sprintf (str, "Population:%d",factions[coordinator.a_f_id]->pop);
+    sprintf (str, "Population:%d",factions[coordinator.v_f_id]->pop);
     drawString(0,-90,1,str,0.2f);
 
     sprintf (str, "Alphabet");
     placeMark4(10,-110,7*3,"assets/assets/status/science_25.png");
     drawString(30,-120,1,str,0.2f);
 
-    sprintf (str, "%d",factions[coordinator.a_f_id]->coins);
+    sprintf (str, "%d",factions[coordinator.v_f_id]->coins);
     placeMark4(10,-140,7*3,"assets/assets/city/gold.png");
     drawString(30,-150,1,str,0.2f);
 
@@ -192,7 +192,7 @@ void drawHUD()
         int msgonboard=0;
         for(size_t i=0;i<messages.size();i++)
         {
-            if (messages[i].faction == coordinator.a_f_id || messages[i].faction == -1)
+            if (messages[i].faction == coordinator.v_f_id || messages[i].faction == -1)
             {
                 std::string line = messages[i].msg;
                 if (msgonboard==0)

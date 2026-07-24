@@ -55,6 +55,7 @@ extern bool preloadmap;
 extern char filegame[256];
 
 extern bool autoEndOfTurn;
+extern bool switchVisibleFaction;
 
 // context keys for BASE_PRODUCTION_RATE / RESOURCE_RATE_OVERRIDE: real biomas (tiles.h
 // BIOMAS) are all >= 0x20, so these negative sentinels never collide with one.
@@ -815,6 +816,8 @@ void initWorldModelling()
 
     initUnits();
 
+    coordinator.v_f_id = factions[0]->id;
+
     coordinator.a_f_id = factions[0]->id;
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = true;
@@ -830,6 +833,7 @@ void initWorldModelling()
 
     // @NOTE: Allow to finish the turn automatically when all units have moved, so the player does not have to click "End Turn" every time.
     autoEndOfTurn = true;
+    switchVisibleFaction = false;
 
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
