@@ -473,16 +473,6 @@ void drawMap()
                 }
             }
 
-        // Add Resources
-        for(int lat=vlatmin;lat<=vlatmax;lat++)
-        {
-            for(int lon=vlonmin;lon<=vlonmax;lon++)
-            {
-                int size = 15;
-                if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
-                if (map(lat,lon).isVisible(coordinator.v_f_id) && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) placeTile(lon,lat,size,tiles[map(lat,lon).resource].c_str());
-            }
-        }
 
         // Land improvements (irrigation, mine, road) bitmap (irrigation is lsb, road is bit 1, railroad is bit 2, mine is bit 3)
         for(int lat=vlatmin;lat<=vlatmax;lat++)
@@ -491,6 +481,18 @@ void drawMap()
             {
                 if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,improvements[0xe0]->assetname);
                 if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,improvements[0xf0]->assetname);
+            }
+        }
+
+
+        // Add Resources
+        for(int lat=vlatmin;lat<=vlatmax;lat++)
+        {
+            for(int lon=vlonmin;lon<=vlonmax;lon++)
+            {
+                int size = 15;
+                if (map(lat,lon).resource == 0x10d) size = 7;   // Some resources are smaller in how they are represented in the map
+                if (map(lat,lon).isVisible(coordinator.v_f_id) && map(lat,lon).bioma!=0 && map(lat,lon).resource > 0) placeTile(lon,lat,size,tiles[map(lat,lon).resource].c_str());
             }
         }
 
