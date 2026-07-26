@@ -104,24 +104,11 @@ void handleKeypress(unsigned char key, int x, int y) {
         case 'h':controller.registers.precesion-=1.0f;break;
         case 'k':
         {
-            Unit* u = units[coordinator.a_u_id];
 
             int targetFactionId = -1;
-            for (auto& [unitId, otherUnit] : units)
-            {
-                if (unitId == coordinator.a_u_id || otherUnit == nullptr)
-                {
-                    continue;
-                }
+            int activeFactionId = coordinator.a_f_id;
 
-                int dLat = otherUnit->latitude - u->latitude;
-                int dLon = otherUnit->longitude - u->longitude;
-                if ((dLat * dLat + dLon * dLon) <= 25)
-                {
-                    targetFactionId = otherUnit->faction;
-                    break;
-                }
-            }
+            targetFactionId = findNearbyEnemyFactionId(coordinator.a_u_id, 5);
 
             if (targetFactionId == -1)
             {
@@ -132,22 +119,27 @@ void handleKeypress(unsigned char key, int x, int y) {
             controller.query.active = true;
             char msg[128];
             snprintf(msg, sizeof(msg), "Make peace with %s ?", factions[targetFactionId]->name);
+            factions[targetFactionId]->song();
             controller.query.message = msg;
             controller.query.options = {"Yes.", "No."};
-            controller.query.selected = [targetFactionId](int i)
+            controller.query.selected = [targetFactionId, activeFactionId](int i)
             {
                 if (i == 0)
                 {
-                    diplomacy[coordinator.a_f_id][targetFactionId].makePeace();
+                    diplomacy[activeFactionId][targetFactionId].makePeace();
+                    diplomacy[targetFactionId][activeFactionId].makePeace();
                     char msg[128];
-                    snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[coordinator.a_f_id]->name, factions[targetFactionId]->name);
-                    message(year, coordinator.a_f_id, msg);
+                    snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
+                    message(year, activeFactionId, msg);
+                    message(year, targetFactionId, msg);
                     peace();
                 } else {
-                    diplomacy[coordinator.a_f_id][targetFactionId].makeWar();
+                    diplomacy[activeFactionId][targetFactionId].makeWar();
+                    diplomacy[targetFactionId][activeFactionId].makeWar();
                     char msg[128];
-                    snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[coordinator.a_f_id]->name, factions[targetFactionId]->name);
-                    message(year, coordinator.a_f_id, msg);
+                    snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
+                    message(year, activeFactionId, msg);
+                    message(year, targetFactionId, msg);
                     war();
                 }
                 printf("Selected option %d\n", i);

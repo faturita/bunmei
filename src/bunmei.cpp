@@ -395,6 +395,50 @@ void completePendingMove(Unit* unit)
     printf("Pending move completed: unit %d arrived at (%d,%d)\n", unit->id, t.lat, t.lon);
 }
 
+
+void checkUnitMeetings(Unit* u)
+{
+    int targetFactionId = -1;
+    int activeFactionId = u->faction;
+
+    targetFactionId = findNearbyEnemyFactionId(u->id, 5);
+
+    if (targetFactionId != -1 && !factions[targetFactionId]->autoPlayer)
+    {
+        if (diplomacy[u->faction][targetFactionId].status == DiplomaticStatus::NO_CONTACT)
+        {
+            controller.query.active = true;
+            char msg[128];
+            snprintf(msg, sizeof(msg), "An emissary from %s offer you peace, would you accept it?", factions[u->faction]->name);
+            factions[u->faction]->song();
+            controller.query.message = msg;
+            controller.query.options = {"Yes.", "No."};
+            controller.query.selected = [activeFactionId,targetFactionId](int i)
+            {
+                if (i == 0)
+                {
+                    diplomacy[activeFactionId][targetFactionId].makePeace();
+                    diplomacy[targetFactionId][activeFactionId].makePeace();
+                    char msg[128];
+                    snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
+                    message(year, activeFactionId, msg);
+                    message(year, targetFactionId, msg);
+                    peace();
+                } else {
+                    diplomacy[activeFactionId][targetFactionId].makeWar();
+                    diplomacy[targetFactionId][activeFactionId].makeWar();
+                    char msg[128];
+                    snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
+                    message(year, activeFactionId, msg);
+                    message(year, targetFactionId, msg);
+                    war();
+                }
+                printf("Selected option %d\n", i);
+            };
+        }
+    }
+}
+
 inline void endOfYear()
 {
     year++;
@@ -410,6 +454,9 @@ inline void endOfYear()
 
         if (u->hasPendingMove() && u->availablemoves >= 0)
             completePendingMove(u);
+
+        checkUnitMeetings(u);
+
     }
 
     std::vector<int> todelete;
@@ -520,7 +567,7 @@ inline void endOfYear()
         // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
     }
 
-
+    
     for(auto& f:factions)
     {
         f->ready();

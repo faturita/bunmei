@@ -100,3 +100,49 @@ Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id)
     return defender;
 }
 
+int findNearbyEnemyFactionId(int unitId, int radius)
+{
+    // @FIXME: Check if this is really necessary....
+    auto it = units.find(unitId);
+    if (it == units.end() || it->second == nullptr)
+    {
+        return -1;
+    }
+
+    Unit* u = it->second;
+    int targetFactionId = -1;
+
+    int maxDistSq = (radius > 0) ? (radius * radius) : -1;
+    int nearestDistSq = -1;
+
+    for (auto& [otherUnitId, otherUnit] : units)
+    {
+        if (otherUnitId == unitId || otherUnit == nullptr)
+        {
+            continue;
+        }
+
+        if (otherUnit->faction == u->faction)
+        {
+            continue;
+        }
+
+        int dLat = otherUnit->latitude - u->latitude;
+        int dLon = otherUnit->longitude - u->longitude;
+        int distSq = (dLat * dLat + dLon * dLon);
+
+        if (maxDistSq >= 0 && distSq > maxDistSq)
+        {
+            continue;
+        }
+
+        if (nearestDistSq < 0 || distSq < nearestDistSq)
+        {
+            nearestDistSq = distSq;
+            targetFactionId = otherUnit->faction;
+        }
+    }
+
+    return targetFactionId;
+}
+
