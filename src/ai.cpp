@@ -47,7 +47,7 @@ using boost::phoenix::arg_names::arg1;
 #include "tiles.h"
 #include "diplomacy.h"
 
-extern std::vector<std::vector<Diplomacy>> diplomacy;
+extern DiplomacyTable diplomacy;
 
 struct CoordinateVertex {
     int lat;

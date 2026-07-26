@@ -106,7 +106,7 @@ std::unordered_map<int,std::queue<std::string>> citynames;
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
-std::vector<std::vector<Diplomacy>> diplomacy;
+DiplomacyTable diplomacy;
 std::vector<Resource*> resources;
 std::vector<Message> messages;
 
@@ -337,7 +337,7 @@ inline void processCommandOrders()
     }
 }
 
-extern std::vector<std::vector<Diplomacy>> diplomacy;
+extern DiplomacyTable diplomacy;
 
 // Whether a unit of faction f_id may step onto cell, and whether doing so seizes it.  Free
 // land and the mover's own land are always ENTER_AND_CLAIM (claiming your own land again just
@@ -418,7 +418,6 @@ void checkUnitMeetings(Unit* u)
                 if (i == 0)
                 {
                     diplomacy[activeFactionId][targetFactionId].makePeace();
-                    diplomacy[targetFactionId][activeFactionId].makePeace();
                     char msg[128];
                     snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
                     message(year, activeFactionId, msg);
@@ -426,7 +425,6 @@ void checkUnitMeetings(Unit* u)
                     peace();
                 } else {
                     diplomacy[activeFactionId][targetFactionId].makeWar();
-                    diplomacy[targetFactionId][activeFactionId].makeWar();
                     char msg[128];
                     snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
                     message(year, activeFactionId, msg);

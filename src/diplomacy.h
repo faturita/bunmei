@@ -2,6 +2,7 @@
 #define DIPLOMACY_H
 
 #include <vector>
+#include <algorithm>
 
 // The relation between two factions, from README.md "Diplomacy and Wars": a transition
 // graph/finite state machine, one state per (faction,faction) pair.  Each state fixes
@@ -59,8 +60,43 @@ struct Diplomacy
     }
 };
 
-// Fills diplomacy[numberoffactions][numberoffactions], one entry per (faction,faction) pair,
-// all starting at NO_CONTACT (landSeizure=true, openBorders=true per the DefCon table).
-void initDiplomacy(std::vector<std::vector<Diplomacy>> &diplomacy, int numberoffactions);
+// A (faction,faction) relation table where diplomacy[f1][f2] and diplomacy[f2][f1] are
+// always the SAME entry: the relation is undirected (one status per unordered pair), so
+// callers never need to write both sides by hand to keep them in sync.  Storage is a
+// triangular array indexed by the canonical (min,max) pair; operator[] returns a proxy
+// that resolves diplomacy[f1][f2] to that shared entry.
+class DiplomacyTable
+{
+public:
+    void resize(int n)
+    {
+        numberoffactions = n;
+        entries.assign(n * (n + 1) / 2, Diplomacy());
+    }
+
+    Diplomacy& at(int f1, int f2)
+    {
+        int i = std::min(f1, f2);
+        int j = std::max(f1, f2);
+        return entries[i * numberoffactions - (i * (i - 1)) / 2 + (j - i)];
+    }
+
+    struct Row
+    {
+        DiplomacyTable *table;
+        int f1;
+        Diplomacy& operator[](int f2) { return table->at(f1, f2); }
+    };
+
+    Row operator[](int f1) { return Row{this, f1}; }
+
+private:
+    int numberoffactions = 0;
+    std::vector<Diplomacy> entries;
+};
+
+// Fills diplomacy for numberoffactions factions, one entry per UNORDERED (faction,faction)
+// pair, all starting at NO_CONTACT (landSeizure=true, openBorders=true per the DefCon table).
+void initDiplomacy(DiplomacyTable &diplomacy, int numberoffactions);
 
 #endif // DIPLOMACY_H

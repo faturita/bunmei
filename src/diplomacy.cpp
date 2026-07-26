@@ -1,11 +1,11 @@
 #include "diplomacy.h"
 
-void initDiplomacy(std::vector<std::vector<Diplomacy>> &diplomacy, int numberoffactions)
+void initDiplomacy(DiplomacyTable &diplomacy, int numberoffactions)
 {
-    diplomacy.assign(numberoffactions, std::vector<Diplomacy>(numberoffactions));
+    diplomacy.resize(numberoffactions);
 
     for (int i = 0; i < numberoffactions; i++)
-        for (int j = 0; j < numberoffactions; j++)
+        for (int j = i; j < numberoffactions; j++)
         {
             Diplomacy d;
             d.status = NO_CONTACT;

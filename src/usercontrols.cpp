@@ -23,7 +23,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::unordered_map<int, Unit*> units;
 extern Map map;
 
-extern std::vector<std::vector<Diplomacy>> diplomacy;
+extern DiplomacyTable diplomacy;
 
 extern bool autoEndOfTurn;
 
@@ -127,7 +127,6 @@ void handleKeypress(unsigned char key, int x, int y) {
                 if (i == 0)
                 {
                     diplomacy[activeFactionId][targetFactionId].makePeace();
-                    diplomacy[targetFactionId][activeFactionId].makePeace();
                     char msg[128];
                     snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
                     message(year, activeFactionId, msg);
@@ -135,7 +134,6 @@ void handleKeypress(unsigned char key, int x, int y) {
                     peace();
                 } else {
                     diplomacy[activeFactionId][targetFactionId].makeWar();
-                    diplomacy[targetFactionId][activeFactionId].makeWar();
                     char msg[128];
                     snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
                     message(year, activeFactionId, msg);

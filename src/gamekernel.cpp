@@ -40,7 +40,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::vector<Resource*> resources;
 extern std::unordered_map<int, Improvement*> improvements;
-extern std::vector<std::vector<Diplomacy>> diplomacy;
+extern DiplomacyTable diplomacy;
 
 void update(int value);
 //void replayupdate(int value);
