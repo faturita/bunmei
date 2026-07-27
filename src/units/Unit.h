@@ -58,6 +58,13 @@ class Unit : public Buildable
         bool fortified = false;
         bool sentried = false;
 
+        bool bRoading = false;
+        bool bMining = false;
+        bool bIrrigating = false;
+        bool bRailroading = false;
+
+        int reqEffort;
+
         bool markedForDeletion = false;
 
         bool bDestroy = false;
@@ -114,6 +121,18 @@ class Unit : public Buildable
     void sentry();
     bool isSentry();
     void wakeUp();
+
+    void roading(int effort=1);
+    bool isRoading();
+    void mining(int effort=1);
+    bool isMining();
+    void irrigating(int effort=1);
+    bool isIrrigating();
+    void railroading(int effort=1);
+    bool isRailroading();
+    void completed();
+    void work();
+    bool workCompleted();
 
     bool isMarkedForDeletion();
     bool isDying();

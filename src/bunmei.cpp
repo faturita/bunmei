@@ -194,10 +194,36 @@ void drawScene()
 }
 
 
+extern ImprovementEffort improvementeffort;
+
 inline void processCommandOrders()
 {
     CommandOrder co = coordinator.pop();  //@FIXME make it a queue.
 
+    // Finalize commands apply to a TILE (carried in co.parameters), not the active unit:
+    // by the time processWork() pushes one, the working unit's moves are already zeroed
+    // and coordinator.a_u_id may already have moved on (or hit CONTROLLING_NONE, if it was
+    // the faction's last movable unit), so these must run before the active-unit guard below.
+    if (co.command == Command::BuildRoad)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildRoad();
+        return;
+    }
+    if (co.command == Command::BuildMine)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildMine();
+        return;
+    }
+    if (co.command == Command::BuildIrrigation)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildIrrigation();
+        return;
+    }
+    if (co.command == Command::BuildRailroad)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildRailroad();
+        return;
+    }
 
     if (units.find(coordinator.a_u_id) == units.end())
     {
@@ -302,7 +328,8 @@ inline void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            map.set(worker->latitude,worker->longitude).buildRoad();
+            int effort = getImprovementEffort(improvementeffort, ROAD, map.set(worker->latitude,worker->longitude).bioma);
+            worker->roading(effort);
             worker->availablemoves = 0;
 
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
@@ -311,7 +338,8 @@ inline void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            map.set(worker->latitude,worker->longitude).buildIrrigation();
+            int effort = getImprovementEffort(improvementeffort, IRRIGATION, map.set(worker->latitude,worker->longitude).bioma);
+            worker->irrigating(effort);
             worker->availablemoves = 0;
 
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
@@ -320,7 +348,8 @@ inline void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            map.set(worker->latitude,worker->longitude).buildMine();
+            int effort = getImprovementEffort(improvementeffort, MINE, map.set(worker->latitude,worker->longitude).bioma);
+            worker->mining(effort);
             worker->availablemoves = 0;
 
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
@@ -329,7 +358,8 @@ inline void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            map.set(worker->latitude,worker->longitude).buildRailroad();
+            int effort = getImprovementEffort(improvementeffort, RAILROAD, map.set(worker->latitude,worker->longitude).bioma);
+            worker->railroading(effort);
             worker->availablemoves = 0;
 
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
@@ -1180,6 +1210,45 @@ void processGoTo()
     }
 }
 
+// Building a road/mine/irrigation takes several turns (BuildRoadOrder etc. only put the
+// worker into the corresponding working state, with the effort looked up from
+// improvementeffort).  Every turn the working unit is reactivated, instead of moving it
+// spends its moves performing the task: this drives that, mirroring how processGoTo()
+// drives an isAuto() unit's movement without further player input.  When the effort
+// reaches zero, work() already clears the unit's working flag, so which improvement to
+// finalize is captured BEFORE calling it; the finalize command carries the tile's
+// coordinates (not coordinator.a_u_id, which may already have moved on by the time
+// processCommandOrders handles it).
+void processWork()
+{
+    if (units.find(coordinator.a_u_id) == units.end())
+        return;
+
+    Unit* unit = units[coordinator.a_u_id];
+
+    bool wasRoading = unit->isRoading();
+    bool wasMining = unit->isMining();
+    bool wasIrrigating = unit->isIrrigating();
+    bool wasRailroading = unit->isRailroading();
+
+    if (!wasRoading && !wasMining && !wasIrrigating && !wasRailroading)
+        return;
+
+    unit->work();
+    unit->availablemoves = 0;
+
+    if (unit->workCompleted())
+    {
+        CommandOrder co;
+        co.parameters.latitude = unit->latitude;
+        co.parameters.longitude = unit->longitude;
+        co.command = wasRoading ? Command::BuildRoad : (wasMining ? Command::BuildMine : (wasIrrigating ? Command::BuildIrrigation : Command::BuildRailroad));
+        coordinator.push(co);
+    }
+
+    coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+}
+
 
 
 void update(int value)
@@ -1195,6 +1264,8 @@ void update(int value)
     reSetCities();
 
     processGoTo();
+
+    processWork();
 
     // Autoplayer
     if (factions[coordinator.a_f_id]->autoPlayer)

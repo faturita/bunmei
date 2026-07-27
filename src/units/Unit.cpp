@@ -39,6 +39,26 @@ void Unit::draw()
         placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/sentry.png", red, green, blue);
     }
 
+    if (bRoading)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/roading.png", red, green, blue);
+    }
+
+    if (bRailroading)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/railroading.png", red, green, blue);
+    }
+
+    if (bMining)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/mining.png", red, green, blue);
+    }
+
+    if (bIrrigating)
+    {
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/irrigating.png", red, green, blue);
+    }
+
     if (completion < 1)
         completion += 0.1;
 
@@ -200,6 +220,75 @@ bool Unit::isSentry()
 void Unit::wakeUp()
 {
     sentried = false;
+}
+
+void Unit::roading(int effort)
+{
+    bRoading = true;
+    reqEffort = effort;
+}
+
+bool Unit::isRoading()
+{
+    return bRoading;
+}
+
+void Unit::mining(int effort)
+{
+    bMining = true;
+    reqEffort = effort;
+}
+
+bool Unit::isMining()
+{
+    return bMining;
+}
+
+void Unit::irrigating(int effort)
+{
+    bIrrigating = true;
+    reqEffort = effort;
+}
+
+bool Unit::isIrrigating()
+{
+    return bIrrigating;
+}
+
+void Unit::railroading(int effort)
+{
+    bRailroading = true;
+    reqEffort = effort;
+}
+
+bool Unit::isRailroading()
+{
+    return bRailroading;
+}
+
+void Unit::completed()
+{
+    bRoading = false;
+    bMining = false;
+    bIrrigating = false;
+    bRailroading = false;
+}
+
+void Unit::work()
+{
+    if (bRoading || bMining || bIrrigating || bRailroading)
+    {
+        reqEffort--;
+        if (reqEffort <= 0)
+        {
+            completed();
+        }
+    }
+}
+
+bool Unit::workCompleted()
+{
+    return reqEffort <= 0;
 }
 
 // Dying units (killed in battle) stay in the units map until their animation completes:

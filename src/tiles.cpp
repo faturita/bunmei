@@ -254,7 +254,36 @@ void initMovementCosts(MovementCost &movementcosts)
     movementcosts[SWAMP] = 2.0;
     movementcosts[TUNDRA] = 1.5;
     movementcosts[OCEANBIOMA] = 1.0;
-}   
+}
+
+// Defined here (and not in gamekernel.cpp), same reason as movementcosts above.
+ImprovementEffort improvementeffort;
+
+// All biomas/improvements start at 6 required worker-turns; tune per bioma later.
+void initImprovementEffort(ImprovementEffort &improvementeffort)
+{
+    int biomas[] = { ARCTIC, DESERT, FOREST, GRASSLAND, HILLS, JUNGLE, MOUNTAINS, PLAINS, RIVER, SWAMP, TUNDRA };
+    int types[] = { ROAD, MINE, IRRIGATION, RAILROAD };
+
+    for (int t : types)
+        for (int b : biomas)
+            improvementeffort[t][b] = 6;
+}
+
+int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma)
+{
+    int basebioma = bioma & 0xf0;
+
+    auto it = improvementeffort.find(improvementtype);
+    if (it != improvementeffort.end())
+    {
+        auto it2 = it->second.find(basebioma);
+        if (it2 != it->second.end())
+            return it2->second;
+    }
+
+    return 1;
+}
 
 void initCommodities(std::unordered_map<int, std::vector<int>> &commodities)
 {

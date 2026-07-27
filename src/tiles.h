@@ -4,6 +4,8 @@
 #include <queue>
 #include <unordered_map>
 
+#include "improvements.h"
+
 enum TERRAIN
 {
     OCEAN = 0,
@@ -38,6 +40,11 @@ typedef std::unordered_map<int, float> MovementCost;
 #define ROAD_MOVEMENT_COST      (1.0f/3.0f)
 #define RAILROAD_MOVEMENT_COST  (1.0f/9.0f)
 
+// Effort (in worker turns) required to complete an improvement, indexed by
+// [improvement type (IMPROVEMENT_TYPES, improvements.h)][base bioma] (bioma & 0xf0, same
+// masking as MovementCost).
+typedef std::unordered_map<int, std::unordered_map<int, int>> ImprovementEffort;
+
 enum SPECIALRESOURCES
 {
     MARBLE = 0x100,
@@ -63,5 +70,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles);
 void initCommodities(std::unordered_map<int, std::vector<int>> &commodities);
 void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
 void initMovementCosts(MovementCost &movementcosts);
+void initImprovementEffort(ImprovementEffort &improvementeffort);
+int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma);
 
 #endif // TILES_H

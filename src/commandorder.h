@@ -10,7 +10,14 @@ enum class Command {
     BuildRoadOrder=5,
     BuildIrrigationOrder=6,
     BuildRailroadOrder=7,
-    BuildMineOrder=8
+    BuildMineOrder=8,
+    // Finalize commands: pushed by processWork() once a worker's effort reaches zero,
+    // to actually apply the improvement to the tile (BuildXxxOrder only puts the worker
+    // into the corresponding working state).
+    BuildRoad=9,
+    BuildMine=10,
+    BuildIrrigation=11,
+    BuildRailroad=12
 };
 
 struct commandparameters

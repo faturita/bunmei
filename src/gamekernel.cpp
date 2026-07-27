@@ -33,6 +33,7 @@ extern std::unordered_map<int, std::string> tiles;
 extern Map map;
 std::unordered_map<int, std::vector<int>> resourcesxbioma;
 extern MovementCost movementcosts;
+extern ImprovementEffort improvementeffort;
 
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
@@ -278,6 +279,8 @@ void initMap()
     initCommodities(resourcesxbioma);
 
     initMovementCosts(movementcosts);
+
+    initImprovementEffort(improvementeffort);
 
     initImprovements(improvements);
 
