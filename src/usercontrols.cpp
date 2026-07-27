@@ -312,7 +312,14 @@ void processMouse(int button, int state, int x, int y)
                     {
                         zoommapin();
                     } else {
-                        for (auto& [k,c] : cities) 
+                        // A click that opens a city's UI must NOT also activate whatever
+                        // unit happens to be stationed on that tile (previously the units
+                        // loop below ran unconditionally too): stationed units are now
+                        // selected from inside the city screen instead (its "Units" box,
+                        // cityscreenui.cpp), so the map click here does one or the other.
+                        bool openedCityUI = false;
+
+                        for (auto& [k,c] : cities)
                         {
                             coordinate co = getCurrentCenter();
                             // @NOTE: We needed to center the map always in the same value for the cities and transform that
@@ -326,6 +333,7 @@ void processMouse(int button, int state, int x, int y)
                                     printf("City %s %d %d,%d\n",c->name, c->id, c->latitude, c->longitude);
                                     controller.view = 2;
                                     controller.cityid = c->id;
+                                    openedCityUI = true;
                                     break;
                                 } else {
                                     printf("This is not your city\n"); //@FIXME debug message
@@ -333,6 +341,7 @@ void processMouse(int button, int state, int x, int y)
                             }
                         }
 
+                        if (!openedCityUI)
                         for (auto& [k,u] : units)
                         {
                             coordinate co = getCurrentCenter();
@@ -342,33 +351,10 @@ void processMouse(int button, int state, int x, int y)
                                 // processWork() (bunmei.cpp), same as a fresh BuildRoadOrder
                                 // etc. would: it must stay clickable regardless, exactly like
                                 // a fortified/sentried unit (whose moves also just sit there).
-                                bool isWorking = u->isRoading() || u->isMining() || u->isIrrigating() || u->isRailroading();
-
-                                if (coordinator.a_f_id == u->faction && (u->availablemoves>0 || isWorking))
+                                if (coordinator.a_f_id == u->faction && (u->availablemoves>0 || u->isWorking()))
                                 {
                                     printf("Unit %s %d %d,%d\n",u->name, u->id, u->latitude, u->longitude);
-                                    coordinator.a_u_id = u->id;
-
-                                    if (u->isFortified())
-                                    {
-                                        u->packUp();
-                                    }
-
-                                    if (u->isSentry())
-                                    {
-                                        u->wakeUp();
-                                    }
-
-                                    if (isWorking)
-                                    {
-                                        // Interrupt the improvement in progress: clear the
-                                        // working state (same effect on the flags as finishing
-                                        // it, minus the finalize command that would apply it to
-                                        // the tile) so a later order starts the effort over
-                                        // from scratch instead of resuming.
-                                        u->completed();
-                                    }
-
+                                    activateUnit(u);
                                     break;
                                 } else {
                                     printf("This is not your unit\n"); //@FIXME debug message

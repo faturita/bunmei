@@ -1,3 +1,6 @@
+#include <unordered_map>
+#include <vector>
+
 #include "openglutils.h"
 #include "math/yamathutil.h"
 #include "lodepng.h"
@@ -6,6 +9,10 @@
 #include "map.h"
 #include "resources.h"
 #include "City.h"
+#include "Faction.h"
+#include "units/Unit.h"
+#include "engine.h"
+#include "usercontrols.h"
 #include "cityscreenui.h"
 
 extern float cx;
@@ -13,6 +20,23 @@ extern float cy;
 
 extern Map map;
 extern std::vector<Resource*> resources;
+extern std::unordered_map<int, Unit*> units;
+extern std::unordered_map<int, City*> cities;
+extern std::vector<Faction*> factions;
+extern Controller controller;
+
+// Units currently standing on city's tile, in a stable order shared by drawCityScreen (to
+// list them) and clickOnCityScreen (to map a clicked row back to the same unit).
+std::vector<Unit*> getUnitsAtCity(City* city)
+{
+    std::vector<Unit*> stationed;
+    for (auto& [k,u] : units)
+    {
+        if (u->latitude == city->latitude && u->longitude == city->longitude)
+            stationed.push_back(u);
+    }
+    return stationed;
+}
 
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
 {
@@ -39,6 +63,11 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 bool changeIsActive = false;
 int selection = -1;
 int selectionOffset = 0;
+
+// Scroll offset for the "Units" box, same mechanism as selectionOffset above (0 = top of
+// the list, decreasing reveals later units) -- see drawCityScreen/clickOnCityScreen.
+int unitsOffset = 0;
+const int UNITS_BOX_ROWS = 5;
 
 coordinate clickedTile(0,0);
 bool tileWorkingIsActive = false;
@@ -77,6 +106,39 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         clickedTile = coordinate(lat,lon);
     }
 
+    // "Units" box, directly below the map (drawCityScreen): one stationed unit per row,
+    // rows 5..9 (row 4 is the box's own label).  Same up/down arrow mechanism as the
+    // Change (buildable) list above -- same look and feel, but at the Units box's own
+    // column (endright=3, vs the Change box's endright=9): the row values are identical
+    // between the two boxes (both start at row 5), which is why lat2 stays 10/18 here too;
+    // only lon2 differs, since lon2/lat2 come from the SAME formula each Change arrow
+    // proved out (drawCityScreen: (box_coordinate)*16 in pixels -> lat2/lon2 = pixels/8, so
+    // column 3 -> 3*16/8 = 6, matching the Change arrows' column 9 -> 9*16/8 = 18).
+    if (lat2==10 && lon2==6)
+    {
+        // Move up
+        unitsOffset++;
+    } else
+    if (lat2==18 && lon2==6)
+    {
+        // Move down
+        unitsOffset--;
+    }
+
+    // A city only opens its screen for its owner (usercontrols.cpp), so activating a unit
+    // found here is always the player's.
+    // cities.find (not cities[...]): operator[] on a missing key would INSERT A NULL entry.
+    auto cityIt = cities.find(controller.cityid);
+    if (cityIt != cities.end() && lat>=5 && lat<=9 && lon>=-3 && lon<=3)
+    {
+        std::vector<Unit*> stationed = getUnitsAtCity(cityIt->second);
+        int loc = lat - 5;
+        int idx = loc - unitsOffset;
+        if (idx >= 0 && idx < (int)stationed.size())
+        {
+            activateUnit(stationed[idx]);
+        }
+    }
 
 }
 
@@ -99,6 +161,64 @@ void drawCityScreen(int cla, int clo, City *city)
 
     drawBoundingBox(clo,cla,-10,-10,9,9);
     drawBoundingBox(clo,cla,-3,-3,3,3);
+
+    // Units stationed on the city's tile, just below the map box: clicking a city no
+    // longer activates them directly (usercontrols.cpp), this box is how the player picks
+    // one instead (clickOnCityScreen maps a clicked row back to the same list below).
+    {
+        placeWord(clo + (-3),cla + (4),4,8,"Units");
+        drawBoundingBox(clo,cla,-3,4,3,9);
+
+        std::vector<Unit*> stationed = getUnitsAtCity(city);
+
+        // Same scrolling mechanism as the Change (buildable) list below: loc is the
+        // on-screen row, i is the absolute index into stationed; items scrolled above
+        // the box (loc<0) are skipped, drawing stops once the last visible row is filled.
+        int i=0;
+        for(auto it=stationed.begin();it!=stationed.end();it++)
+        {
+            int loc = i+unitsOffset;
+            if (loc<0) {i++;continue;}
+
+            Unit* u = *it;
+            Faction* f = factions[u->faction];
+            // placeTile (not place): units are tinted to their faction's color, same as
+            // placeThisUnit does on the map (Unit::draw()) -- plain place() draws the raw
+            // asset untinted, which is what looked wrong here.
+            placeTile(cla + (5+loc), clo + (-3), 16, u->getAssetName(), f->red, f->green, f->blue);
+
+            // Same status overlays as the map (Unit::draw()), through the same
+            // getOverlayAssets() so any status added there shows up here too.
+            for (const char* overlay : u->getOverlayAssets())
+            {
+                placeTile(cla + (5+loc), clo + (-3), 16, overlay, f->red, f->green, f->blue);
+            }
+
+            placeWord(clo + (-1),cla + (5+loc),4,8,u->name);
+
+            i++;
+            if (loc==UNITS_BOX_ROWS-1) break;
+        }
+
+        // Up/down arrows, same asset/position style as the Change list's (endright=3
+        // here vs endright=9 there): only shown, and only meaningful to click, once there
+        // are more units than fit.
+        if ((int)stationed.size()>UNITS_BOX_ROWS)
+        {
+            place((clo+(3))*16,(cla+(5))*16 ,7,7,"assets/assets/cursor/up.png");
+            place((clo+(3))*16,(cla+(9))*16 ,7,7,"assets/assets/cursor/down.png");
+
+            if (unitsOffset>0) unitsOffset=0;
+            int max = ((int)stationed.size())-UNITS_BOX_ROWS;
+            if (unitsOffset<-max)
+                unitsOffset=(stationed.size()-UNITS_BOX_ROWS)*(-1);
+        }
+        else
+        {
+            // Nothing to scroll: keep the offset reset so a later overflow starts fresh.
+            unitsOffset = 0;
+        }
+    }
 
     placeWord(clo + (-10),cla + (-10),4,8,city->name);
 

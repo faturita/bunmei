@@ -29,34 +29,9 @@ void Unit::draw()
     }
 
 
-    if (fortified)
+    for (const char* overlay : getOverlayAssets())
     {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/fortify.png", red, green, blue);
-    }
-
-    if (sentried)
-    {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/sentry.png", red, green, blue);
-    }
-
-    if (bRoading)
-    {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/roading.png", red, green, blue);
-    }
-
-    if (bRailroading)
-    {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/railroading.png", red, green, blue);
-    }
-
-    if (bMining)
-    {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/mining.png", red, green, blue);
-    }
-
-    if (bIrrigating)
-    {
-        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,"assets/assets/map/irrigating.png", red, green, blue);
+        placeThisUnit(oldlatitude*(1-completion)+latitude*(completion),oldlongitude*(1-completion) + longitude*(completion),16,overlay, red, green, blue);
     }
 
     if (completion < 1)
@@ -85,6 +60,25 @@ void Unit::draw()
 int Unit::getUnitMoves()
 {
     return moves;
+}
+
+const char* Unit::getAssetName()
+{
+    return assetname;
+}
+
+std::vector<const char*> Unit::getOverlayAssets()
+{
+    std::vector<const char*> overlays;
+
+    if (fortified)    overlays.push_back("assets/assets/map/fortify.png");
+    if (sentried)     overlays.push_back("assets/assets/map/sentry.png");
+    if (bRoading)     overlays.push_back("assets/assets/map/roading.png");
+    if (bRailroading) overlays.push_back("assets/assets/map/railroading.png");
+    if (bMining)      overlays.push_back("assets/assets/map/mining.png");
+    if (bIrrigating)  overlays.push_back("assets/assets/map/irrigating.png");
+
+    return overlays;
 }
 
 bool Unit::canBuildCity()
@@ -264,6 +258,11 @@ void Unit::railroading(int effort)
 bool Unit::isRailroading()
 {
     return bRailroading;
+}
+
+bool Unit::isWorking()
+{
+    return bRoading || bMining || bIrrigating || bRailroading;
 }
 
 void Unit::completed()

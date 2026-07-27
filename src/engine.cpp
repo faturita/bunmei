@@ -11,10 +11,12 @@
 #include "units/Unit.h"
 #include "units/Warrior.h"
 #include "units/Settler.h"
+#include "coordinator.h"
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
+extern Coordinator coordinator;
 
 
 int getNextCityId()
@@ -144,5 +146,19 @@ int findNearbyEnemyFactionId(int unitId, int radius)
     }
 
     return targetFactionId;
+}
+
+void activateUnit(Unit* u)
+{
+    coordinator.a_u_id = u->id;
+
+    if (u->isFortified())
+        u->packUp();
+
+    if (u->isSentry())
+        u->wakeUp();
+
+    if (u->isWorking())
+        u->completed();
 }
 

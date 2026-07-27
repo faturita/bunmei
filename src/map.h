@@ -36,6 +36,9 @@ void place(int x, int y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int size, const char* modelName);
 void placeTile(int x, int y, const char* modelName);
 void placeTile(int x, int y, int size, const char* modelName);
+// Same as above, but with a faction-color tint (like placeThisUnit, but for a tile already
+// in screen/box coordinates rather than a world lat/lon that needs map.to_screen()).
+void placeTile(int lat, int lon, int size, const char* modelName, int red, int green, int blue);
 void placeThisTile(int lat, int lon, int size, const char* filename);
 void placeThisUnit(float flat, float flon, int size, const char* modelName, int red=255, int green=0, int blue=0);
 void placeThisCity(int lat, int lon, int red, int green, int blue);

@@ -88,6 +88,13 @@ class Unit : public Buildable
     char name[256];
 
     int getUnitMoves();
+    const char* getAssetName();
+    // Overlay asset paths for the unit's current status (fortified/sentried/roading/...),
+    // in the same order Unit::draw() paints them on the map.  Single source of truth so
+    // any other view (e.g. the city screen's stationed-units box) shows the exact same
+    // overlays without duplicating the fortified/sentried/isWorking flag checks; add new
+    // statuses here and everywhere that calls this picks them up automatically.
+    std::vector<const char*> getOverlayAssets();
     void virtual draw();
     bool virtual canBuildCity();
     int virtual cost(int r_id);
@@ -130,6 +137,7 @@ class Unit : public Buildable
     bool isIrrigating();
     void railroading(int effort=1);
     bool isRailroading();
+    bool isWorking();
     void completed();
     void work();
     bool workCompleted();
