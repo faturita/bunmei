@@ -267,7 +267,7 @@ void initImprovementEffort(ImprovementEffort &improvementeffort)
 
     for (int t : types)
         for (int b : biomas)
-            improvementeffort[t][b] = 6;
+            improvementeffort[t][b] = 9;
 }
 
 int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma)

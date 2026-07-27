@@ -333,12 +333,18 @@ void processMouse(int button, int state, int x, int y)
                             }
                         }
 
-                        for (auto& [k,u] : units) 
+                        for (auto& [k,u] : units)
                         {
                             coordinate co = getCurrentCenter();
                             if (co.lat == u->latitude && co.lon == u->longitude)
                             {
-                                if (coordinator.a_f_id == u->faction && u->availablemoves>0)
+                                // A working unit's availablemoves gets zeroed every turn by
+                                // processWork() (bunmei.cpp), same as a fresh BuildRoadOrder
+                                // etc. would: it must stay clickable regardless, exactly like
+                                // a fortified/sentried unit (whose moves also just sit there).
+                                bool isWorking = u->isRoading() || u->isMining() || u->isIrrigating() || u->isRailroading();
+
+                                if (coordinator.a_f_id == u->faction && (u->availablemoves>0 || isWorking))
                                 {
                                     printf("Unit %s %d %d,%d\n",u->name, u->id, u->latitude, u->longitude);
                                     coordinator.a_u_id = u->id;
@@ -353,6 +359,15 @@ void processMouse(int button, int state, int x, int y)
                                         u->wakeUp();
                                     }
 
+                                    if (isWorking)
+                                    {
+                                        // Interrupt the improvement in progress: clear the
+                                        // working state (same effect on the flags as finishing
+                                        // it, minus the finalize command that would apply it to
+                                        // the tile) so a later order starts the effort over
+                                        // from scratch instead of resuming.
+                                        u->completed();
+                                    }
 
                                     break;
                                 } else {

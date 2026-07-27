@@ -278,7 +278,7 @@ void Unit::work()
 {
     if (bRoading || bMining || bIrrigating || bRailroading)
     {
-        reqEffort--;
+        reqEffort -= (availablemoves);
         if (reqEffort <= 0)
         {
             completed();
