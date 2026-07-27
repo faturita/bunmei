@@ -83,10 +83,13 @@ void handleKeypress(unsigned char key, int x, int y) {
             if (controller.view == 2)
             {
                 controller.view = 1;
-            } else {
+            } 
+        }
+        break;
+        case 'Q': 
+            {
                 controller.interrupt();
             }
-        }
         break;
         case 'p':autoEndOfTurn = !autoEndOfTurn;break;
         case '!':controller.view = 1;break;

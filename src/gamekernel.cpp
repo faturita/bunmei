@@ -719,7 +719,7 @@ static const FactionDefinition FACTION_DEFINITIONS[] = {
     { 0, "Vikings",  255, 0,   0,   {1, 0, 0, 0}, false, vikings  },
     { 1, "Romans",   255, 255, 255, {1, 0, 0, 0}, true,  romans   },
     { 2, "Greeks",   0,   0,   255, {1, 0, 0, 0}, true,  greeks   },
-    { 3, "Chinnese", 0,   255, 255, {1, 0, 0, 0}, true,  chinnese },
+    { 3, "Chinese", 0,   255, 255, {1, 0, 0, 0}, true,  chinese },
 };
 
 void initFactions()

@@ -209,9 +209,9 @@ void greeks()
     playthissound(Vec3f(0,0,0), "sounds/greeks.wav");
 }
 
-void chinnese()
+void chinese()
 {
-    playthissound(Vec3f(0,0,0), "sounds/chinnese.wav");
+    playthissound(Vec3f(0,0,0), "sounds/chinese.wav");
 }
 
 void peace()

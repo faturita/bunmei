@@ -30,7 +30,7 @@ void romans();
 void russians();
 void vikings();
 void greeks();
-void chinnese();
+void chinese();
 
 void peace();
 void war();

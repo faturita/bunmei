@@ -87,6 +87,11 @@ That's all folks.
 
 # Game logic
 
+## Design Rules
+
+* Every aspect of the game can be automated
+* The game can be fully simulated (without graphics).
+
 ## Map
 The standard map size is 72x48. 
 
@@ -131,27 +136,29 @@ There are special resources around.
 
 There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.  Access to resources depend on the LoS to the resource itself and requires a road to it.
 
-Tradable resourcees are:
+Tradable resources are:
 
 | Resource |   |  |
 |---|---|---|
-| Tobacco | 72x48 | 1.0 |
-| Cotton | 144x96 | 0.5 |
-| Sugar | 288x192 | 0.25 |
-| Furs | 576x384 | 0.125 |
-| Lumber | 1152x768 | 0.0625 |
-| Silver | 576x384 | 0.125 |
-| Gold | 1152x768 | 0.0625 |
-| Iron | 576x384 | 0.125 |
-| Copper | 1152x768 | 0.0625 |
-| Carbon | 576x384 | 0.125 |
-| Uranium | 1152x768 | 0.0625 |
-| Oil | 576x384 | 0.125 |
-| Lumber | 1152x768 | 0.0625 |
+| Gold      | -                 | Mine |
+| Copper    | Bronze Working    | Mine |
+| Iron      | Iron Working      | Mine |
+| Silver    | Mining            | Mine |
+| Tobacco   | 72x48             | Plantation |
+| Cotton    | 144x96            | Plantation |
+| Sugar | 288x192               | Plantation |
+| Furs | 576x384                | 0.125 |
+| Lumber | 1152x768             | 0.0625 |
+| Carbon | 576x384              | 0.125 |
+| Uranium | 1152x768            | 0.0625 |
+| Oil | 576x384                 | 0.125 |
+
 
 ## Trade
 
-Food and all the special resources can be directly traded, by loading them into boats and shipping them to foreign cities in exchange of money or other resources.
+Food and all the special resources can be directly traded, by loading them into boats and shipping them to foreign cities in exchange of money or other resources.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between cities.
+
+When resources are available in a city (and stockpiled) they are available immediately in all the cities that are connected through LoS.
 
 
 ## Population
@@ -161,6 +168,11 @@ Population represents humans, so they are handled like human population.  So the
 ## Science
 
 Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know (like other games like this do).  So the idea is have like a multilayered neural network where the each node correspond to a concrete scientific discovery and the sigmoid function depends on weights that are increased as long as they are invested.  This will produce the triggering of each one of the discoveries, which now will look more random and it will depend on what do you invest.  
+
+Science implementation works in two ways, one distribuited and one centralized.  The first is by an 'ACL', an access control table, this is a hashtable that register KEYS.  Each key has a context part and a specific part.  The context part determines if it is a global key (no context), faction key (faction key identifier), and city key (city key identifier).  So, let's say a 'Shipyard' requires a city to has a 'Port' to be built.  Then the 'Port' adds a key at the city level (the key has a context part which corresponds to the specific city) like '0x98' and then when the shipyard is added to the list of buildable objects on the city it checks if that key is present in the ACL.
+
+The centralized part is that the access to the keys is centralized by a single component.  So the goal is to be able to configure easily all the dependencies from configuration files.
+
 
 ## Combat
 
@@ -176,6 +188,7 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Iterate on improving the AI: focus more on production on cities and build defensive units.
 * Show units in cityscreen.
 * Add a way in which fortified units can be selected.
+* Units can be stacked together and named.
 * Sentry is clearly used only for ships and I think that is Ok.
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
 * <strike>Paint land ownership.  This can be easily done using the png tile that shows red on each city based on the f_owner_id value.</strike>
