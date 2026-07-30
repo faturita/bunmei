@@ -5,6 +5,14 @@
 #include "City.h"
 #include "units/Unit.h"
 
+// Whether a unit of faction f_id may step onto cell, and whether doing so seizes it.  Free
+// land and the mover's own land are always ENTER_AND_CLAIM (claiming your own land again just
+// keeps the mapcell owners-stacking counter correct, see mapcell::setOwnedBy).  A foreign-owned
+// cell depends on the diplomacy status between f_id and the owner (README.md DefCon table):
+// landSeizure lets the mover in AND flips ownership, openBorders (without landSeizure) lets
+// the mover in but leaves the tile with its original owner, and neither blocks the move.
+enum class LandEntry { BLOCKED, ENTER, ENTER_AND_CLAIM };
+
 int getNextCityId();
 int getNextUnitId();
 int nextUnitId(int faction);
@@ -21,5 +29,18 @@ int findNearbyEnemyFactionId(int unitId, int radius);
 // a later order starts the effort over from scratch).  Shared by the map-view unit click
 // (usercontrols.cpp) and the city screen's stationed-unit icons (cityscreenui.cpp).
 void activateUnit(Unit* u);
+
+bool noMoreMovementsLeft(int fid);
+void reSetCities();
+void setUpFaction();
+bool endOfTurnForAllFactions();
+
+LandEntry evaluateLandEntry(int f_id, mapcell &cell);
+void completePendingMove(Unit* unit);
+
+void cleanUnits();
+
+void processCommandOrders();
+void processWork();
 
 #endif // ENGINE_H

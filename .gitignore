@@ -9,3 +9,4 @@ bunmei
 .vscode/*
 src/*.o
 testcase
+simulate
