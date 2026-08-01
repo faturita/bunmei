@@ -524,11 +524,66 @@ coordinate findCitySpot(coordinate from, bool &found)
     return from;
 }
 
+
+
+void autoPlayerCities()
+{
+    // Control city production.
+    for(auto& [k,c]:cities)
+    {
+        if (c->faction == coordinator.a_f_id)
+        {
+            if (c->productionQueue.size()==0)
+            {
+                if (c->pop>1)
+                {
+                    // Populate the world first: as long as there is room for a new city
+                    // on this city's landmass, keep building settlers.
+                    bool found = false;
+                    findCitySpot(c->getCoordinate(), found);
+
+                    if (found && getNumberOfCities(c->faction)<50)
+                    {
+                        c->productionQueue.push(new SettlerFactory());
+                    }
+                    else
+                    {
+                        int rand = getRandomInteger(0,3);
+                        switch (rand)
+                        {
+                            case 0:
+                                c->productionQueue.push(new WarriorFactory());
+                                break;
+                            case 1:
+                                c->productionQueue.push(new HorsemanFactory());
+                                break;
+                            case 2:
+                                c->productionQueue.push(new SwordmanFactory());
+                                break;
+                            default:
+                                c->productionQueue.push(new ArcherFactory());
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }    
+}
+
+void autoPlayer()
+{
+    autoPlayerMoveUnits();
+
+    autoPlayerCities();
+}
+
 void autoPlayerMoveUnits()
 {
     if (units.find(coordinator.a_u_id)!=units.end())
     {
         Unit *unit = units[coordinator.a_u_id];
+        printf("Settler found\n");
         if(Settler* s = dynamic_cast<Settler*>(units[coordinator.a_u_id]))
         {
             if (!s->isAuto())
@@ -638,10 +693,10 @@ void autoPlayerMoveUnits()
                 if (!goToNearest(unit, opencities))
                 {
                     // Boludeo
-                    controller.registers.roll = getRandomInteger(-1.0,1.0);
-                    controller.registers.pitch = getRandomInteger(-1.0,1.0);
+                    //controller.registers.roll = getRandomInteger(-1.0,1.0);
+                    //controller.registers.pitch = getRandomInteger(-1.0,1.0);
 
-                    if (controller.registers.roll==0 && controller.registers.pitch==0)
+                    //if (controller.registers.roll==0 && controller.registers.pitch==0)
                     {
                         unit->availablemoves = 0;
                     }
@@ -652,54 +707,78 @@ void autoPlayerMoveUnits()
     }    
 }
 
-void autoPlayerCities()
+void processGoTo()
 {
-    // Control city production.
-    for(auto& [k,c]:cities)
+    // GoTo Function
+    if (units.find(coordinator.a_u_id)!=units.end() && units[coordinator.a_u_id]->isAuto())
     {
-        if (c->faction == coordinator.a_f_id)
+        // First build the tree map of the available land.
+        // Calculate the path to the target.
+
+        bool ok = false;
+        
+        coordinate c = goTo(units[coordinator.a_u_id],ok);
+        
+        if (ok)
         {
-            if (c->productionQueue.size()==0)
+
+            CommandOrder co;
+            co.command = Command::MoveUnitTo;
+            co.parameters.latitude = c.lat;
+            co.parameters.longitude = c.lon;
+            coordinator.push(co);
+
+            bool found = true;
+
+
+            // // Find which direction (i,j) leads from current position to next position c
+            // // by checking all 8 neighbors using map.adjust()
+            // bool found = false;
+            // int current_lat = units[coordinator.a_u_id]->latitude;
+            // int current_lon = units[coordinator.a_u_id]->longitude;
+            
+            // for(int i=-1; i<=1 && !found; i++)
+            // {
+            //     for(int j=-1; j<=1 && !found; j++)
+            //     {
+            //         if (i==0 && j==0)
+            //             continue;
+                    
+            //         coordinate neighbor = map.adjust(current_lat, current_lon, i, j);
+                    
+            //         if (neighbor.lat == c.lat && neighbor.lon == c.lon)
+            //         {
+            //             controller.registers.pitch = i;
+            //             controller.registers.roll = j;
+            //             found = true;
+            //         }
+            //     }
+            // }
+            
+            if (!found)
             {
-                if (c->pop>1)
-                {
-                    // Populate the world first: as long as there is room for a new city
-                    // on this city's landmass, keep building settlers.
-                    bool found = false;
-                    findCitySpot(c->getCoordinate(), found);
-
-                    if (found && getNumberOfCities(c->faction)<50)
-                    {
-                        c->productionQueue.push(new SettlerFactory());
-                    }
-                    else
-                    {
-                        int rand = getRandomInteger(0,3);
-                        switch (rand)
-                        {
-                            case 0:
-                                c->productionQueue.push(new WarriorFactory());
-                                break;
-                            case 1:
-                                c->productionQueue.push(new HorsemanFactory());
-                                break;
-                            case 2:
-                                c->productionQueue.push(new SwordmanFactory());
-                                break;
-                            default:
-                                c->productionQueue.push(new ArcherFactory());
-                                break;
-                        }
-                    }
-                }
+                // This should never happen if goTo() is correct.
+                printf("Error: next step (%d,%d) is not a neighbor of current position (%d,%d) for unit %d.\n", c.lat, c.lon, units[coordinator.a_u_id]->latitude, units[coordinator.a_u_id]->longitude, coordinator.a_u_id);
+                units[coordinator.a_u_id]->resetGoTo();
             }
+            else if (units[coordinator.a_u_id]->getMovementType()==OCEANTYPE && map.peek(c.lat,c.lon).code==LAND)
+            {
+                // A naval unit's final step is onto its LAND target (disembark on a coast,
+                // dock in a city).  A coast landing never moves the SHIP onto the target,
+                // so arrived() would never clear the GoTo and it would re-trigger every
+                // tick (stall): the landing step is one-shot.
+                units[coordinator.a_u_id]->resetGoTo();
+            }
+
         }
-    }    
-}
+        else
+        {
+            // Cancel goto operation and make a sound.
+            //if (!units[coordinator.a_u_id]->arrived()) blocked();
+            units[coordinator.a_u_id]->resetGoTo();
+        }
 
-void autoPlayer()
-{
-    autoPlayerMoveUnits();
+        units[coordinator.a_u_id]->arrived();
 
-    autoPlayerCities();
+    }
 }

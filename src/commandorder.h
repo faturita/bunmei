@@ -17,7 +17,8 @@ enum class Command {
     BuildRoad=9,
     BuildMine=10,
     BuildIrrigation=11,
-    BuildRailroad=12
+    BuildRailroad=12,
+    MoveUnitTo=13
 };
 
 struct commandparameters

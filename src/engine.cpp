@@ -39,7 +39,7 @@
 #include "units/Spy.h"
 #include "coordinator.h"
 #include "messages.h"
-
+#include "sounds/sounds.h"
 #include "engine.h"
 
 extern std::unordered_map<int, Unit*> units;
@@ -49,10 +49,33 @@ extern Coordinator coordinator;
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern ImprovementEffort improvementeffort;
+extern MovementCost movementcosts;
 
 extern DiplomacyTable diplomacy;
 
 extern int year;
+
+// Cost in movement points of moving from a tile onto an adjacent one (real coordinates):
+// the bioma of the DESTINATION tile decides (initMovementCosts), unless the two tiles are
+// connected by a road or a railroad, which override the terrain cost.
+float travelCost(int fromlat, int fromlon, int tolat, int tolon)
+{
+    mapcell &from = map.peek(fromlat,fromlon);
+    mapcell &to   = map.peek(tolat,tolon);
+
+    if (from.hasRailroad() && to.hasRailroad())
+        return RAILROAD_MOVEMENT_COST;
+
+    if ((from.hasRoad() || from.hasRailroad()) && (to.hasRoad() || to.hasRailroad()))
+        return ROAD_MOVEMENT_COST;
+
+    // The bioma variants (grassland_w, ...) share the cost of their base bioma (high nibble).
+    int basebioma = to.bioma & 0xf0;
+    if (movementcosts.find(basebioma) != movementcosts.end())
+        return movementcosts[basebioma];
+
+    return 1.0f;
+}
 
 int getNextCityId()
 {
@@ -206,7 +229,10 @@ bool noMoreMovementsLeft(int fid)
         {
             nomore = false;
         }
+        
+        printf("Faction %d Unit %d - %s has %f moves left.\n", fid, u->id, u->name, u->availablemoves);
     }
+    printf("Faction %d - %s has no more movements left: %s\n", fid, factions[fid]->name, nomore ? "true" : "false");
     return nomore;
 }
 
@@ -355,6 +381,383 @@ void cleanUnits()
     }
 }
 
+
+bool attack(Unit* attacker, int lat, int lon)
+{
+    std::vector<int> unitstodelete;
+    bool confirmed = false;
+
+    // Attacking requires landSeizure with the defender's faction (README.md DefCon table):
+    // an open-borders-only relation (trade agreement, coalition, vassalage) lets you walk in
+    // but not fight.
+    bool hostile = !map.set(lat,lon).isFreeLand() && !map.set(lat,lon).isOwnedBy(attacker->faction) &&
+                   diplomacy[attacker->faction][map.set(lat,lon).getOwnedBy()].landSeizure;
+
+    if (hostile)
+    {
+        // Find the enemy unit located there
+        Unit *defender = nullptr;
+
+        City* city = findCityAt(lat,lon);
+
+        int numberofdefenders = 0;
+        defender = getDefender(lat,lon,numberofdefenders,attacker->faction);
+
+        Unit *winner = nullptr;
+        Unit *loser = nullptr;
+
+        //assert(defender!=nullptr || !"Error: a tile is marked by owner but it does not belong to a city and there aren't any unit in it.");
+        if (defender!=nullptr)
+        {
+            int chance = getRandomInteger(0,1);
+
+            // Coordinate who wins the battle.
+            if (defender->getDefense()>attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 0) )
+            {
+                lose();
+                winner = defender;
+                loser = attacker;
+            }
+            else if (defender->getDefense()<attacker->getAttack() || (defender->getDefense()==attacker->getAttack() && chance == 1))
+            {
+                win();
+                winner = attacker;
+                loser = defender;
+            }
+
+            // @NOTE: Eventually we can have a draw, a stalemate, or a retreat.
+        }
+        else
+        {
+            return false;
+        }
+
+        if (winner == attacker && city == nullptr && numberofdefenders==1)
+        {
+            // The attacker wins, move forward capturing the new tile.
+            map.set(attacker->latitude, attacker->longitude).releaseOwner();
+
+            // Confirm the change
+            attacker->update(lat,lon);
+
+            map.set(attacker->latitude, attacker->longitude).setOwnedBy(attacker->faction);
+
+            attacker->availablemoves=0;
+
+            loser->destroy();
+            confirmed = true;
+        }
+        else
+        if (winner == attacker && (city != nullptr || numberofdefenders>1) )
+        {
+            // Move forward, do not confirm it and go back.
+            attacker->update(lat,lon);
+
+            attacker->availablemoves--;
+
+            attacker->goBackOnCompletion();
+
+            loser->destroy();
+            confirmed = true;
+        } else
+        if (winner == defender)
+        {
+            map.set(attacker->latitude, attacker->longitude).releaseOwner();
+
+            attacker->availablemoves=0;
+
+            attacker->update(lat,lon);
+            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+
+            attacker->markForDeletion();
+            confirmed = true;
+        }
+
+
+    }   
+
+    return confirmed;
+}
+
+
+bool captureCity(Unit* invader, int lat, int lon)
+{
+    // Move into an empty city.
+    if (map.set(lat,lon).belongsToCity())
+    {
+        // Find the city located there
+        City *city = findCityAt(lat,lon);
+
+        if (city!=nullptr)
+        {
+            // Capturing requires landSeizure with the city's faction (README.md DefCon
+            // table), same as attack().
+            bool hostile = city->faction != invader->faction &&
+                           diplomacy[invader->faction][city->faction].landSeizure;
+
+            // Check if the city is not defended.
+            if (hostile && !city->isDefendedCity())
+            {
+
+                map.set(invader->latitude, invader->longitude).releaseOwner();
+
+                invader->update(lat,lon);
+
+                map.set(invader->latitude, invader->longitude).setOwnedBy(invader->faction);
+
+                invader->availablemoves=0;   
+
+                // Perhaps we should do some form of cleaning first, and a reassignment.
+                city->reAssignWorkingTiles(invader->faction);
+                city->faction = invader->faction;
+                city->setDefense();
+
+                // Units caught inside the city could not defend it (or it would not have been
+                // captured): they are captured too and flip to the conquering faction.
+                for (auto& [k, u] : units)
+                {
+                    if (u->latitude == lat && u->longitude == lon && u->faction != invader->faction)
+                    {
+                        u->faction = invader->faction;
+                        u->availablemoves = 0;
+                        message(year, invader->faction, "A %s in %s has been captured by %s.", u->name, city->name, factions[invader->faction]->name);
+                    }
+                }
+
+                march();
+                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
+
+                // @FIXME: We may loose some coins here.  I am just capturing everything.
+                printf("Capture City Condition\n");
+                return true;    
+            }
+        }
+    }   
+
+    return false; 
+}
+
+
+bool moveForward(Unit* unit, int lat, int lon)
+{
+    // @FIXME: I am checking consistency again here...
+    if (!((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
+        (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) ))
+    {
+        return false;
+    }
+ 
+
+    LandEntry entry = evaluateLandEntry(unit->faction, map.set(lat,lon));
+
+    if (entry == LandEntry::BLOCKED)
+    {
+        if (!factions[coordinator.a_f_id]->autoPlayer)
+            blocked();
+        return false;
+    }
+
+    // March into a new tile (only allows movement in the tiles that I own @FIXME)
+    {
+        float cost = travelCost(unit->latitude, unit->longitude, lat, lon);
+
+        if (cost > unit->availablemoves)
+        {
+            // The tile costs more than the unit has: the unit stays, goes into movement
+            // DEBT (availablemoves negative) and the move completes at the endOfYear
+            // refresh once availablemoves recovers to >= 0.
+            unit->availablemoves -= cost;
+            unit->setPendingMove(coordinate(lat,lon));
+
+            printf("Pending move condition: cost %.2f, moves left %.2f\n", cost, unit->availablemoves);
+            return true;
+        }
+
+        map.set(unit->latitude, unit->longitude).releaseOwner();
+
+        // Normal, regular movement....
+        unit->update(lat,lon);
+
+        unit->availablemoves -= cost;
+
+        if (entry == LandEntry::ENTER_AND_CLAIM)
+            map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
+
+        printf("Move forward condition\n");
+        return true;
+
+    }
+
+
+}
+
+bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
+{
+    if (navalunit!=nullptr)
+    {
+        if (navalunit->board(passenger))
+        {
+            map.set(passenger->latitude, passenger->longitude).releaseOwner();
+
+            passenger->update(lat,lon);
+            passenger->sentry();
+
+            // @FIXME: Check what is the meaning of this here....
+            //map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+            passenger->availablemoves=0;
+
+            printf("Move onto naval unit condition\n");
+            return true;
+        } 
+        else
+        {
+            printf("The boat is full.\n");
+            return false;
+        }
+    }
+
+    return false;
+}
+
+bool land(Unit* navalunit, int lat, int lon)
+{
+    // Chek if navalunit is actually a boat, and that we are moving towards a place where is land.
+    if (map.set(lat,lon).code == LAND)
+    {
+        if(Trireme* trireme = dynamic_cast<Trireme*>(units[coordinator.a_u_id]))
+        {
+            // @FIXME: Check that there are no enemy units and that there are cities and there are no places controlled by cities.
+            if (!map.set(lat,lon).isFreeLand())
+                return false;
+
+            if (trireme->manifest()>0)
+            {
+                Unit* passenger = trireme->unboard();
+
+                //map.set(passenger->latitude, passenger->longitude).releaseOwner();
+
+                passenger->wakeUp();
+                passenger->update(lat,lon);
+
+                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+                passenger->availablemoves=0;
+
+                printf("Units Landed condition\n");
+                return true;
+            }
+        }
+    }
+
+    return false;
+
+}
+
+// A naval unit entering a city of its OWN faction: the ship docks on the city tile and
+// everything it is shipping is unboarded and awakened (enemy cities go through captureCity).
+bool dockInCity(Unit* navalunit, int lat, int lon)
+{
+    if (navalunit->getMovementType()!=OCEANTYPE || map.set(lat,lon).code != LAND || !map.set(lat,lon).belongsToCity())
+        return false;
+
+    City* city = findCityAt(lat,lon);
+
+    if (city==nullptr || city->faction != navalunit->faction)
+        return false;
+
+    if (Trireme* trireme = dynamic_cast<Trireme*>(navalunit))
+    {
+        map.set(trireme->latitude, trireme->longitude).releaseOwner();
+
+        // Trireme::update also moves the passengers onto the city tile.
+        trireme->update(lat,lon);
+
+        map.set(trireme->latitude, trireme->longitude).setOwnedBy(trireme->faction);
+
+        trireme->availablemoves--;
+
+        while (trireme->manifest()>0)
+        {
+            Unit* passenger = trireme->unboard();
+
+            passenger->wakeUp();
+
+            map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+
+            passenger->availablemoves=0;
+        }
+
+        printf("Dock in city condition\n");
+        return true;
+    }
+
+    return false;
+}
+
+Trireme* findNavalUnit(int lat, int lon)
+{
+    Trireme* navalunit = nullptr;
+    for(auto& [k,u]:units)
+    {
+        if (u->getMovementType()==OCEANTYPE && u->latitude == lat && u->longitude == lon)
+        {
+            navalunit = dynamic_cast<Trireme*>(u);
+        }
+    }   
+    return navalunit; 
+}
+
+
+// Lat, lon are expressed in real map units.
+void moveUnit(Unit* unit, int lat, int lon)
+{
+    if (unit->availablemoves>0)
+    {
+
+        // Find a naval unit in the target tile.
+        Trireme* navalunit = findNavalUnit(lat,lon);
+
+
+        // @NOTE: moving into a ship
+        if ((map.set(lat,lon).code==LAND && unit->getMovementType()==LANDTYPE) || 
+            (map.set(lat,lon).code==OCEAN && navalunit!=nullptr) ||
+            (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) || 
+            (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
+        {
+
+            if (!land(unit,lat,lon) && !dockInCity(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
+            {
+                // moveForward already shows blocked() itself when diplomacy is what stopped
+                // it (see evaluateLandEntry); nothing further to do here.
+            }
+
+        } else
+        {
+            factions[coordinator.a_f_id]->blinkingrate = 10;
+            if (!factions[coordinator.a_f_id]->autoPlayer) blocked();  // @FIXME: differentiate between controlling unit and activeunit (active is what i am currently using indeed)
+        }
+    }
+}
+
+void switchUnitIfNoMovesLeft()
+{
+    if (coordinator.a_u_id != CONTROLLING_NONE)
+        if (units.find(coordinator.a_u_id)!=units.end())
+            if (units[coordinator.a_u_id]->availablemoves<=0)   // <=: movement debt is negative
+            {
+                int cid = nextMovableUnitId(coordinator.a_f_id);
+                if (cid != CONTROLLING_NONE)
+                {
+                    coordinator.a_u_id = cid;
+                }
+                else
+                {
+                    coordinator.endofturn = true;
+                }
+            }
+}
+
 void processCommandOrders()
 {
     CommandOrder co = coordinator.pop();  //@FIXME make it a queue.
@@ -363,6 +766,16 @@ void processCommandOrders()
     // by the time processWork() pushes one, the working unit's moves are already zeroed
     // and coordinator.a_u_id may already have moved on (or hit CONTROLLING_NONE, if it was
     // the faction's last movable unit), so these must run before the active-unit guard below.
+    if (co.command == Command::MoveUnitTo)
+    {
+        printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude, co.parameters.latitude,co.parameters.longitude, map.set(co.parameters.latitude,co.parameters.longitude).code, map.set(co.parameters.latitude,co.parameters.longitude).bioma); 
+
+        // Now move the unit if it is possible.
+        moveUnit(units[coordinator.a_u_id],co.parameters.latitude,co.parameters.longitude);
+
+        switchUnitIfNoMovesLeft();
+    }
+    
     if (co.command == Command::BuildRoad)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildRoad();
@@ -564,3 +977,4 @@ void processWork()
 
     coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
 }
+

@@ -4,6 +4,7 @@
 #include "Faction.h"
 #include "City.h"
 #include "units/Unit.h"
+#include "units/Trireme.h"
 
 // Whether a unit of faction f_id may step onto cell, and whether doing so seizes it.  Free
 // land and the mover's own land are always ENTER_AND_CLAIM (claiming your own land again just
@@ -42,5 +43,17 @@ void cleanUnits();
 
 void processCommandOrders();
 void processWork();
+
+void switchUnitIfNoMovesLeft();
+void moveUnit(Unit* unit, int lat, int lon);
+Trireme* findNavalUnit(int lat, int lon);
+Trireme* findNavalUnit(int lat, int lon);
+bool dockInCity(Unit* navalunit, int lat, int lon);
+bool land(Unit* navalunit, int lat, int lon);
+bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon);
+bool moveForward(Unit* unit, int lat, int lon);
+bool captureCity(Unit* invader, int lat, int lon);
+bool attack(Unit* attacker, int lat, int lon);
+
 
 #endif // ENGINE_H

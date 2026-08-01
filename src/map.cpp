@@ -153,27 +153,7 @@ void centermapinmap(int lat, int lon)
     //printf("Center %f,%f\n",cx,cy);
 }
 
-// Cost in movement points of moving from a tile onto an adjacent one (real coordinates):
-// the bioma of the DESTINATION tile decides (initMovementCosts), unless the two tiles are
-// connected by a road or a railroad, which override the terrain cost.
-float travelCost(int fromlat, int fromlon, int tolat, int tolon)
-{
-    mapcell &from = map.peek(fromlat,fromlon);
-    mapcell &to   = map.peek(tolat,tolon);
 
-    if (from.hasRailroad() && to.hasRailroad())
-        return RAILROAD_MOVEMENT_COST;
-
-    if ((from.hasRoad() || from.hasRailroad()) && (to.hasRoad() || to.hasRailroad()))
-        return ROAD_MOVEMENT_COST;
-
-    // The bioma variants (grassland_w, ...) share the cost of their base bioma (high nibble).
-    int basebioma = to.bioma & 0xf0;
-    if (movementcosts.find(basebioma) != movementcosts.end())
-        return movementcosts[basebioma];
-
-    return 1.0f;
-}
 
 // Reveal the map around lat,lon (screen coordinates) for ONE faction: each faction has its
 // own fog of war (mapcell::visible is a per-faction vector).

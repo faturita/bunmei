@@ -14,4 +14,6 @@ void autoPlayer();
 void autoPlayerMoveUnits();
 void autoPlayerCities();
 
+void processGoTo();
+
 #endif // AI_H

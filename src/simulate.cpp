@@ -54,6 +54,8 @@ Coordinator coordinator;
 DiplomacyTable diplomacy;
 std::unordered_map<int, Improvement*> improvements;
 
+std::vector<Message> messages;
+
 extern ImprovementEffort improvementeffort;
 extern MovementCost movementcosts;
 
@@ -77,7 +79,7 @@ void initMap()
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            map.set(lat,lon) = mapcell(OCEAN);
+            map.set(lat,lon) = mapcell(LAND);
         }    
 }
 
@@ -108,6 +110,7 @@ void initFactions()
     faction->rates[1] = 0;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
+
     factions.push_back(faction);
 
 
@@ -318,6 +321,24 @@ void placeThisCity(int lat, int lon, int red, int green, int blue)
 
 }
 
+void blocked()
+{}
+
+void war()
+{}
+
+void peace()
+{}
+
+void win()
+{}
+
+void march()
+{}
+
+void lose()
+{}
+
 inline void endOfYear()
 {
     year++;
@@ -466,16 +487,16 @@ void update(int value)
     // Autoplayer
     if (factions[coordinator.a_f_id]->autoPlayer)
     {
+        printf("Autoplayer for faction %d - %s\n", coordinator.a_f_id, factions[coordinator.a_f_id]->name);
         autoPlayerMoveUnits();
     }
 
     processCommandOrders();
 
-    adjustMovements();
-
     // @NOTE: Remove me if you want to wait until the user press the space bar to move ahead the end of turn.
     if (autoEndOfTurn && noMoreMovementsLeft(coordinator.a_f_id))
     {
+        printf ("End of turn for faction %d - %s\n", coordinator.a_f_id, factions[coordinator.a_f_id]->name);
         coordinator.endofturn = true;
     }
 
@@ -483,6 +504,8 @@ void update(int value)
     {
         coordinator.endofturn=false;
         factions[coordinator.a_f_id]->done();
+
+        printf("Faction %d - %s has finished its turn.\n", coordinator.a_f_id, factions[coordinator.a_f_id]->name);
 
         if (coordinator.a_f_id<factions.size()-1) 
         {
@@ -504,6 +527,7 @@ void update(int value)
 
     if (endOfTurnForAllFactions())
     {
+        printf ("All factions have finished their turn, end of year %d.\n", year);
         // Everybody played their turn, end of year, and start it over.....
         endOfYear();
         coordinator.a_f_id = 0;     // Restart the turn from the first faction.
@@ -573,7 +597,6 @@ int main(int argc, char *argv[]) {
     initMap();
 
     printf("Map minlat %d maxlat %d minlon %d maxlon %d\n", map.minlat, map.maxlat, map.minlon, map.maxlon);
-    printf("Tile value at value 0 %s\n", tiles[0].c_str());
 
     assignProductionRates(map, resources);
 
@@ -581,11 +604,10 @@ int main(int argc, char *argv[]) {
 
     for (Faction* faction : factions)
     {
+        printf("Faction name %s Autoplayer %s\n", faction->name, faction->autoPlayer ? "true" : "false");
         if (faction)
             faction->autoPlayer = true;
     }
-
-    printf("Faction name %s\n", factions[0]->name);
 
     initDiplomacy(diplomacy, factions.size());
 
@@ -594,13 +616,21 @@ int main(int argc, char *argv[]) {
     // At this point everything is set up.
 
 
+    for (auto& unit : units)
+    {
+        printf("Unit %d - %s at (%d,%d) for faction %d\n", unit.second->id, unit.second->name, unit.second->latitude, unit.second->longitude, unit.second->faction);
+    }
+
+    //exit(22);
+
+
 
     // Now the logic goes like this.
     // 1. Iterate through all the factions.
     // 2. For each faction, and activate each unit.
     // 3. For each unit, decide what to do.
     
-    int year = -4000;
+    year = -4000;
     bool wincondition = false;
     int ticks = 0;
     // Safety valve: nothing here ever calls Faction::done() unless a unit runs out of
@@ -617,9 +647,11 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        //printf("Year %d\n",year);
+        printf("Year %d\n",year);
         //update(year,map, factions,cities, units,resources,coordinator, citynames);
         update(ticks);
+
+        exit(22);
 
         if (year == 2000)
             break;
