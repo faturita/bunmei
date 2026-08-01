@@ -613,6 +613,8 @@ int main(int argc, char *argv[]) {
 
     initUnits();
 
+    setUpFaction();
+
     // At this point everything is set up.
 
 
@@ -650,8 +652,6 @@ int main(int argc, char *argv[]) {
         printf("Year %d\n",year);
         //update(year,map, factions,cities, units,resources,coordinator, citynames);
         update(ticks);
-
-        exit(22);
 
         if (year == 2000)
             break;

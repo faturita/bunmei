@@ -583,7 +583,6 @@ void autoPlayerMoveUnits()
     if (units.find(coordinator.a_u_id)!=units.end())
     {
         Unit *unit = units[coordinator.a_u_id];
-        printf("Settler found\n");
         if(Settler* s = dynamic_cast<Settler*>(units[coordinator.a_u_id]))
         {
             if (!s->isAuto())

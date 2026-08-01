@@ -229,10 +229,8 @@ bool noMoreMovementsLeft(int fid)
         {
             nomore = false;
         }
-        
-        printf("Faction %d Unit %d - %s has %f moves left.\n", fid, u->id, u->name, u->availablemoves);
+
     }
-    printf("Faction %d - %s has no more movements left: %s\n", fid, factions[fid]->name, nomore ? "true" : "false");
     return nomore;
 }
 
@@ -286,7 +284,7 @@ void reSetCities()
 void setUpFaction()
 {
 
-    printf("Setting up faction %d - %s\n",coordinator.a_f_id,factions[coordinator.a_f_id]->name);
+    //printf("Setting up faction %d - %s\n",coordinator.a_f_id,factions[coordinator.a_f_id]->name);
     coordinator.a_u_id=nextMovableUnitId(coordinator.a_f_id);
 
     reSetCities();
