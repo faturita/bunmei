@@ -5,6 +5,9 @@ void initMap();
 void initFactions();
 void initResources();
 
+void saveMap();
+void loadMap();
+
 void initWorldModelling();
 void worldStep(int value);
 void loadWorldModelling();

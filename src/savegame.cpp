@@ -58,6 +58,11 @@ void savegame(const char* filename)
         return;
     }
 
+    // Save the map (terrain, resources, ownership -- including mid-game changes like
+    // roads/mines/irrigation and tile ownership) to saved_map.dat, so a later -loadgame
+    // restores the exact map the game was saved on instead of a freshly generated one.
+    saveMap();
+
     // Save year
     out.write(reinterpret_cast<const char*>(&year), sizeof(year));
 

@@ -691,13 +691,37 @@ void autoPlayerMoveUnits()
 
                 if (!goToNearest(unit, opencities))
                 {
-                    // Boludeo
-                    //controller.registers.roll = getRandomInteger(-1.0,1.0);
-                    //controller.registers.pitch = getRandomInteger(-1.0,1.0);
+                    int direction = getRandomInteger(0,8);
 
-                    //if (controller.registers.roll==0 && controller.registers.pitch==0)
+                    int dlat = 0;
+                    int dlon = 0;
+
+                    switch(direction)
+                    {
+                        case 0: dlat = -1; dlon = -1; break;
+                        case 1: dlat = -1; dlon =  0; break;
+                        case 2: dlat = -1; dlon =  1; break;
+                        case 3: dlat =  0; dlon = -1; break;
+                        case 4: dlat =  0; dlon =  0; break; // no move
+                        case 5: dlat =  0; dlon =  1; break;
+                        case 6: dlat =  1; dlon = -1; break;
+                        case 7: dlat =  1; dlon =  0; break;
+                        case 8: dlat =  1; dlon =  1; break;
+                    }
+
+                    if (dlat == 0 && dlon == 0)
                     {
                         unit->availablemoves = 0;
+                    }
+                    else
+                    {
+                        coordinate c = map.adjust(unit->latitude, unit->longitude, dlat, dlon);
+
+                        CommandOrder co;
+                        co.command = Command::MoveUnitTo;
+                        co.parameters.latitude = c.lat;
+                        co.parameters.longitude = c.lon;
+                        coordinator.push(co);
                     }
                 }
             }

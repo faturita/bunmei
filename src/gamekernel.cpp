@@ -52,6 +52,7 @@ extern int mapsize;
 extern float mapzoom;
 
 extern bool preloadmap;
+extern bool loadgame;
 
 extern char filegame[256];
 
@@ -295,7 +296,11 @@ void initMap()
 
     //std::vector<coordinate> landmassseeds;
 
-    if (preloadmap)
+    // setupWorldModelling() (bunmei.cpp) calls initMap() BEFORE checking loadgame: without
+    // loadgame here too, a -loadgame run would generate a fresh random world and immediately
+    // overwrite saved_map.dat with it (the else branch below always calls saveMap()) before
+    // loadWorldModelling() ever gets a chance to read back the map that matches the save.
+    if (preloadmap || loadgame)
         loadMap();
     else
     {
@@ -852,6 +857,10 @@ void loadWorldModelling()
     }
 
     printf("Loading saved game from %s...\n", filegame);
+
+    // The map itself was already restored by initMap() (setupWorldModelling calls initMap()
+    // before this function; initMap() loads saved_map.dat instead of generating a fresh world
+    // whenever loadgame is set, same as it does for preloadmap).
 
     // Load year, this is the first thing saved in the savegame file.
     in.read(reinterpret_cast<char*>(&year), sizeof(year));
