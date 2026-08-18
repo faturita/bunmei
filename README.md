@@ -134,29 +134,59 @@ Land tiles belong to a faction and/or to a city.  When a unit moves into a tile,
 ## Resources
 There are special resources around. 
 
-There are six basic resources: food, shields, trade, coins, science, and culture.  Special resources change tile production but at the same time they are accumulated in nearby cities and can be loaded into ships.  Access to resources depend on the LoS to the resource itself and requires a road to it.
+There are six basic resources: food, shields, trade, coins, science, and culture.  
 
-Tradable resources are:
+| Resource | 
+|---|
+| Food      | 
+| Shields    | 
+| Trade      | 
+| Coins      | 
+| Science    | 
+| Culture    | 
 
-| Resource |   |  |
-|---|---|---|
-| Gold      | -                 | Mine |
-| Copper    | Bronze Working    | Mine |
-| Iron      | Iron Working      | Mine |
-| Silver    | Mining            | Mine |
-| Tobacco   | 72x48             | Plantation |
-| Cotton    | 144x96            | Plantation |
-| Sugar | 288x192               | Plantation |
-| Furs | 576x384                | 0.125 |
-| Lumber | 1152x768             | 0.0625 |
-| Carbon | 576x384              | 0.125 |
-| Uranium | 1152x768            | 0.0625 |
-| Oil | 576x384                 | 0.125 |
+Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science and Culture by the fundamental tax rate.  Coins are accumulated by the government, Science goes for research funding and culture promotes borders and happiness.
 
+
+Special resources appear on the map.  They can change tile production but at the same time they allow the production of commodities which can be accumulated on the city.  Access to resources depend on the LoS to the resource itself and requires a road to it.
+
+The resources and their commodities are:
+
+| Resource |   |  |  |
+|---|---|---|---|
+| Gold      | -                 | Mine | Coins |
+| Copper    | Bronze Working    | Mine | Copper |
+| Iron      | Iron Working      | Mine | Iron |
+| Silver    | Mining            | Mine | Silver |
+| Marble    | Masonry           | Quarry | Marble |
+| Fish      | -                 | -    | - |
+| Doe       | Hunting           | Camp   | Furs |
+| Game      | Hunting           | Camp | Furs |
+| Seal      | Hunting.          | Camp | Furs |
+| Whales    | -                 | -    | Traan |
+| Oasis     | -                 | -    | - |
+| Geoshield | -                 | -    | - |
+| Gems      | Iron Working      | Mine | Gems |
+| Horse     | Horseback Riding  | -    | Horses |
+| Elephants | Hunting           | -    | Elephants |
+| Silk      | -                 | -    | Silk |
+| Grapes    | Feudalism.        | Plantation | Wine |
+| Spices    | -                 | -    | Spices |
+| Sugar     | -                 | Plantation | Sugar |
+| Tobacco   | -                 | Plantation | Tobacco |
+| Cotton    | -                 | Plantation | Cotton |
+| Carbon    | Industrialization | Mine | Carbon |
+| Uranium   | Radioactivity     | Mine | Uranium |
+| Oil       | Refining          | Derrick | Oil |
+| Litium    | Electronics.      | Mine | Litium |
+| Aluminium | Composites.       | Mine | Aluminium |
+| Helium-3  | Fussion           | Mine | Hellium-3 |
+
+(some special resources do not produce any commodity)
 
 ## Trade
 
-Food and all the special resources can be directly traded, by loading them into boats and shipping them to foreign cities in exchange of money or other resources.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between cities.
+Food and all the commodities can be directly traded, by loading them into boats and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between cities.
 
 When resources are available in a city (and stockpiled) they are available immediately in all the cities that are connected through LoS.
 

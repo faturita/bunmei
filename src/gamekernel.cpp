@@ -101,10 +101,10 @@ static const std::vector<ResourceRateOverride> RESOURCE_RATE_OVERRIDE = {
     { PLAINS,         GEOSHIELD, {{SHIELDS,2}} },
     { PLAINS,         HORSE,     {{SHIELDS,2}} },
     { FOREST,         GAME,      {{FOOD,2},{SHIELDS,3}} },
-    { DESERT,         COAL,      {{SHIELDS,2}} },
+    { DESERT,         CARBON,      {{SHIELDS,2}} },
     { DESERT,         OIL,       {{SHIELDS,3}} },
     { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
-    { MOUNTAINS,      COAL,      {{SHIELDS,2}} },
+    { MOUNTAINS,      CARBON,      {{SHIELDS,2}} },
     { ARCTIC,         SEAL,      {{FOOD,3}} },
     { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2}} },
     { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
@@ -277,7 +277,7 @@ void initMap()
 {
     initTiles(tiles);
 
-    initCommodities(resourcesxbioma);
+    initResources(resourcesxbioma);
 
     initMovementCosts(movementcosts);
 
@@ -673,6 +673,12 @@ void initMap()
         printf("Generated world: %d land cells of %d (%d%%)\n",landcount,totalcells,landcount*100/totalcells);
         fflush(stdout);
     }
+
+    //    for(int lat=map.minlat;lat<map.maxlat;lat++)
+    //        for (int lon=map.minlon;lon<map.maxlon;lon++)
+    //        {
+    //            map.set(lat,lon).setVisible(0);
+    //        }    
 
     std::vector<std::vector<coordinate>> landmassseeds = findLandmasses();
 

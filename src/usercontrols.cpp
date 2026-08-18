@@ -44,7 +44,7 @@ void handleKeypress(unsigned char key, int x, int y) {
         if (key == 13) // Enter key
         {
 
-            if (controller.str.find("save")!=std::string::npos)
+            if (controller.str.find("/save")!=std::string::npos)
             {
                 std::string savegamefilename;
 
@@ -55,8 +55,18 @@ void handleKeypress(unsigned char key, int x, int y) {
                     savegamefilename = controller.str.substr(5);
                 }
                 savegame(savegamefilename.c_str());
+            } else
+            if (controller.str.find("/autoplayer")!=std::string::npos)
+            {
+                if (controller.str.find("on")!=std::string::npos)
+                {
+                    factions[coordinator.a_f_id]->autoPlayer = true;
+                } else
+                if (controller.str.find("off")!=std::string::npos)
+                {
+                    factions[coordinator.a_f_id]->autoPlayer  = false;
+                }
             }
-
 
             controller.teletype = false;
             message(year, coordinator.a_f_id, controller.str.c_str());

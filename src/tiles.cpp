@@ -221,7 +221,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[0xd0] = "assets/assets/terrain/ocean.png";
 
     tiles[MARBLE] = "assets/assets/terrain/marble.png"; 
-    tiles[COAL] = "assets/assets/terrain/coal.png"; 
+    tiles[CARBON] = "assets/assets/terrain/coal.png"; 
     tiles[IRON] = "assets/assets/terrain/iron.png";
     tiles[COPPER] = "assets/assets/terrain/copper.png";
     tiles[GOLD] = "assets/assets/terrain/gold.png";
@@ -234,6 +234,19 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[OIL] = "assets/assets/terrain/oil.png";
     tiles[SEAL] = "assets/assets/terrain/seal.png";
     tiles[GEOSHIELD] = "assets/assets/terrain/shield.png";
+    tiles[SILVER] = "assets/assets/terrain/silver.png";
+    tiles[WHALES] = "assets/assets/terrain/whales.png";
+    tiles[ELEPHANTS] = "assets/assets/terrain/elephants.png";
+    tiles[SILK] = "assets/assets/terrain/silk.png";
+    tiles[GRAPES] = "assets/assets/terrain/grapes.png";
+    tiles[SPICES] = "assets/assets/terrain/spices.png";
+    tiles[SUGAR] = "assets/assets/terrain/sugar.png";
+    tiles[TOBACCO] = "assets/assets/terrain/tobacco.png";
+    tiles[COTTON] = "assets/assets/terrain/cotton.png";
+    tiles[URANIUM] = "assets/assets/terrain/uranium.png";
+    tiles[LITIUM] = "assets/assets/terrain/litium.png";
+    tiles[ALUMINIUM] = "assets/assets/terrain/aluminium.png";
+    tiles[HELIUM_3] = "assets/assets/terrain/helium3.png";
 }
 
 // Defined here (and not in gamekernel.cpp) so that the testcase build, which does not
@@ -285,20 +298,48 @@ int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementty
     return 1;
 }
 
-void initCommodities(std::unordered_map<int, std::vector<int>> &commodities)
+void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma)
 {
-    commodities[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
-    commodities[DESERT]     = {OASIS,OIL};
-    commodities[FOREST]     = {GAME};
-    commodities[GRASSLAND]  = {MARBLE,COAL,IRON,COPPER,GOLD,DOE,GAME,HORSE,OIL,GEOSHIELD};
-    commodities[HILLS]      = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
-    commodities[JUNGLE]     = {IRON,GOLD,GEMS,OIL};
-    commodities[MOUNTAINS]  = {MARBLE,COAL,IRON,COPPER,GOLD,GEMS,OIL,GEOSHIELD};
-    commodities[PLAINS]     = {DOE,GAME,HORSE,OIL,GEOSHIELD};
-    commodities[RIVER]      = {FISH};
-    commodities[SWAMP]      = {GOLD,GEMS,OIL};
-    commodities[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
-    commodities[OCEANBIOMA] = {FISH,OIL};
+    resourcexbioma[ARCTIC]     = {MARBLE,GEMS,OIL,SEAL};
+    resourcexbioma[DESERT]     = {OASIS,LITIUM,OIL};
+    resourcexbioma[FOREST]     = {GAME,DOE};
+    resourcexbioma[GRASSLAND]  = {MARBLE,CARBON,IRON,COPPER,GOLD,DOE,GAME,HORSE,COTTON,TOBACCO,GEOSHIELD};
+    resourcexbioma[HILLS]      = {MARBLE,CARBON,IRON,COPPER,GOLD,GEMS,OIL,GRAPES, GEOSHIELD};
+    resourcexbioma[JUNGLE]     = {IRON,GOLD,GEMS,SILK,SPICES, SUGAR, OIL};
+    resourcexbioma[MOUNTAINS]  = {MARBLE,CARBON,IRON,COPPER,GOLD,SILVER,GEMS,OIL,URANIUM,ALUMINIUM,GEOSHIELD};
+    resourcexbioma[PLAINS]     = {DOE,GAME,HORSE,OIL,GEOSHIELD, ELEPHANTS};
+    resourcexbioma[RIVER]      = {FISH};
+    resourcexbioma[SWAMP]      = {GOLD,GEMS,HELIUM_3,OIL};
+    resourcexbioma[TUNDRA]     = {MARBLE,COPPER,GOLD,GEMS,OIL,SEAL};
+    resourcexbioma[OCEANBIOMA] = {FISH,WHALES,OIL};
+}
+
+void initCommodities(std::unordered_map<int, int> &commodityxresource)
+{
+    commodityxresource[GOLD]      = coins;
+    commodityxresource[COPPER]    = copper;
+    commodityxresource[IRON]      = iron;
+    commodityxresource[SILVER]    = silver;
+    commodityxresource[MARBLE]    = marble;
+    commodityxresource[DOE]       = furs;
+    commodityxresource[GAME]      = furs;
+    commodityxresource[SEAL]      = furs;
+    commodityxresource[WHALES]    = traan;
+    commodityxresource[GEMS]      = gems;
+    commodityxresource[HORSE]     = horses;
+    commodityxresource[ELEPHANTS] = elephants;
+    commodityxresource[SILK]      = silk;
+    commodityxresource[GRAPES]    = wine;
+    commodityxresource[SPICES]    = spices;
+    commodityxresource[SUGAR]     = sugar;
+    commodityxresource[TOBACCO]   = tobacco;
+    commodityxresource[COTTON]    = cotton;
+    commodityxresource[CARBON]    = carbon;
+    commodityxresource[URANIUM]   = uranium;
+    commodityxresource[OIL]       = oil;
+    commodityxresource[LITIUM]    = litium;
+    commodityxresource[ALUMINIUM] = aluminium;
+    commodityxresource[HELIUM_3]  = helium_3;
 }
 
 #define CITY_NAMES_PER_CIVILIZATION 100

@@ -264,7 +264,7 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
                 }
                 if (cell.bioma/16==DESERT/16)   // Deserts
                 {
-                    if (cell.resource==COAL) cell.setResourceProductionRate(SHIELDS, 2);
+                    if (cell.resource==CARBON) cell.setResourceProductionRate(SHIELDS, 2);
                     if (cell.resource==OIL)  cell.setResourceProductionRate(SHIELDS, 3);
                     if (cell.resource==OASIS)
                     {
@@ -275,7 +275,7 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
                 if (cell.bioma/16==MOUNTAINS/16) // Mountains
                 {
                     cell.setResourceProductionRate(SHIELDS, 1);
-                    if (cell.resource==COAL) cell.setResourceProductionRate(SHIELDS, 2);
+                    if (cell.resource==CARBON) cell.setResourceProductionRate(SHIELDS, 2);
                 }
 
                 if (cell.bioma/16==ARCTIC/16) // Mountains

@@ -47,27 +47,68 @@ typedef std::unordered_map<int, std::unordered_map<int, int>> ImprovementEffort;
 
 enum SPECIALRESOURCES
 {
-    MARBLE = 0x100,
-    COAL = 0x101,
-    IRON = 0x102,
-    COPPER = 0x103,
-    GOLD = 0x104,
-    DOE = 0x105,
-    FISH = 0x106,
-    GAME = 0x107,
-    GEMS = 0x108,
-    HORSE = 0x109,
-    OASIS = 0x10a,
-    OIL = 0x10b,
-    SEAL = 0x10c,
-    GEOSHIELD = 0x10d
+    MARBLE      = 0x100,
+    CARBON      = 0x101,   
+    IRON        = 0x102,
+    COPPER      = 0x103,
+    GOLD        = 0x104,
+    DOE         = 0x105,
+    FISH        = 0x106,
+    GAME        = 0x107,
+    GEMS        = 0x108,
+    HORSE       = 0x109,
+    OASIS       = 0x10a,
+    OIL         = 0x10b,
+    SEAL        = 0x10c,
+    GEOSHIELD   = 0x10d,
+
+    SILVER      = 0x10e,
+    WHALES      = 0x10f,
+    ELEPHANTS   = 0x110,
+    SILK        = 0x111,
+    GRAPES      = 0x112,
+    SPICES      = 0x113,
+    SUGAR       = 0x114,
+    TOBACCO     = 0x115,
+    COTTON      = 0x116,
+    URANIUM     = 0x118,
+    LITIUM      = 0x119,
+    ALUMINIUM   = 0x11a,
+    HELIUM_3    = 0x11b   
+};
+
+
+enum COMMODITIES
+{
+    coins      = 0x200,
+    copper     = 0x201,
+    iron       = 0x202,
+    silver     = 0x203,
+    marble     = 0x204,
+    furs       = 0x205,
+    traan      = 0x206,
+    gems       = 0x207,
+    horses     = 0x208,
+    elephants  = 0x209,
+    silk       = 0x20a,
+    wine       = 0x20b,
+    spices     = 0x20c,
+    sugar      = 0x20d,
+    tobacco    = 0x20e,
+    cotton     = 0x20f,
+    carbon     = 0x210,
+    uranium    = 0x211,
+    oil        = 0x212,
+    litium     = 0x213,
+    aluminium  = 0x214,
+    helium_3   = 0x215
 };
 
 typedef std::unordered_map<int, std::string> Tiles;
 typedef std::unordered_map<int, std::vector<int>> Commodities;
 
 void initTiles(std::unordered_map<int, std::string> &tiles);
-void initCommodities(std::unordered_map<int, std::vector<int>> &commodities);
+void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma);
 void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
 void initMovementCosts(MovementCost &movementcosts);
 void initImprovementEffort(ImprovementEffort &improvementeffort);
