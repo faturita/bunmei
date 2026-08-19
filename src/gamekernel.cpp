@@ -673,13 +673,7 @@ void initMap()
         printf("Generated world: %d land cells of %d (%d%%)\n",landcount,totalcells,landcount*100/totalcells);
         fflush(stdout);
     }
-
-    //    for(int lat=map.minlat;lat<map.maxlat;lat++)
-    //        for (int lon=map.minlon;lon<map.maxlon;lon++)
-    //        {
-    //            map.set(lat,lon).setVisible(0);
-    //        }    
-
+ 
     std::vector<std::vector<coordinate>> landmassseeds = findLandmasses();
 
     printf("Detected %d landmasses\n",landmassseeds.size()) ;

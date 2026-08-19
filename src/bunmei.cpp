@@ -134,6 +134,7 @@ char filegame[256];
 
 bool autoEndOfTurn;
 bool switchVisibleFaction;
+bool nofog;
 
 
 void disclaimer()
@@ -150,6 +151,14 @@ void setupWorldModelling()
         loadWorldModelling();
     else
         initWorldModelling();
+
+    if (nofog)
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for (int lon=map.minlon;lon<map.maxlon;lon++)
+            {
+                for (int f_id=0;f_id<(int)factions.size();f_id++)
+                    map.set(lat,lon).setVisible(f_id);
+            }   
 }
 
 void initRendering()
@@ -600,6 +609,8 @@ int main(int argc, char** argv) {
             exit(1);
         }
     }
+
+    nofog = isPresentCommandLineParameter(argc,argv,"-nofog");
 
     setupWorldModelling();
     initRendering();
