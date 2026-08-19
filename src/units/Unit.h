@@ -62,6 +62,10 @@ class Unit : public Buildable
         bool bMining = false;
         bool bIrrigating = false;
         bool bRailroading = false;
+        bool bQuarrying = false;
+        bool bCamping = false;
+        bool bDerricking = false;
+        bool bPlanting = false;
 
         int reqEffort;
 
@@ -137,6 +141,14 @@ class Unit : public Buildable
     bool isIrrigating();
     void railroading(int effort=1);
     bool isRailroading();
+    void quarrying(int effort=1);
+    bool isQuarrying();
+    void camping(int effort=1);
+    bool isCamping();
+    void derricking(int effort=1);
+    bool isDerricking();
+    void planting(int effort=1);
+    bool isPlanting();
     bool isWorking();
     void completed();
     void work();

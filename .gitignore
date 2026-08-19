@@ -10,3 +10,4 @@ bunmei
 src/*.o
 testcase
 simulate
+tmp/

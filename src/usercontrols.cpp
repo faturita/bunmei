@@ -233,6 +233,34 @@ void handleKeypress(unsigned char key, int x, int y) {
             coordinator.push(co);
         }
         break;
+        case 'U':
+        {
+            CommandOrder co;
+            co.command = Command::BuildQuarryOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'A':
+        {
+            CommandOrder co;
+            co.command = Command::BuildCampOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'E':
+        {
+            CommandOrder co;
+            co.command = Command::BuildDerrickOrder;
+            coordinator.push(co);
+        }
+        break;
+        case 'P':
+        {
+            CommandOrder co;
+            co.command = Command::BuildPlantationOrder;
+            coordinator.push(co);
+        }
+        break;
         case 'F':
         {
             CommandOrder co;

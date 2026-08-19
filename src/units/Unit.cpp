@@ -77,6 +77,10 @@ std::vector<const char*> Unit::getOverlayAssets()
     if (bRailroading) overlays.push_back("assets/assets/map/railroading.png");
     if (bMining)      overlays.push_back("assets/assets/map/mining.png");
     if (bIrrigating)  overlays.push_back("assets/assets/map/irrigating.png");
+    if (bQuarrying)   overlays.push_back("assets/assets/map/quarrying.png");
+    if (bCamping)     overlays.push_back("assets/assets/map/camping.png");
+    if (bDerricking)  overlays.push_back("assets/assets/map/derricking.png");
+    if (bPlanting)    overlays.push_back("assets/assets/map/planting.png");
 
     return overlays;
 }
@@ -260,9 +264,53 @@ bool Unit::isRailroading()
     return bRailroading;
 }
 
+void Unit::quarrying(int effort)
+{
+    bQuarrying = true;
+    reqEffort = effort;
+}
+
+bool Unit::isQuarrying()
+{
+    return bQuarrying;
+}
+
+void Unit::camping(int effort)
+{
+    bCamping = true;
+    reqEffort = effort;
+}
+
+bool Unit::isCamping()
+{
+    return bCamping;
+}
+
+void Unit::derricking(int effort)
+{
+    bDerricking = true;
+    reqEffort = effort;
+}
+
+bool Unit::isDerricking()
+{
+    return bDerricking;
+}
+
+void Unit::planting(int effort)
+{
+    bPlanting = true;
+    reqEffort = effort;
+}
+
+bool Unit::isPlanting()
+{
+    return bPlanting;
+}
+
 bool Unit::isWorking()
 {
-    return bRoading || bMining || bIrrigating || bRailroading;
+    return bRoading || bMining || bIrrigating || bRailroading || bQuarrying || bCamping || bDerricking || bPlanting;
 }
 
 void Unit::completed()
@@ -271,11 +319,15 @@ void Unit::completed()
     bMining = false;
     bIrrigating = false;
     bRailroading = false;
+    bQuarrying = false;
+    bCamping = false;
+    bDerricking = false;
+    bPlanting = false;
 }
 
 void Unit::work()
 {
-    if (bRoading || bMining || bIrrigating || bRailroading)
+    if (isWorking())
     {
         reqEffort -= (availablemoves);
         if (reqEffort <= 0)

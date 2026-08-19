@@ -226,6 +226,46 @@ struct mapcell
     {
         improvements |= 0x08;
     }
+
+    void buildQuarry()
+    {
+        improvements |= 0x10;
+    }
+
+    bool hasQuarry()
+    {
+        return (improvements & 0x10) == 0x10;
+    }
+
+    void buildCamp()
+    {
+        improvements |= 0x20;
+    }
+
+    bool hasCamp()
+    {
+        return (improvements & 0x20) == 0x20;
+    }
+
+    void buildDerrick()
+    {
+        improvements |= 0x40;
+    }
+
+    bool hasDerrick()
+    {
+        return (improvements & 0x40) == 0x40;
+    }
+
+    void buildPlantation()
+    {
+        improvements |= 0x80;
+    }
+
+    bool hasPlantation()
+    {
+        return (improvements & 0x80) == 0x80;
+    }
 };
 
 class MapCylindrical

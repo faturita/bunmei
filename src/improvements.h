@@ -8,7 +8,11 @@ enum IMPROVEMENT_TYPES {
     IRRIGATION = 0x01,
     MINE = 0x02,
     ROAD = 0x04,
-    RAILROAD = 0x08
+    RAILROAD = 0x08,
+    QUARRY = 0x10,
+    CAMP = 0x20,
+    DERRICK = 0x40,
+    PLANTATION = 0x80
 };
 
 

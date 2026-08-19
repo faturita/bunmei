@@ -281,6 +281,17 @@ void initImprovementEffort(ImprovementEffort &improvementeffort)
     for (int t : types)
         for (int b : biomas)
             improvementeffort[t][b] = 9;
+
+    // Resource-gated improvements (see initImprovementResources): only ever buildable on
+    // the biomas that can host their required special resource, so a flat effort per type
+    // is enough for now; tune per bioma too, later, same as the four above if needed.
+    for (int b : biomas)
+    {
+        improvementeffort[QUARRY][b] = 9;
+        improvementeffort[CAMP][b] = 6;
+        improvementeffort[DERRICK][b] = 12;
+        improvementeffort[PLANTATION][b] = 6;
+    }
 }
 
 int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma)
@@ -296,6 +307,33 @@ int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementty
     }
 
     return 1;
+}
+
+// Defined here (and not in gamekernel.cpp), same reason as movementcosts/improvementeffort above.
+ImprovementResources improvementresources;
+
+// README.md's resource table: which special resource(s) a tile needs for each
+// resource-gated improvement (Quarry/Camp/Derrick/Plantation). Road/Mine/Irrigation/
+// Railroad have no entry here and stay unrestricted.
+void initImprovementResources(ImprovementResources &improvementresources)
+{
+    improvementresources[QUARRY]     = {MARBLE};
+    improvementresources[CAMP]       = {DOE, GAME, SEAL};
+    improvementresources[DERRICK]    = {OIL};
+    improvementresources[PLANTATION] = {GRAPES, SUGAR, TOBACCO, COTTON};
+}
+
+bool tileHasRequiredResource(ImprovementResources &improvementresources, int improvementtype, int resource)
+{
+    auto it = improvementresources.find(improvementtype);
+    if (it == improvementresources.end())
+        return true;
+
+    for (int r : it->second)
+        if (r == resource)
+            return true;
+
+    return false;
 }
 
 void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma)

@@ -34,6 +34,7 @@ extern Map map;
 std::unordered_map<int, std::vector<int>> resourcesxbioma;
 extern MovementCost movementcosts;
 extern ImprovementEffort improvementeffort;
+extern ImprovementResources improvementresources;
 
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
@@ -144,84 +145,8 @@ void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
 }
 
 
-void saveMap()
-{
-    std::ofstream out("saved_map.dat", std::ios::binary);
-    if (!out) {
-        printf("Error opening file for writing.\n");
-        return;
-    }
-
-    for (int lat = map.minlat; lat < map.maxlat; lat++) {
-        for (int lon = map.minlon; lon < map.maxlon; lon++) {
-            auto &cell = map(lat, lon);
-            out.write(reinterpret_cast<const char*>(&lat), sizeof(lat));
-            out.write(reinterpret_cast<const char*>(&lon), sizeof(lon));
-            out.write(reinterpret_cast<const char*>(&cell.code), sizeof(cell.code));
-            out.write(reinterpret_cast<const char*>(&cell.bioma), sizeof(cell.bioma));
-            out.write(reinterpret_cast<const char*>(&cell.resource), sizeof(cell.resource));
-            // Save resource production rates using mapcell accessors.
-            size_t sz = static_cast<size_t>(cell.getResourceProductionRateSize());
-            out.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
-            for (size_t i = 0; i < sz; ++i) {
-                int rate = cell.getResourceProductionRate(static_cast<int>(i));
-                out.write(reinterpret_cast<const char*>(&rate), sizeof(rate));
-            }
-            // Save owner if present
-            out.write(reinterpret_cast<const char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
-            out.write(reinterpret_cast<const char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
-            out.write(reinterpret_cast<const char*>(&cell.owners), sizeof(cell.owners));
-        }
-    }
-    out.close();
-    printf("Map saved to saved_map.dat\n");
-}
-
-void loadMap()
-{
-    std::ifstream in("saved_map.dat", std::ios::binary);
-    if (!in) {
-        printf("Error opening file for reading.\n");
-        return;
-    }
-
-    for (int lat = map.minlat; lat < map.maxlat; lat++) {
-        for (int lon = map.minlon; lon < map.maxlon; lon++) {
-            int file_lat, file_lon;
-            in.read(reinterpret_cast<char*>(&file_lat), sizeof(file_lat));
-            in.read(reinterpret_cast<char*>(&file_lon), sizeof(file_lon));
-            if (!in) break;
-
-            auto &cell = map.set(file_lat, file_lon);
-
-            int code;
-            int bioma;
-            int resource;
-            in.read(reinterpret_cast<char*>(&code), sizeof(code));
-            in.read(reinterpret_cast<char*>(&bioma), sizeof(bioma));
-            in.read(reinterpret_cast<char*>(&resource), sizeof(resource));
-
-            cell = mapcell(code);
-            cell.bioma = bioma;
-            cell.resource = resource;
-
-            // Load resource production rates using mapcell accessors.
-            size_t sz = 0;
-            in.read(reinterpret_cast<char*>(&sz), sizeof(sz));
-            for (size_t i = 0; i < sz; ++i) {
-                int rate = 0;
-                in.read(reinterpret_cast<char*>(&rate), sizeof(rate));
-                cell.addResourceProductionRate(rate);
-            }
-            // Load owner if present
-            in.read(reinterpret_cast<char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
-            in.read(reinterpret_cast<char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
-            in.read(reinterpret_cast<char*>(&cell.owners), sizeof(cell.owners));
-        }
-    }
-    in.close();
-    printf("Map loaded from /tmp/saved_map.dat\n");
-}
+// saveMap()/loadMap() moved to mapio.cpp (see gamekernel.h), so they can be linked into
+// the testcase and simulate builds too, which don't link gamekernel.cpp itself.
 
 
 #include <set>
@@ -282,6 +207,8 @@ void initMap()
     initMovementCosts(movementcosts);
 
     initImprovementEffort(improvementeffort);
+
+    initImprovementResources(improvementresources);
 
     initImprovements(improvements);
 

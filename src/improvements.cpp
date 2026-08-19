@@ -5,6 +5,13 @@ void initImprovements(std::unordered_map<int, Improvement*>& improvements)
     improvements[0xe0] = new Improvement(0xe0, IRRIGATION, "assets/assets/improvements/irrigation.png", "Irrigation");
     improvements[0xf0] = new Improvement(0xf0, MINE, "assets/assets/improvements/mine.png", "Mine");
 
+    // Resource-gated improvements (Quarry/Camp/Derrick/Plantation): single icon, same as
+    // irrigation/mine above -- no directional compositing like roads/railroads need.
+    improvements[0xd0] = new Improvement(0xd0, QUARRY, "assets/assets/improvements/quarry.png", "Quarry");
+    improvements[0xd1] = new Improvement(0xd1, CAMP, "assets/assets/improvements/camp.png", "Camp");
+    improvements[0xd2] = new Improvement(0xd2, DERRICK, "assets/assets/improvements/derrick.png", "Derrick");
+    improvements[0xd3] = new Improvement(0xd3, PLANTATION, "assets/assets/improvements/plantation.png", "Plantation");
+
     improvements[0xe1] = new Improvement(0xe1, ROAD, "assets/assets/improvements/road_w.png", "Road");
     improvements[0xe2] = new Improvement(0xe2, ROAD, "assets/assets/improvements/road_s.png", "Road");
     improvements[0xe3] = new Improvement(0xe3, ROAD, "assets/assets/improvements/road_sw.png", "Road");

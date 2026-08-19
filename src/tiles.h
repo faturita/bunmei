@@ -45,6 +45,11 @@ typedef std::unordered_map<int, float> MovementCost;
 // masking as MovementCost).
 typedef std::unordered_map<int, std::unordered_map<int, int>> ImprovementEffort;
 
+// Special resources (SPECIALRESOURCES, below) a tile must have for an improvement to be
+// built there, indexed by improvement type (IMPROVEMENT_TYPES, improvements.h). An
+// improvement type with no entry is not resource-gated (e.g. road/irrigation/mine/railroad).
+typedef std::unordered_map<int, std::vector<int>> ImprovementResources;
+
 enum SPECIALRESOURCES
 {
     MARBLE      = 0x100,
@@ -112,5 +117,8 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
 void initMovementCosts(MovementCost &movementcosts);
 void initImprovementEffort(ImprovementEffort &improvementeffort);
 int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma);
+void initImprovementResources(ImprovementResources &improvementresources);
+bool tileHasRequiredResource(ImprovementResources &improvementresources, int improvementtype, int resource);
+void initCommodities(std::unordered_map<int, int> &commodityxresource);
 
 #endif // TILES_H

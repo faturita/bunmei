@@ -49,6 +49,7 @@ extern Coordinator coordinator;
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern ImprovementEffort improvementeffort;
+extern ImprovementResources improvementresources;
 extern MovementCost movementcosts;
 
 extern DiplomacyTable diplomacy;
@@ -794,6 +795,26 @@ void processCommandOrders()
         map.set(co.parameters.latitude, co.parameters.longitude).buildRailroad();
         return;
     }
+    if (co.command == Command::BuildQuarry)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildQuarry();
+        return;
+    }
+    if (co.command == Command::BuildCamp)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildCamp();
+        return;
+    }
+    if (co.command == Command::BuildDerrick)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildDerrick();
+        return;
+    }
+    if (co.command == Command::BuildPlantation)
+    {
+        map.set(co.parameters.latitude, co.parameters.longitude).buildPlantation();
+        return;
+    }
 
     if (units.find(coordinator.a_u_id) == units.end())
     {
@@ -934,6 +955,74 @@ void processCommandOrders()
 
             coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
         }
+    } else if (co.command == Command::BuildQuarryOrder)
+    {
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            if (!tileHasRequiredResource(improvementresources, QUARRY, map.set(worker->latitude,worker->longitude).resource))
+            {
+                message(year, coordinator.a_f_id, "Cannot build a quarry here: no marble.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, QUARRY, map.set(worker->latitude,worker->longitude).bioma);
+                worker->quarrying(effort);
+                worker->availablemoves = 0;
+
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
+        }
+    } else if (co.command == Command::BuildCampOrder)
+    {
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            if (!tileHasRequiredResource(improvementresources, CAMP, map.set(worker->latitude,worker->longitude).resource))
+            {
+                message(year, coordinator.a_f_id, "Cannot build a camp here: no doe, game or seal.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, CAMP, map.set(worker->latitude,worker->longitude).bioma);
+                worker->camping(effort);
+                worker->availablemoves = 0;
+
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
+        }
+    } else if (co.command == Command::BuildDerrickOrder)
+    {
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            if (!tileHasRequiredResource(improvementresources, DERRICK, map.set(worker->latitude,worker->longitude).resource))
+            {
+                message(year, coordinator.a_f_id, "Cannot build a derrick here: no oil.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, DERRICK, map.set(worker->latitude,worker->longitude).bioma);
+                worker->derricking(effort);
+                worker->availablemoves = 0;
+
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
+        }
+    } else if (co.command == Command::BuildPlantationOrder)
+    {
+        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        {
+            if (!tileHasRequiredResource(improvementresources, PLANTATION, map.set(worker->latitude,worker->longitude).resource))
+            {
+                message(year, coordinator.a_f_id, "Cannot build a plantation here: no grapes, sugar, tobacco or cotton.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, PLANTATION, map.set(worker->latitude,worker->longitude).bioma);
+                worker->planting(effort);
+                worker->availablemoves = 0;
+
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
+        }
     }
 }
 
@@ -946,6 +1035,20 @@ void processCommandOrders()
 // finalize is captured BEFORE calling it; the finalize command carries the tile's
 // coordinates (not coordinator.a_u_id, which may already have moved on by the time
 // processCommandOrders handles it).
+// Which working state (Unit::isRoading() etc.) maps to which finalize command: a table
+// instead of a nested ternary so a future improvement (per the user: more are coming)
+// only needs one row here.
+static const struct { bool (Unit::*isKind)(); Command finalize; } workKinds[] = {
+    { &Unit::isRoading,     Command::BuildRoad },
+    { &Unit::isMining,      Command::BuildMine },
+    { &Unit::isIrrigating,  Command::BuildIrrigation },
+    { &Unit::isRailroading, Command::BuildRailroad },
+    { &Unit::isQuarrying,   Command::BuildQuarry },
+    { &Unit::isCamping,     Command::BuildCamp },
+    { &Unit::isDerricking,  Command::BuildDerrick },
+    { &Unit::isPlanting,    Command::BuildPlantation },
+};
+
 void processWork()
 {
     if (units.find(coordinator.a_u_id) == units.end())
@@ -953,13 +1056,18 @@ void processWork()
 
     Unit* unit = units[coordinator.a_u_id];
 
-    bool wasRoading = unit->isRoading();
-    bool wasMining = unit->isMining();
-    bool wasIrrigating = unit->isIrrigating();
-    bool wasRailroading = unit->isRailroading();
-
-    if (!wasRoading && !wasMining && !wasIrrigating && !wasRailroading)
+    if (!unit->isWorking())
         return;
+
+    Command finalize = Command::None;
+    for (const auto& kind : workKinds)
+    {
+        if ((unit->*(kind.isKind))())
+        {
+            finalize = kind.finalize;
+            break;
+        }
+    }
 
     unit->work();
     unit->availablemoves = 0;
@@ -969,7 +1077,7 @@ void processWork()
         CommandOrder co;
         co.parameters.latitude = unit->latitude;
         co.parameters.longitude = unit->longitude;
-        co.command = wasRoading ? Command::BuildRoad : (wasMining ? Command::BuildMine : (wasIrrigating ? Command::BuildIrrigation : Command::BuildRailroad));
+        co.command = finalize;
         coordinator.push(co);
     }
 

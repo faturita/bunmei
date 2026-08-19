@@ -57,6 +57,7 @@ std::unordered_map<int, Improvement*> improvements;
 std::vector<Message> messages;
 
 extern ImprovementEffort improvementeffort;
+extern ImprovementResources improvementresources;
 extern MovementCost movementcosts;
 
 int year;
@@ -587,6 +588,7 @@ int main(int argc, char *argv[]) {
     initCommodities(commodities);
     initMovementCosts(movementcosts);
     initImprovementEffort(improvementeffort);
+    initImprovementResources(improvementresources);
     initImprovements(improvements);
     initNaming(citynames);
     initResources(resources);

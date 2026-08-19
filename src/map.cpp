@@ -454,13 +454,20 @@ void drawMap()
             }
 
 
-        // Land improvements (irrigation, mine, road) bitmap (irrigation is lsb, road is bit 1, railroad is bit 2, mine is bit 3)
+        // Land improvements bitmap (mapmodel.h buildX methods): irrigation=0x01, mine=0x02,
+        // road=0x04, railroad=0x08, quarry=0x10, camp=0x20, derrick=0x40, plantation=0x80.
+        // Quarry/Camp/Derrick/Plantation are single icons, same as irrigation/mine -- no
+        // directional compositing like roads/railroads (below) need.
         for(int lat=vlatmin;lat<=vlatmax;lat++)
         {
             for(int lon=vlonmin;lon<=vlonmax;lon++)
             {
                 if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x01) == 0x01) placeTile(lon,lat,improvements[0xe0]->assetname);
                 if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x02) == 0x02) placeTile(lon,lat,improvements[0xf0]->assetname);
+                if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x10) == 0x10) placeTile(lon,lat,improvements[0xd0]->assetname);
+                if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x20) == 0x20) placeTile(lon,lat,improvements[0xd1]->assetname);
+                if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x40) == 0x40) placeTile(lon,lat,improvements[0xd2]->assetname);
+                if (map(lat,lon).isVisible(coordinator.v_f_id) && (map(lat,lon).improvements & 0x80) == 0x80) placeTile(lon,lat,improvements[0xd3]->assetname);
             }
         }
 
