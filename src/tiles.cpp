@@ -316,7 +316,6 @@ void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma)
 
 void initCommodities(std::unordered_map<int, int> &commodityxresource)
 {
-    commodityxresource[GOLD]      = coins;
     commodityxresource[COPPER]    = copper;
     commodityxresource[IRON]      = iron;
     commodityxresource[SILVER]    = silver;

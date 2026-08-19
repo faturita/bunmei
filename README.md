@@ -154,7 +154,7 @@ The resources and their commodities are:
 
 | Resource |   |  |  |
 |---|---|---|---|
-| Gold      | -                 | Mine | Coins |
+| Gold      | -                 | Mine | - |
 | Copper    | Bronze Working    | Mine | Copper |
 | Iron      | Iron Working      | Mine | Iron |
 | Silver    | Mining            | Mine | Silver |

@@ -80,7 +80,6 @@ enum SPECIALRESOURCES
 
 enum COMMODITIES
 {
-    coins      = 0x200,
     copper     = 0x201,
     iron       = 0x202,
     silver     = 0x203,
