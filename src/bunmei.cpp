@@ -280,6 +280,13 @@ inline void endOfYear()
             c->resources[r->id] += c->getProductionRate(r->id);
         }
 
+        // Commodities: gathered from every special resource within range regardless of
+        // whether the tile is worked (see City::getCommodityProductionRate).
+        for(int commodity_id : ALL_COMMODITIES)
+        {
+            c->commodities[commodity_id] += c->getCommodityProductionRate(commodity_id);
+        }
+
         // Reduce the number of resources according to what is required now.
         for(auto &r:resources)
         {

@@ -13,6 +13,7 @@
 #include "units/Unit.h"
 #include "engine.h"
 #include "usercontrols.h"
+#include "tiles.h"
 #include "cityscreenui.h"
 
 extern float cx;
@@ -20,6 +21,7 @@ extern float cy;
 
 extern Map map;
 extern std::vector<Resource*> resources;
+extern Tiles tiles;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
@@ -68,6 +70,10 @@ int selectionOffset = 0;
 // the list, decreasing reveals later units) -- see drawCityScreen/clickOnCityScreen.
 int unitsOffset = 0;
 const int UNITS_BOX_ROWS = 5;
+
+// Scroll offset for the "Commodities Storage" box, same mechanism as unitsOffset above.
+int commoditiesStorageOffset = 0;
+const int COMMODITIES_STORAGE_ROWS = 5;
 
 coordinate clickedTile(0,0);
 bool tileWorkingIsActive = false;
@@ -123,6 +129,21 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
     {
         // Move down
         unitsOffset--;
+    }
+
+    // "Commodities Storage" box, bottom-left (drawCityScreen): same up/down arrow mechanism
+    // as the Units box above, at that box's own column (endright=-4, on the LEFT of the map
+    // this time) -- same formula, lon2 = endright*16/8 = -4*16/8 = -8 (negative since the
+    // box sits left of center).
+    if (lat2==10 && lon2==-8)
+    {
+        // Move up
+        commoditiesStorageOffset++;
+    } else
+    if (lat2==18 && lon2==-8)
+    {
+        // Move down
+        commoditiesStorageOffset--;
     }
 
     // A city only opens its screen for its owner (usercontrols.cpp), so activating a unit
@@ -264,11 +285,96 @@ void drawCityScreen(int cla, int clo, City *city)
 
     }
 
+    {
+        // Per-turn commodity gather rate (task #13), directly above the map box (same
+        // columns, -3..3). Same "pack together" row style as City Resources above, but one
+        // row per commodity actually being produced THIS TURN (rate<=0 is skipped) -- with
+        // up to 21 possible commodity types, a fixed row per type would never fit.
+        // Starts at row -8 (not -10), same as City Resources: rows -10..-9 stay clear across
+        // the WHOLE top of the screen for the population icons (placed at row -9, growing
+        // rightward from column -10 as pop increases) to have room, instead of running into
+        // this box's top border.
+        placeWord(clo + (-3),cla + (-8),4,8,"City Commodities");
+        drawBoundingBox(clo,cla,-3,-8,3,-4);
+
+        int i=0;
+        for (int commodity_id : ALL_COMMODITIES)
+        {
+            int rate = city->getCommodityProductionRate(commodity_id);
+            if (rate<=0) continue;
+
+            int colsepar = clipInt( floor(7*(16.0/rate)),1,7);
+            for(int j=0;j<rate;j++)
+            {
+                place((clo + (-3))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,tiles[commodity_id].c_str());
+            }
+            i++;
+        }
+    }
+
     placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");
-    drawBoundingBox(clo,cla,-10,-3,-4,9);
+    drawBoundingBox(clo,cla,-10,-3,-4,3);
+
+    // The box shrank (rows -3..3, was -3..9) to make room for Commodities Storage below it:
+    // pack more icons per row, instead of the old flat 10, so the same range of stockpiled
+    // food still fits without spilling past the (now shorter) box -- same idea as City
+    // Resources' colsepar above, just picking an item COUNT per row instead of a spacing.
+    int foodStorageRows = ((3)-(-3))*16/7;
+    int foodStorageMaxPerRow = ((-4)-(-10))*16/7;
+    int foodItemsPerRow = clipInt( (int)ceil((float)city->resources[0]/(float)foodStorageRows), 10, foodStorageMaxPerRow);
 
     for(int i=0;i<city->resources[0];i++)
-        place((clo+(-10))*16-4+7*(i%10)  ,(cla+(-2))*16-4+7*(i/10)  ,7,7,"assets/assets/city/food.png");
+        place((clo+(-10))*16-4+7*(i%foodItemsPerRow)  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
+
+    {
+        // Commodity stockpile (task #13): a scrollable list (same mechanism as the Units
+        // box), one row per commodity actually in storage. The trailing icon is a "load"
+        // placeholder for a later Wagon/Ship transfer feature -- not wired to a click yet.
+        placeWord(clo + (-10),cla + (4),4,8,"Commodities Storage");
+        drawBoundingBox(clo,cla,-10,4,-4,9);
+
+        std::vector<int> stocked;
+        for (int commodity_id : ALL_COMMODITIES)
+            if (city->commodities[commodity_id] > 0)
+                stocked.push_back(commodity_id);
+
+        int i=0;
+        for(auto it=stocked.begin();it!=stocked.end();it++)
+        {
+            int loc = i+commoditiesStorageOffset;
+            if (loc<0) {i++;continue;}
+
+            int commodity_id = *it;
+            // placeTile(x,y,...) here is the UNTINTED overload: x is the COLUMN (lon), y is
+            // the ROW (lat) -- opposite argument order from the tinted placeTile(lat,lon,...)
+            // the Units box above uses.
+            placeTile(clo + (-10), cla + (5+loc), 7, tiles[commodity_id].c_str());
+
+            char countstr[16];
+            sprintf(countstr,"%d",city->commodities[commodity_id]);
+            placeWord(clo + (-9),cla + (5+loc),4,8,countstr);
+
+            placeTile(clo + (-5), cla + (5+loc), 7, "assets/assets/cursor/right.png");
+
+            i++;
+            if (loc==COMMODITIES_STORAGE_ROWS-1) break;
+        }
+
+        if ((int)stocked.size()>COMMODITIES_STORAGE_ROWS)
+        {
+            place((clo+(-4))*16,(cla+(5))*16 ,7,7,"assets/assets/cursor/up.png");
+            place((clo+(-4))*16,(cla+(9))*16 ,7,7,"assets/assets/cursor/down.png");
+
+            if (commoditiesStorageOffset>0) commoditiesStorageOffset=0;
+            int max = ((int)stocked.size())-COMMODITIES_STORAGE_ROWS;
+            if (commoditiesStorageOffset<-max)
+                commoditiesStorageOffset=(stocked.size()-COMMODITIES_STORAGE_ROWS)*(-1);
+        }
+        else
+        {
+            commoditiesStorageOffset = 0;
+        }
+    }
 
 
     for(int i=0;i<city->buildings.size();i++)

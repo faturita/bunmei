@@ -27,6 +27,7 @@ public:
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
     std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
+    std::unordered_map<int,int> commodities;                    // Commodity stockpile, keyed by COMMODITIES id (tiles.h), gathered each year.
 
     City(Map *map, int faction, int id, int latitude, int longitude);
     int latitude;
@@ -52,6 +53,7 @@ public:
     void setCapitalCity();
     int getProductionRate(int r_id);
     int getConsumptionRate(int r_id);
+    int getCommodityProductionRate(int commodity_id);
     int numberOfWorkingTiles();
     bool occupied(int lat, int lon);
     void setDefense();

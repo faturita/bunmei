@@ -6,6 +6,8 @@
 #include "City.h"
 
 extern std::vector<Faction*> factions;
+extern std::unordered_map<int,int> commodityxresource;
+extern ImprovementResources improvementresources;
 
 
 City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
@@ -231,6 +233,36 @@ int City::getProductionRate(int r_id)
     //printf("Resource: %d Production Rate: %d\n",r_id,production_rate);
 
     return production_rate;
+}
+
+// Commodities are gathered from every tile in the city's working RANGE (same 7x7 bounds as
+// getProductionRate above), regardless of whether the tile is actually assigned/worked: one
+// unit of the matching commodity per special-resource tile, or zero if that resource needs
+// an improvement (initImprovementResources/getRequiredImprovement, tiles.cpp) that has not
+// been built on the tile yet.
+int City::getCommodityProductionRate(int commodity_id)
+{
+    int rate = 0;
+    for(int lat=-3;lat<=3;lat++)
+        for(int lon=-3;lon<=3;lon++)
+        {
+            mapcell &cell = map->peek(latitude+lat, longitude+lon);
+
+            if (cell.resource == 0)
+                continue;
+
+            auto it = commodityxresource.find(cell.resource);
+            if (it == commodityxresource.end() || it->second != commodity_id)
+                continue;
+
+            int required = getRequiredImprovement(improvementresources, cell.resource);
+            if (required != 0 && (cell.improvements & required) != required)
+                continue;
+
+            rate++;
+        }
+
+    return rate;
 }
 
 int City::getConsumptionRate(int r_id)

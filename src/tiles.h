@@ -47,7 +47,10 @@ typedef std::unordered_map<int, std::unordered_map<int, int>> ImprovementEffort;
 
 // Special resources (SPECIALRESOURCES, below) a tile must have for an improvement to be
 // built there, indexed by improvement type (IMPROVEMENT_TYPES, improvements.h). An
-// improvement type with no entry is not resource-gated (e.g. road/irrigation/mine/railroad).
+// improvement type with no entry is not resource-gated for BUILDING (e.g. road/irrigation/
+// railroad). MINE has an entry too, but only used for commodity PRODUCTION gating
+// (getRequiredImprovement) -- building a mine itself stays unrestricted, nothing checks
+// this table for BuildMineOrder.
 typedef std::unordered_map<int, std::vector<int>> ImprovementResources;
 
 enum SPECIALRESOURCES
@@ -111,6 +114,10 @@ enum COMMODITIES
 typedef std::unordered_map<int, std::string> Tiles;
 typedef std::unordered_map<int, std::vector<int>> Commodities;
 
+// Every COMMODITIES value, for code that needs to iterate "all commodities" (e.g. gathering
+// a city's yearly commodity production) without hand-maintaining a second copy of the enum.
+extern const std::vector<int> ALL_COMMODITIES;
+
 void initTiles(std::unordered_map<int, std::string> &tiles);
 void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma);
 void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames);
@@ -119,6 +126,9 @@ void initImprovementEffort(ImprovementEffort &improvementeffort);
 int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma);
 void initImprovementResources(ImprovementResources &improvementresources);
 bool tileHasRequiredResource(ImprovementResources &improvementresources, int improvementtype, int resource);
+// The improvement type (IMPROVEMENT_TYPES) a special resource needs before its commodity is
+// produced, or 0 if it is produced unconditionally (e.g. Whales/Horse/Elephants/Silk/Spices).
+int getRequiredImprovement(ImprovementResources &improvementresources, int resource);
 void initCommodities(std::unordered_map<int, int> &commodityxresource);
 
 #endif // TILES_H

@@ -39,7 +39,6 @@ typedef std::unordered_map<int, City*> Cities;
 typedef std::unordered_map<int, Unit*> Units;
 
 Tiles tiles;
-Commodities commodities;
 std::unordered_map<int,std::queue<std::string>> citynames;
 std::vector<Resource*> resources;
 
@@ -59,6 +58,7 @@ std::vector<Message> messages;
 extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
 extern MovementCost movementcosts;
+extern std::unordered_map<int, int> commodityxresource;
 
 int year;
 
@@ -373,6 +373,13 @@ inline void endOfYear()
             c->resources[r->id] += c->getProductionRate(r->id);
         }
 
+        // Commodities: gathered from every special resource within range regardless of
+        // whether the tile is worked (see City::getCommodityProductionRate).
+        for(int commodity_id : ALL_COMMODITIES)
+        {
+            c->commodities[commodity_id] += c->getCommodityProductionRate(commodity_id);
+        }
+
         // Reduce the number of resources according to what is required now.
         for(auto &r:resources)
         {
@@ -585,7 +592,7 @@ int main(int argc, char *argv[]) {
     
 
     initTiles(tiles);
-    initCommodities(commodities);
+    initCommodities(commodityxresource);
     initMovementCosts(movementcosts);
     initImprovementEffort(improvementeffort);
     initImprovementResources(improvementresources);
