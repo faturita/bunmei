@@ -101,6 +101,7 @@ static const std::vector<ResourceRateOverride> RESOURCE_RATE_OVERRIDE = {
     { OCEAN_CONTEXT,  OIL,       {{SHIELDS,2}} },
     { GRASSLAND,      GEOSHIELD, {{SHIELDS,1}} },
     { PLAINS,         GEOSHIELD, {{SHIELDS,2}} },
+    { PLAINS,         CATTLE,    {{FOOD,3},{SHIELDS,1}} },
     { PLAINS,         HORSE,     {{SHIELDS,2}} },
     { FOREST,         GAME,      {{FOOD,2},{SHIELDS,3}} },
     { DESERT,         CARBON,      {{SHIELDS,2}} },

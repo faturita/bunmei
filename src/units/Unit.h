@@ -33,7 +33,8 @@ enum UNIT_SUBTYPE
     UNIT_SCOUT = 12,
     UNIT_WARELEPHANT = 13,
     UNIT_PRETORIAN = 14,
-    UNIT_SPY = 15
+    UNIT_SPY = 15,
+    UNIT_WAGON = 16
 };
 
 class Unit : public Buildable

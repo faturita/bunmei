@@ -307,9 +307,9 @@ inline void endOfYear()
         if (c->productionQueue.size()>0)
         {
             BuildableFactory *bf = c->productionQueue.front();
-            if (c->resources[1]>=bf->cost(1))
+            if (c->resources[SHIELDS]>=bf->cost(1))
             {
-                c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
+                c->resources[SHIELDS] -= bf->cost(1);          // @FIXME This can be extended to more resources.
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();
@@ -337,6 +337,9 @@ inline void endOfYear()
                 }
 
             }
+        } else { // Reset resources if there is nothing to build.
+            c->resources[SHIELDS] = 0;
+            message(year, c->faction, "City %s has nothing to build.",c->name);
         }
         
         // Balance city population according to available resources.

@@ -37,6 +37,7 @@
 #include "units/Chariot.h"
 #include "units/Pretorian.h"
 #include "units/Spy.h"
+#include "units/Wagon.h"
 #include "coordinator.h"
 #include "messages.h"
 #include "sounds/sounds.h"
@@ -856,6 +857,7 @@ void processCommandOrders()
         city->buildable.push_back(new SettlerFactory());
         city->buildable.push_back(new WorkerFactory());
         city->buildable.push_back(new GranaryFactory());
+        city->buildable.push_back(new WagonFactory());
         city->buildable.push_back(new CollosseumFactory());
         city->buildable.push_back(new MarketFactory());
         city->buildable.push_back(new WarriorFactory());

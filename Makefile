@@ -44,6 +44,7 @@ clean:
 	rm -f simulate
 	rm -f $(DEPS)
 	rm -f src/tests/testcase_*.d src/tests/testcase_*.o
+	rm -f tmp/*
 
 testcase:	$(TCOBJS)
 	@echo "Building test cases"

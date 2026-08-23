@@ -87,7 +87,7 @@ That's all folks.
 
 # Game logic
 
-## Design Rules
+## Design Rules
 
 * Every aspect of the game can be automated
 * The game can be fully simulated (without graphics).
@@ -147,8 +147,7 @@ There are six basic resources: food, shields, trade, coins, science, and culture
 
 Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science and Culture by the fundamental tax rate.  Coins are accumulated by the government, Science goes for research funding and culture promotes borders and happiness.
 
-
-Special resources appear on the map.  They can change tile production but at the same time they allow the production of commodities which can be accumulated in the city.  Cities can access special resources inside city tiles, and also can access other nearby special resources as long as the LoS is established and the faction owns the special resource tile.
+Special resources can appear on the map.  They can change tile production but at the same time they allow the production of commodities which can be accumulated in the city.  Cities can access special resources inside city tiles, without having to work on them,  and also can access other nearby special resources as long as the LoS is established and the faction owns the special resource tile.
 
 The resources and their commodities are:
 
@@ -168,10 +167,12 @@ The resources and their commodities are:
 | Geoshield | -                 | -    | - |
 | Gems      | Iron Working      | Mine | Gems |
 | Horse     | Horseback Riding  | -    | Horses |
+| Cattle    | Animal Husbrandry | -    | Meat |
 | Elephants | Hunting           | -    | Elephants |
 | Silk      | -                 | -    | Silk |
 | Grapes    | Feudalism.        | Plantation | Wine |
 | Spices    | -                 | -    | Spices |
+| Gunpowder | -                 | -    | Gunpowder |
 | Sugar     | -                 | Plantation | Sugar |
 | Tobacco   | -                 | Plantation | Tobacco |
 | Cotton    | -                 | Plantation | Cotton |
@@ -186,13 +187,13 @@ The resources and their commodities are:
 
 Commodities are gathered in the cities without working their respective tiles.  So, the city will gather each turn the commodity produced by all the tiles with special resources around.
 
-Tiles owned by a faction by a presence of military forces, continuosly, are available to neaby cities by LoS.
+Tiles owned by a faction by the presence of military forces are available to neaby cities by LoS.
 
 ## Trade
 
-All the commodities can be directly traded, by loading them into boats and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between cities.
+All the commodities can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.
 
-When resources are available in a city (and stockpiled) they are available immediately in all the cities that are connected through LoS.
+Some buildings and unit require special resources to be produced.
 
 
 ## Population
@@ -203,9 +204,7 @@ Population represents humans, so they are handled like human population.  So the
 
 Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know (like other games like this do).  So the idea is have like a multilayered neural network where the each node correspond to a concrete scientific discovery and the sigmoid function depends on weights that are increased as long as they are invested.  This will produce the triggering of each one of the discoveries, which now will look more random and it will depend on what do you invest.  
 
-Science implementation works in two ways, one distribuited and one centralized.  The first is by an 'ACL', an access control table, this is a hashtable that register KEYS.  Each key has a context part and a specific part.  The context part determines if it is a global key (no context), faction key (faction key identifier), and city key (city key identifier).  So, let's say a 'Shipyard' requires a city to has a 'Port' to be built.  Then the 'Port' adds a key at the city level (the key has a context part which corresponds to the specific city) like '0x98' and then when the shipyard is added to the list of buildable objects on the city it checks if that key is present in the ACL.
-
-The centralized part is that the access to the keys is centralized by a single component.  So the goal is to be able to configure easily all the dependencies from configuration files.
+The discovery of a technology or other achievements enable unit productions or resource production.  Everything is mediated through the commands.
 
 
 ## Combat
