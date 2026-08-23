@@ -98,8 +98,14 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         {
             // Move down
             selectionOffset--;
-        } else 
+        } else if (lon2!=18)
         {
+            // lon2==18 is the up/down arrows' own column (they sit on the SAME row as the
+            // list's first/last item, lat2==10/18 respectively -- see the comment above).  A
+            // click that misses the exact arrow row by a pixel (very plausible: the arrow
+            // icon is only ~8px tall) but still lands in that column must NOT fall through to
+            // selecting whatever item happens to share that row, or the production queue gets
+            // silently changed instead of the list just scrolling.
             selection = lat2 - 10 + selectionOffset*(-1);
             printf("Selection %d\n",selection);
         }
@@ -161,6 +167,34 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         }
     }
 
+}
+
+void getFoodStorageLayout(int pop, int &itemsPerRow, int &colsepar)
+{
+    // Same box width as City Resources/City Commodities above (cols -10..-4, 6 tiles), whose
+    // colsepar formula's own comment says "16 resources fit with a colsepar of 7" -- so 16 is
+    // the row's natural (uncompressed) capacity here too. Picking itemsPerRow only off
+    // ceil(thresshold/rows) (as before) starves small thresholds down to far fewer per row
+    // (e.g. 8 at pop=1) even though the row has room for twice that -- so take whichever is
+    // larger, the natural capacity or what a large thresshold actually needs.
+    const int NATURAL_ITEMS_PER_ROW = 16;
+
+    int foodStorageRows = ((3)-(-3))*16/7;
+    int foodStorageWidth = ((-4)-(-10))*16;
+    int foodThresshold = getPopulationThresshold(pop);
+
+    itemsPerRow = NATURAL_ITEMS_PER_ROW;
+    int neededPerRow = (int)ceil((float)foodThresshold/(float)foodStorageRows);
+    if (neededPerRow > itemsPerRow)
+        itemsPerRow = neededPerRow;
+
+    // Spacing is measured between an icon's LEFT edges, so the last icon's right edge sits
+    // at colsepar*(itemsPerRow-1)+7 (icon width) -- that must stay <= the box width, not
+    // colsepar*itemsPerRow, or a tightly packed row overruns the box by up to 7px.
+    if (itemsPerRow<=1)
+        colsepar = 7;
+    else
+        colsepar = clipInt( (int)floor((float)(foodStorageWidth-7)/(float)(itemsPerRow-1)), -7, 7);
 }
 
 void drawCityScreen(int cla, int clo, City *city)
@@ -315,16 +349,19 @@ void drawCityScreen(int cla, int clo, City *city)
     placeWord(clo + (-10),cla + (-3),4,8,"Food Storage");
     drawBoundingBox(clo,cla,-10,-3,-4,3);
 
-    // The box shrank (rows -3..3, was -3..9) to make room for Commodities Storage below it:
-    // pack more icons per row, instead of the old flat 10, so the same range of stockpiled
-    // food still fits without spilling past the (now shorter) box -- same idea as City
-    // Resources' colsepar above, just picking an item COUNT per row instead of a spacing.
-    int foodStorageRows = ((3)-(-3))*16/7;
-    int foodStorageMaxPerRow = ((-4)-(-10))*16/7;
-    int foodItemsPerRow = clipInt( (int)ceil((float)city->resources[0]/(float)foodStorageRows), 10, foodStorageMaxPerRow);
+    // The box shrank (rows -3..3, was -3..9) to make room for Commodities Storage below it.
+    // Sized to the food needed to grow population by one (City.cpp getPopulationThresshold),
+    // not the current stock -- resources[0] can climb all the way up to that thresshold
+    // (bunmei.cpp endOfYear) right before the city grows, so the grid must already fit that
+    // many icons, not just whatever's stored right now. Rows stay fixed at the box's natural
+    // 7px row height; the column spacing (colsepar) is squeezed instead -- same technique as
+    // City Resources/Commodities above, but allowed below their [1,7] floor since the
+    // thresshold (100*pop) grows unbounded with population.
+    int foodItemsPerRow, foodColsepar;
+    getFoodStorageLayout(city->pop, foodItemsPerRow, foodColsepar);
 
     for(int i=0;i<city->resources[0];i++)
-        place((clo+(-10))*16-4+7*(i%foodItemsPerRow)  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
+        place((clo+(-10))*16-4+foodColsepar*(i%foodItemsPerRow)  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
 
     {
         // Commodity stockpile (task #13): a scrollable list (same mechanism as the Units

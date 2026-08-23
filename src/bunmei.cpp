@@ -343,7 +343,7 @@ inline void endOfYear()
         }
         
         // Balance city population according to available resources.
-        if (c->resources[FOOD]>100*c->pop) 
+        if (c->resources[FOOD]> getPopulationThresshold(c->pop)) 
         {
             c->resources[FOOD] = 0;
             c->pop++;

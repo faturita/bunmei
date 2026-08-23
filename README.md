@@ -189,6 +189,17 @@ Commodities are gathered in the cities without working their respective tiles.  
 
 Tiles owned by a faction by the presence of military forces are available to neaby cities by LoS.
 
+## Manufactured goods
+
+Some buildings take commodities and convert them into manufactured goods.  These are sold at much higher price and allow the increase in city building capacities (i.e. industrialization).  The list of manufactured goods are:
+
+| Mfg Good |   |  |  |
+|---|---|---|---|
+| Tools     | -                 | Factory | Copper / Iron |
+| Guns      | Gunpowder         | Armory  | Tools + Gunpowder |
+| Textiles  | Industrialization | Textile Mill | Cotton / Furs |
+
+
 ## Trade
 
 All the commodities can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.

@@ -10,6 +10,8 @@
 #include "mapmodel.h"
 #include "Faction.h"
 
+int getPopulationThresshold(int pop);
+
 class City
 {
 protected:

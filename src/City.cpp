@@ -10,6 +10,12 @@ extern std::unordered_map<int,int> commodityxresource;
 extern ImprovementResources improvementresources;
 
 
+int getPopulationThresshold(int pop)
+{
+    return 100*pop;
+}
+
+
 City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
 {
     strncpy(name,"Kattegat",256);
