@@ -26,12 +26,31 @@ enum class Command {
     BuildQuarry=18,
     BuildCamp=19,
     BuildDerrick=20,
-    BuildPlantation=21
+    BuildPlantation=21,
+    // Assign/deassign a city tile for work (the city UI's tile click): a toggle, same as
+    // City::assignWorkingTile(coordinate) -- processCommandOrders() decides assign vs.
+    // deassign from the tile's current state, same as the function it replaces at the call
+    // site. parameters.cityid identifies the city; parameters.latitude/longitude carry the
+    // tile's offset RELATIVE to the city (-3..3), unlike every other command's absolute map
+    // coordinates.
+    AssignWorkTileOrder=22,
+    // Repopulates a city's buildable list (the city UI's "Change" list): clears
+    // City::buildable and rebuilds it via populateCityBuildables(). A city's buildable list
+    // starts empty when the city is founded (BuildCityOrder) and is only filled the first
+    // time the player opens the Change screen for it. parameters.cityid identifies the city.
+    PopulateBuildableOrder=23
 };
 
 struct commandparameters
 {
+    // Unit id.
     int spawnid;
+
+    // City id -- for any command that addresses a city (e.g. AssignWorkTileOrder). Kept
+    // separate from spawnid (units), so reusing one for the other doesn't risk colliding if
+    // a future command ever needs both.
+    int cityid;
+
     int latitude;
     int longitude;
     char buf[20];

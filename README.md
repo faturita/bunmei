@@ -193,12 +193,23 @@ Tiles owned by a faction by the presence of military forces are available to nea
 
 Some buildings take commodities and convert them into manufactured goods.  These are sold at much higher price and allow the increase in city building capacities (i.e. industrialization).  The list of manufactured goods are:
 
-| Mfg Good |   |  |  |
+| Mfg Good (output) | Scientific Advancement | Building | Input materials |
 |---|---|---|---|
-| Tools     | -                 | Factory | Copper / Iron |
-| Guns      | Gunpowder         | Armory  | Tools + Gunpowder |
-| Textiles  | Industrialization | Textile Mill | Cotton / Furs |
+| Tools      | Ship Building     | Factory | Copper / Iron |
+| Guns       | Gunpowder         | Armory  | Tools + Gunpowder |
+| Textiles   | Industrialization | Textile Mill | Cotton / Furs |
+| Steel      | Steel             | Steelworks   | Tools |
+| Automobiles| Combustion        | Assembly Plant | Steel + Oil |
+| Plastics   | Plastics          | Oil Refinery | Oil           |
+| Pharmaceuticals | Medicine     | Pharma       | Spices / Game / Doe / Sugar |
+| Electronics | Electronics.     | Semiconductor Fab | Aluminium / Litium / Silver|
+| Robots |  Robotics.          | Gigafactory  | Electronics + Steel |
 
+Perhaps I can add Laudanum, Rum and Cigars.
+
+So the idea is that those who succeed are able to create the complex chain of productions to create, in the end, better armies.
+
+This will probably lead to the next level which is services.
 
 ## Trade
 
@@ -246,10 +257,10 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 
 # Features
 
-* Arriving to the south and north pole (0,-24) (0,23).
+* Spheroid: Arriving to the south and north pole (0,-24) (0,23).
 * Circumvent the world.
 * Ability to name landmarks, rivers, mountains, continents.
-* Buy and sell resources from ports (like in Colonization).  This generates trade routes.
+* Buy and sell resources from ports (like in Colonization). 
 * Allow to form alliances with other factions and independence to arise from colonies.
 * Deal with the problem of founding cities everywhere on the map: when cities are very close to each other, the one that produces more culture absorbs the other city, and one of them is destroyed, or refounded in the middle.
 * Increase traderoutes: cities that create wagons or ships if they end up selling or buying something from other cities, automatically trade routes are established, that gives to the building (or supporting city) more trade resources.  This eliminates caravans.

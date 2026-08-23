@@ -1,12 +1,14 @@
 #ifndef COORDINATOR_H
 #define COORDINATOR_H
 
+#include <queue>
+
 #include "commandorder.h"
 
-struct Coordinator 
+struct Coordinator
 {
     private:
-    CommandOrder corder;
+    std::queue<CommandOrder> corder;
 
     public:
     // Unit id of the active unit
@@ -22,22 +24,37 @@ struct Coordinator
 
     void push(CommandOrder co)
     {
-        corder = co;
+        corder.push(co);
     }
 
+    // Pops and returns the oldest pending command. If the queue is empty, returns a
+    // Command::None order rather than being undefined behavior (std::queue::front() on
+    // an empty queue).
     CommandOrder pop()
     {
-        CommandOrder cr = corder;
+        if (corder.empty())
+        {
+            CommandOrder none;
+            none.command = Command::None;
+            return none;
+        }
 
-        corder.command = Command::None;
+        CommandOrder cr = corder.front();
+        corder.pop();
 
         return cr;
+    }
+
+    bool empty()
+    {
+        return corder.empty();
     }
 
 
     void reset()
     {
-        corder.command = Command::None;
+        while (!corder.empty())
+            corder.pop();
     }
 };
 

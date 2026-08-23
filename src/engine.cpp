@@ -141,8 +141,35 @@ City* findCityAt(int lat, int lon)
         {
             city = c;
         }
-    }    
+    }
     return city;
+}
+
+// What the city can actually build (based on the faction type).  This is all.
+void populateCityBuildables(City* city)
+{
+    city->buildable.push_back(new BarracksFactory());
+    city->buildable.push_back(new PalaceFactory());
+    city->buildable.push_back(new ScoutFactory());
+    city->buildable.push_back(new SettlerFactory());
+    city->buildable.push_back(new WorkerFactory());
+    city->buildable.push_back(new GranaryFactory());
+    city->buildable.push_back(new WagonFactory());
+    city->buildable.push_back(new CollosseumFactory());
+    city->buildable.push_back(new MarketFactory());
+    city->buildable.push_back(new WarriorFactory());
+    city->buildable.push_back(new ArcherFactory());
+    city->buildable.push_back(new SpearmanFactory());
+    city->buildable.push_back(new SwordmanFactory());
+    city->buildable.push_back(new PretorianFactory());
+    city->buildable.push_back(new AxemanFactory());
+    city->buildable.push_back(new WorkerFactory());
+    city->buildable.push_back(new HorsemanFactory());
+    city->buildable.push_back(new ChariotFactory());
+    city->buildable.push_back(new WarelephantFactory());
+    city->buildable.push_back(new TriremeFactory());
+    city->buildable.push_back(new GalleyFactory());
+    city->buildable.push_back(new HorsearcherFactory());
 }
 
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id)
@@ -760,7 +787,9 @@ void switchUnitIfNoMovesLeft()
 
 void processCommandOrders()
 {
-    CommandOrder co = coordinator.pop();  //@FIXME make it a queue.
+  while (!coordinator.empty())
+  {
+    CommandOrder co = coordinator.pop();
 
     // Finalize commands apply to a TILE (carried in co.parameters), not the active unit:
     // by the time processWork() pushes one, the working unit's moves are already zeroed
@@ -768,58 +797,79 @@ void processCommandOrders()
     // the faction's last movable unit), so these must run before the active-unit guard below.
     if (co.command == Command::MoveUnitTo)
     {
-        printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude, co.parameters.latitude,co.parameters.longitude, map.set(co.parameters.latitude,co.parameters.longitude).code, map.set(co.parameters.latitude,co.parameters.longitude).bioma); 
+        printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude, co.parameters.latitude,co.parameters.longitude, map.set(co.parameters.latitude,co.parameters.longitude).code, map.set(co.parameters.latitude,co.parameters.longitude).bioma);
 
         // Now move the unit if it is possible.
         moveUnit(units[coordinator.a_u_id],co.parameters.latitude,co.parameters.longitude);
 
         switchUnitIfNoMovesLeft();
     }
-    
+
     if (co.command == Command::BuildRoad)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildRoad();
-        return;
+        continue;
     }
     if (co.command == Command::BuildMine)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildMine();
-        return;
+        continue;
     }
     if (co.command == Command::BuildIrrigation)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildIrrigation();
-        return;
+        continue;
     }
     if (co.command == Command::BuildRailroad)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildRailroad();
-        return;
+        continue;
     }
     if (co.command == Command::BuildQuarry)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildQuarry();
-        return;
+        continue;
     }
     if (co.command == Command::BuildCamp)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildCamp();
-        return;
+        continue;
     }
     if (co.command == Command::BuildDerrick)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildDerrick();
-        return;
+        continue;
     }
     if (co.command == Command::BuildPlantation)
     {
         map.set(co.parameters.latitude, co.parameters.longitude).buildPlantation();
-        return;
+        continue;
+    }
+    if (co.command == Command::AssignWorkTileOrder)
+    {
+        // Addresses a CITY (parameters.cityid), not the active unit, same as the tile
+        // commands above -- must run before the active-unit guard below.
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (cityIt != cities.end())
+            cityIt->second->assignWorkingTile(coordinate(co.parameters.latitude, co.parameters.longitude));
+        continue;
+    }
+    if (co.command == Command::PopulateBuildableOrder)
+    {
+        // Addresses a CITY (parameters.cityid), not the active unit, same as the tile
+        // commands above -- must run before the active-unit guard below.
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (cityIt != cities.end())
+        {
+            cityIt->second->buildable.clear(); //@TODO: Add all the checks to see what can be built based on science and resources.
+            populateCityBuildables(cityIt->second);
+        }
+        continue;
     }
 
     if (units.find(coordinator.a_u_id) == units.end())
     {
-        return;
+        continue;
     }
 
     if (co.command == Command::BuildCityOrder)
@@ -850,30 +900,9 @@ void processCommandOrders()
 
         city->foundedyear = year;
 
-        // What the city can actually build.
-        city->buildable.push_back(new BarracksFactory());
-        city->buildable.push_back(new PalaceFactory());
-        city->buildable.push_back(new ScoutFactory());
-        city->buildable.push_back(new SettlerFactory());
-        city->buildable.push_back(new WorkerFactory());
-        city->buildable.push_back(new GranaryFactory());
-        city->buildable.push_back(new WagonFactory());
-        city->buildable.push_back(new CollosseumFactory());
-        city->buildable.push_back(new MarketFactory());
-        city->buildable.push_back(new WarriorFactory());
-        city->buildable.push_back(new ArcherFactory());
-        city->buildable.push_back(new SpearmanFactory());
-        city->buildable.push_back(new SwordmanFactory());
-        city->buildable.push_back(new PretorianFactory());
-        city->buildable.push_back(new AxemanFactory());
-        city->buildable.push_back(new WorkerFactory());
-        city->buildable.push_back(new HorsemanFactory());
-        city->buildable.push_back(new ChariotFactory());
-        city->buildable.push_back(new WarelephantFactory());
-        city->buildable.push_back(new TriremeFactory());
-        city->buildable.push_back(new GalleyFactory());
-        city->buildable.push_back(new HorsearcherFactory());
-
+        // city->buildable starts empty: it is only filled the first time the player opens
+        // the city's Change screen (see cityscreenui.cpp's changeIsActive, which pushes
+        // Command::PopulateBuildableOrder).
 
         // We add the Warrior as the first thing to build in the city.
         city->productionQueue.push(new WarriorFactory());
@@ -1026,6 +1055,7 @@ void processCommandOrders()
             }
         }
     }
+  }
 }
 
 // Building a road/mine/irrigation takes several turns (BuildRoadOrder etc. only put the

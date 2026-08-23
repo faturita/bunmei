@@ -22,6 +22,11 @@ int nextMovableUnitId(int f_id);
 City* findCityAt(int lat, int lon);
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 
+// Fills city->buildable with everything the city can currently build (based on the faction
+// type -- this is all, for now). Does NOT clear the list first; callers that want a fresh
+// list (e.g. Command::PopulateBuildableOrder) must clear() before calling.
+void populateCityBuildables(City* city);
+
 int findNearbyEnemyFactionId(int unitId, int radius);
 
 // Makes u the active/selectable unit (coordinator.a_u_id) and wakes it out of whatever

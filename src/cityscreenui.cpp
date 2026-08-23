@@ -14,6 +14,7 @@
 #include "engine.h"
 #include "usercontrols.h"
 #include "tiles.h"
+#include "coordinator.h"
 #include "cityscreenui.h"
 
 extern float cx;
@@ -26,6 +27,7 @@ extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern Controller controller;
+extern Coordinator coordinator;
 
 // Units currently standing on city's tile, in a stable order shared by drawCityScreen (to
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
@@ -84,6 +86,15 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
     if ((lat==4 && lon==5) || (lat==4 && lon==4))
     {
         printf("Change\n"); // Row, Column
+        if (!changeIsActive)
+        {
+            // Opening the Change list: (re)populate city->buildable, which otherwise stays
+            // empty from when the city was founded (BuildCityOrder).
+            CommandOrder co;
+            co.command = Command::PopulateBuildableOrder;
+            co.parameters.cityid = controller.cityid;
+            coordinator.push(co);
+        }
         changeIsActive = true;
     }
 
@@ -478,7 +489,15 @@ void drawCityScreen(int cla, int clo, City *city)
 
     if (tileWorkingIsActive)
     {
-        city->assignWorkingTile(clickedTile);
+        // Command pattern: the actual assign/deassign toggle happens in
+        // engine.cpp:processCommandOrders() (Command::AssignWorkTileOrder), not here.
+        CommandOrder co;
+        co.command = Command::AssignWorkTileOrder;
+        co.parameters.cityid = city->id;
+        co.parameters.latitude = clickedTile.lat;
+        co.parameters.longitude = clickedTile.lon;
+        coordinator.push(co);
+
         tileWorkingIsActive = false;
     }
 
