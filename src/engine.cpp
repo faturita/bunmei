@@ -151,28 +151,30 @@ City* findCityAt(int lat, int lon)
 void populateCityBuildables(City* city)
 {
     static std::vector<BuildableFactory*> buildable; // Add all the buildables things of the game.
-    buildable.push_back(new BarracksFactory());
-    buildable.push_back(new PalaceFactory());
-    buildable.push_back(new ScoutFactory());
-    buildable.push_back(new SettlerFactory());
-    buildable.push_back(new WorkerFactory());
-    buildable.push_back(new GranaryFactory());
-    buildable.push_back(new WagonFactory());
-    buildable.push_back(new CollosseumFactory());
-    buildable.push_back(new MarketFactory());
-    buildable.push_back(new WarriorFactory());
-    buildable.push_back(new ArcherFactory());
-    buildable.push_back(new SpearmanFactory());
-    buildable.push_back(new SwordmanFactory());
-    buildable.push_back(new PretorianFactory());
-    buildable.push_back(new AxemanFactory());
-    buildable.push_back(new WorkerFactory());
-    buildable.push_back(new HorsemanFactory());
-    buildable.push_back(new ChariotFactory());
-    buildable.push_back(new WarelephantFactory());
-    buildable.push_back(new TriremeFactory());
-    buildable.push_back(new GalleyFactory());
-    buildable.push_back(new HorsearcherFactory());
+    if (buildable.empty())
+    {
+        buildable.push_back(new BarracksFactory());
+        buildable.push_back(new PalaceFactory());
+        buildable.push_back(new ScoutFactory());
+        buildable.push_back(new SettlerFactory());
+        buildable.push_back(new WorkerFactory());
+        buildable.push_back(new GranaryFactory());
+        buildable.push_back(new WagonFactory());
+        buildable.push_back(new CollosseumFactory());
+        buildable.push_back(new MarketFactory());
+        buildable.push_back(new WarriorFactory());
+        buildable.push_back(new ArcherFactory());
+        buildable.push_back(new SpearmanFactory());
+        buildable.push_back(new SwordmanFactory());
+        buildable.push_back(new PretorianFactory());
+        buildable.push_back(new AxemanFactory());
+        buildable.push_back(new HorsemanFactory());
+        buildable.push_back(new ChariotFactory());
+        buildable.push_back(new WarelephantFactory());
+        buildable.push_back(new TriremeFactory());
+        buildable.push_back(new GalleyFactory());
+        buildable.push_back(new HorsearcherFactory());
+    }
 
 
     for (auto& buildableFactory : buildable)

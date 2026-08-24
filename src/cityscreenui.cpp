@@ -472,9 +472,14 @@ void drawCityScreen(int cla, int clo, City *city)
         }
 
         if (selectionOffset>0) selectionOffset=0;
+        // When the list is SHORTER than the box (size<slots), size-slots is negative -- floor
+        // it at 0 so the clamp below can't flip sign and push a short list toward the bottom
+        // of the box instead of leaving it top-justified (issue2.png: a short list -- Palace/
+        // Scout/Settler/Worker/Warrior -- appeared shifted down with a blank gap above it).
         int max = ((int)city->buildable.size())-slots;
-        if (selectionOffset<-max) 
-            selectionOffset=(city->buildable.size()-slots)*(-1);
+        if (max<0) max=0;
+        if (selectionOffset<-max)
+            selectionOffset=-max;
 
     }
     else

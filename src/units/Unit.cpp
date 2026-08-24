@@ -379,3 +379,16 @@ int Unit::getSubType()
     return -1;
 }
 
+void Unit::veteran()
+{
+    e[0] += 0.1;
+    e[1] += 0.1;
+    e[2] += 0.1;
+    e[3] += 0.1;
+    e[4] += 0.1;
+
+    aw += 1.0;
+    dw += 1.0;
+    utw += 1.0;
+}
+

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string>
 #include <iostream>
+#include <sstream>
 
 #include "openglutils.h"
 #include "profiling.h"
@@ -15,6 +16,7 @@
 #include "savegame.h"
 #include "sounds/sounds.h"
 #include "diplomacy.h"
+#include "dee.h"
 
 
 extern Coordinator coordinator;
@@ -24,6 +26,8 @@ extern std::unordered_map<int, Unit*> units;
 extern Map map;
 
 extern DiplomacyTable diplomacy;
+
+extern DependencyEvaluationEngine dee;
 
 extern bool autoEndOfTurn;
 
@@ -65,6 +69,56 @@ void handleKeypress(unsigned char key, int x, int y) {
                 if (controller.str.find("off")!=std::string::npos)
                 {
                     factions[coordinator.a_f_id]->autoPlayer  = false;
+                }
+            } else
+            if (controller.str.find("/enable")!=std::string::npos)
+            {
+                // /enable world 0x01
+                // /enable faction 0x03      (faction is the active/controlling one, coordinator.a_f_id)
+                // /enable city Kattegate 0x01
+                std::istringstream iss(controller.str);
+                std::string cmd, scope, token;
+                iss >> cmd >> scope;
+
+                if (scope == "world")
+                {
+                    iss >> token;
+                    int codeId = (int)std::stol(token, nullptr, 16);
+                    dee.regDep(worldContext(), codeId);
+                    message(year, coordinator.a_f_id, "Enabled code 0x%x for the WORLD.", codeId);
+                }
+                else if (scope == "faction")
+                {
+                    iss >> token;
+                    int codeId = (int)std::stol(token, nullptr, 16);
+                    dee.regDep(factionContext(coordinator.a_f_id), codeId);
+                    message(year, coordinator.a_f_id, "Enabled code 0x%x for faction %s.", codeId, factions[coordinator.a_f_id]->name);
+                }
+                else if (scope == "city")
+                {
+                    std::string cityname;
+                    iss >> cityname >> token;
+                    int codeId = (int)std::stol(token, nullptr, 16);
+
+                    City* target = nullptr;
+                    for (auto& [k,c] : cities)
+                    {
+                        if (cityname == c->name)
+                        {
+                            target = c;
+                            break;
+                        }
+                    }
+
+                    if (target != nullptr)
+                    {
+                        dee.regDep(cityContext(target->id), codeId);
+                        message(year, coordinator.a_f_id, "Enabled code 0x%x for city %s.", codeId, target->name);
+                    }
+                    else
+                    {
+                        message(year, coordinator.a_f_id, "City '%s' not found.", cityname.c_str());
+                    }
                 }
             }
 

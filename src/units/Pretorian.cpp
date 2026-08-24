@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Pretorian.h"
 
 extern std::vector<Faction*> factions;
@@ -26,7 +27,8 @@ Pretorian* PretorianFactory::create()
 
 PretorianFactory::PretorianFactory()
 {
-    strncpy(this->name,"Pretorian",256);  
+    strncpy(this->name,"Pretorian",256);
+    addDependencyCode(TECH_IRON_WORKING);
 }
 
 int PretorianFactory::cost(int r_id)

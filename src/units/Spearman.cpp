@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Spearman.h"
 
 extern std::vector<Faction*> factions;
@@ -25,7 +26,8 @@ Spearman* SpearmanFactory::create()
 
 SpearmanFactory::SpearmanFactory()
 {
-    strncpy(this->name,"Spearman",256);  
+    strncpy(this->name,"Spearman",256);
+    addDependencyCode(TECH_WARRIOR_CODE);
 }
 
 int SpearmanFactory::cost(int r_id)

@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "codes.h"
+
 // Dependency Evaluation Engine
 
 // Scope a dependency is registered/verified against.
@@ -27,6 +29,7 @@ class DependencyEvaluationEngine {
         DependencyEvaluationEngine();
 
         void regDep(int contextId, int codeId);
+        void regDep(int contextId, const std::vector<int>& codeIds);
 
         void unregDep(int contextId, int codeId);
 

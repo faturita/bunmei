@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Wagon.h"
 
 extern std::vector<Faction*> factions;
@@ -85,7 +86,8 @@ int Wagon::getSubType()
 
 WagonFactory::WagonFactory()
 {
-    strncpy(this->name,"Wagon",256);  
+    strncpy(this->name,"Wagon",256);
+    addDependencyCode(TECH_THE_WHEEL);
 }
 
 int WagonFactory::cost(int r_id)

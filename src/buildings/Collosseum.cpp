@@ -1,3 +1,4 @@
+#include "../codes.h"
 #include "Collosseum.h"
 
 Collosseum::Collosseum()
@@ -16,6 +17,7 @@ int Collosseum::getSubType()
 CollosseumFactory::CollosseumFactory()
 {
     strncpy(this->name,"Collosseum",256);
+    addDependencyCode(TECH_WRITING);
 }
 
 Buildable* CollosseumFactory::create()

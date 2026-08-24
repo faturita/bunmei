@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Swordman.h"
 
 extern std::vector<Faction*> factions;
@@ -26,7 +27,8 @@ Swordman* SwordmanFactory::create()
 
 SwordmanFactory::SwordmanFactory()
 {
-    strncpy(this->name,"Swordman",256);  
+    strncpy(this->name,"Swordman",256);
+    addDependencyCode(TECH_IRON_WORKING);
 }
 
 int SwordmanFactory::cost(int r_id)

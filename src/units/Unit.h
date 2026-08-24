@@ -123,6 +123,7 @@ class Unit : public Buildable
 
     float getAttack();
     float getDefense();
+    void veteran();
 
     bool movementCompleted();
 

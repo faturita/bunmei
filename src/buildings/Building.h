@@ -22,6 +22,8 @@ enum BUILDING_SUBTYPE
 
 class Building : public Buildable
 {
+    protected:
+        std::vector<int> perkCodes;
     public:
     Building();
     int faction;
@@ -30,6 +32,7 @@ class Building : public Buildable
     void setName(const char* name);
     BuildableType getType();
     int virtual getSubType();
+    std::vector<int>& getPerkCodes();
 };
 
 #endif   //BUILDING_H

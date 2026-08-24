@@ -326,6 +326,11 @@ inline void endOfYear()
                     unit->faction = c->faction;
                     unit->availablemoves = unit->getUnitMoves();
 
+                    if (dee.verifyDep(cityContext(c->id), VETERAN_CODE))  // Set the code name as something that depends on the feature
+                    {
+                        unit->veteran();
+                    }
+
                     units[unit->id] = unit;
                 }
                 else
@@ -333,6 +338,8 @@ inline void endOfYear()
                     Building *building = (Building*)b;
                     building->faction = c->faction;
                     c->buildings.push_back(building);
+
+                    dee.regDep(cityContext(c->id), building->getPerkCodes());
 
                     message(year, c->faction, "City %s has built %s.",c->name,building->name);
                     built();                

@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Chariot.h"
 
 extern std::vector<Faction*> factions;
@@ -26,7 +27,8 @@ Chariot* ChariotFactory::create()
 
 ChariotFactory::ChariotFactory()
 {
-    strncpy(this->name,"Chariot",256);  
+    strncpy(this->name,"Chariot",256);
+    addDependencyCode(TECH_THE_WHEEL);
 }
 
 int ChariotFactory::cost(int r_id)

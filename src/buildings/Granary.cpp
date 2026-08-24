@@ -1,3 +1,4 @@
+#include "../codes.h"
 #include "Granary.h"
 
 Granary::Granary()
@@ -15,6 +16,7 @@ int Granary::getSubType()
 GranaryFactory::GranaryFactory()
 {
     strncpy(this->name,"Granary",256);
+    addDependencyCode(TECH_POTTERY);
 }
 
 Buildable* GranaryFactory::create()

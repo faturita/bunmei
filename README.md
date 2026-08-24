@@ -107,7 +107,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 
 ## Units
 
-| Unit |   |  |  |
+| Unit | Dep Tech  | Commodity  |  |
 |---|---|---|---|
 | Settler         | -                 |  | - |
 | Worker          | -    |  |  |
@@ -129,13 +129,13 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 
 ## Cities
 
-| Buildings |   |  |  |
+| Buildings |  Dependencies |  Dep Code (city context) |  |
 |---|---|---|---|
 | Palace         | -                 |  | - |
-| Barracks       | Warrior Code    |  |  |
-| Granary        | Pottery      | Mine | Iron |
-| Market         | Currency            | Mine | Silver |
-| Collosseum     | Writing            | Quarry | Marble |
+| Barracks       | Warrior Code    | 0x01 |  |
+| Granary        | Pottery         |  0x02| - |
+| Market         | Currency            | - | - |
+| Collosseum     | Writing            | - | - |
 
 
 
@@ -262,7 +262,7 @@ Instead of selecting what scientific advance do you seek, you can invest researc
 
 The discovery of a technology or other achievements enable unit productions or resource production.  Everything is mediated through the commands.
 
-| Tech | Dep Code  |  |  |
+| Tech | Technology Dep Code  | Dependencies |  |
 |---|---|---|---|
 | The Wheel         | 0x01                 |  | - |
 | Archery           | 0x02    |  |  |
@@ -277,7 +277,7 @@ The discovery of a technology or other achievements enable unit productions or r
 | Mining            | 0x0b          |  |  |
 | Ceremonial Burial | 0x0c          | | |
 | Writing           | 0x0d          | Alphabet | |
-| Currency          | 0x10          | | |
+| Map Making        | 0x0e          | Alphabet + Pottery | |
 
 
 ## Combat

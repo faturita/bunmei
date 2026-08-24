@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Trireme.h"
 
 extern std::vector<Faction*> factions;
@@ -85,7 +86,8 @@ int Trireme::getSubType()
 
 TriremeFactory::TriremeFactory()
 {
-    strncpy(this->name,"Trireme",256);  
+    strncpy(this->name,"Trireme",256);
+    addDependencyCode(TECH_MAP_MAKING);
 }
 
 int TriremeFactory::cost(int r_id)

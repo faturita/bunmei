@@ -19,3 +19,8 @@ int Building::getSubType()
 {
     return -1; // Base Building has no subtype
 }
+
+std::vector<int>& Building::getPerkCodes()
+{
+    return perkCodes; // Base Building has no perk codes
+}

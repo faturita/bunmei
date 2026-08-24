@@ -36,6 +36,14 @@ bool DependencyEvaluationEngine::verifyDep(int contextId, int codeId)
     return it->second.find(codeId) != it->second.end();
 }
 
+void DependencyEvaluationEngine::regDep(int contextId, const std::vector<int>& codeIds)
+{
+    for (int codeId : codeIds)
+    {
+        regDep(contextId, codeId);
+    }
+}
+
 bool DependencyEvaluationEngine::verifyDepAll(int contextId, const std::vector<int>& codeIds)
 {
     for (int codeId : codeIds)

@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Axeman.h"
 
 extern std::vector<Faction*> factions;
@@ -27,7 +28,8 @@ Axeman* AxemanFactory::create()
 
 AxemanFactory::AxemanFactory()
 {
-    strncpy(this->name,"Axeman",256);  
+    strncpy(this->name,"Axeman",256);
+    addDependencyCode(TECH_IRON_WORKING);
 }
 
 int AxemanFactory::cost(int r_id)

@@ -1,3 +1,4 @@
+#include "../codes.h"
 #include "Market.h"
 
 Market::Market()
@@ -15,6 +16,7 @@ int Market::getSubType()
 MarketFactory::MarketFactory()
 {
     strncpy(this->name,"Market",256);
+    addDependencyCode(TECH_CURRENCY);
 }
 
 Buildable* MarketFactory::create()

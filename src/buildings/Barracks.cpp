@@ -1,9 +1,11 @@
+#include "../codes.h"
 #include "Barracks.h"
 
 Barracks::Barracks()
 {
     strcpy(name,"Barracks");
     strncpy(this->assetname,"assets/assets/city/barracks.png",256);
+    perkCodes.push_back(VETERAN_CODE);
 }
 
 int Barracks::getSubType()
@@ -16,6 +18,7 @@ int Barracks::getSubType()
 BarracksFactory::BarracksFactory()
 {
     strncpy(this->name,"Barracks",256);
+    addDependencyCode(TECH_WARRIOR_CODE);
 }
 
 Buildable* BarracksFactory::create()

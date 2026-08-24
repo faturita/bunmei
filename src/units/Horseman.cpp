@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Horseman.h"
 
 extern std::vector<Faction*> factions;
@@ -26,7 +27,8 @@ Horseman* HorsemanFactory::create()
 
 HorsemanFactory::HorsemanFactory()
 {
-    strncpy(this->name,"Horseman",256);  
+    strncpy(this->name,"Horseman",256);
+    addDependencyCode(TECH_HORSEBACK_RIDING);
 }
 
 int HorsemanFactory::cost(int r_id)

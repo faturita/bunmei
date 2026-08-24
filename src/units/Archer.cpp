@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Archer.h"
 
 extern std::vector<Faction*> factions;
@@ -25,7 +26,8 @@ Archer* ArcherFactory::create()
 
 ArcherFactory::ArcherFactory()
 {
-    strncpy(this->name,"Archer",256);  
+    strncpy(this->name,"Archer",256);
+    addDependencyCode(TECH_ARCHERY);
 }
 
 int ArcherFactory::cost(int r_id)

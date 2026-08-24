@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Warelephant.h"
 
 extern std::vector<Faction*> factions;
@@ -26,7 +27,8 @@ Warelephant* WarelephantFactory::create()
 
 WarelephantFactory::WarelephantFactory()
 {
-    strncpy(this->name,"Warelephant",256);  
+    strncpy(this->name,"Warelephant",256);
+    addDependencyCode(TECH_ANIMAL_HUSBANDRY);
 }
 
 int WarelephantFactory::cost(int r_id)

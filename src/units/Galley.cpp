@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Galley.h"
 
 extern std::vector<Faction*> factions;
@@ -31,7 +32,10 @@ Galley* GalleyFactory::create()
 
 GalleyFactory::GalleyFactory()
 {
-    strncpy(this->name,"Galley",256);  
+    strncpy(this->name,"Galley",256);
+    // README.md:126 requires "Map Making + Horseback Riding".
+    addDependencyCode(TECH_MAP_MAKING);
+    addDependencyCode(TECH_HORSEBACK_RIDING);
 }
 
 int GalleyFactory::cost(int r_id)
