@@ -28,6 +28,7 @@
 #include "buildings/Collosseum.h"
 #include "buildings/Market.h"
 #include "coordinator.h"
+#include "dee.h"
 #include "improvements.h"
 #include "diplomacy.h"
 #include "ai.h"
@@ -50,6 +51,7 @@ Cities cities;
 // but their SYMBOLS still have to resolve at link time.
 Map map;
 Coordinator coordinator;
+DependencyEvaluationEngine dee;
 DiplomacyTable diplomacy;
 std::unordered_map<int, Improvement*> improvements;
 

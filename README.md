@@ -105,6 +105,40 @@ The standard map size is 72x48.
 
 Latitud determines the relation to the equator, increasing towards south. Longitud are the meridians, increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course as long as is possible to make the movement according to the unit.  This can change sea warfare.  The map generation system depends on the size map and currently the generation procedure is very rough.
 
+## Units
+
+| Unit |   |  |  |
+|---|---|---|---|
+| Settler         | -                 |  | - |
+| Worker          | -    |  |  |
+| Wagon           | Wheel      | - | - |
+| Warrior         | -            | - | - |
+| Scout           | -    |  |  |
+| Archer          | Archery           | - | - |
+| Spearman        | Warrior Code                | -    | - |
+| Swordman        | Iron Working           | Iron/Copper   | - |
+| Pretorian       | Iron Working           | Iron/Copper | - |
+| Axeman          | Iron Working          | Iron/Copper | - |
+| Horseman        | Horseback Riding                | Horses    | - |
+| Chariot         | Wheel                | Horses    | - |
+| War Elephant.   | Animal Husbandry                | Elephants    | - |
+| Trireme         | Map Making      | - | - |
+| Galley          | Map Making + Horseback Riding  | -    | - |
+| Horse Archer    | Animal Husbandry + Horseback Riding | -    | - |
+
+
+## Cities
+
+| Buildings |   |  |  |
+|---|---|---|---|
+| Palace         | -                 |  | - |
+| Barracks       | Warrior Code    |  |  |
+| Granary        | Pottery      | Mine | Iron |
+| Market         | Currency            | Mine | Silver |
+| Collosseum     | Writing            | Quarry | Marble |
+
+
+
 ## Diplomacy and Wars
 
 Civs have a relation between each other which goes from 1 to 8 (check table).  Indeed, it is a transition graph, a finite state machine.  Each state has a property which identifies the seizure or not of land: this means, what happen when a unit moves into a tile which belongs to the other, if it flips or not the ownership.  So all the factions are in a star configuration against all the other and their relations with each one of them is governed by a transition graph.
@@ -227,6 +261,23 @@ Population represents humans, so they are handled like human population.  So the
 Instead of selecting what scientific advance do you seek, you can invest research points into things that you already know.  The science tree connects all the different discoveries with a sigmoid weighted linear activation.  For instance, investing in Alphabet and Mathematics may lead to the discovery of Astronomy.  But it doesn't really make sense to invest in what you already do not know (like other games like this do).  So the idea is have like a multilayered neural network where the each node correspond to a concrete scientific discovery and the sigmoid function depends on weights that are increased as long as they are invested.  This will produce the triggering of each one of the discoveries, which now will look more random and it will depend on what do you invest.  
 
 The discovery of a technology or other achievements enable unit productions or resource production.  Everything is mediated through the commands.
+
+| Tech | Dep Code  |  |  |
+|---|---|---|---|
+| The Wheel         | 0x01                 |  | - |
+| Archery           | 0x02    |  |  |
+| Warrior Code      | 0x03     |  |  |
+| Bronze Working    | 0x04            |  |  |
+| Iron Working      | 0x05
+| Horseback Riding  | 0x06    |  |  |
+| Animal Husbandry  | 0x07            |  |  |
+| Pottery           | 0x08                | -    | - |
+| Currency          | 0x09           |    |  |
+| Alphabet          | 0x0a           |  |  |
+| Mining            | 0x0b          |  |  |
+| Ceremonial Burial | 0x0c          | | |
+| Writing           | 0x0d          | Alphabet | |
+| Currency          | 0x10          | | |
 
 
 ## Combat

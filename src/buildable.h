@@ -16,6 +16,14 @@ public:
     char name[256];
     virtual int cost(int r_id) = 0;
     virtual Buildable* create() = 0;
+    virtual std::vector<int> getDependencyCodes() {
+        return dependencyCodes;
+    }
+protected:
+    std::vector<int> dependencyCodes;
+    void addDependencyCode(int codeId) {
+        dependencyCodes.push_back(codeId);
+    }
 };
 
 

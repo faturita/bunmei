@@ -61,6 +61,7 @@
 #include "map.h"
 #include "hud.h"
 #include "ai.h"
+#include "dee.h"
 
 #include "buildable.h"
 
@@ -111,6 +112,7 @@ std::vector<Resource*> resources;
 std::vector<Message> messages;
 
 Coordinator coordinator;
+DependencyEvaluationEngine dee;
 
 extern DiplomacyTable diplomacy;
 extern ImprovementEffort improvementeffort;

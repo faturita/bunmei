@@ -39,6 +39,7 @@
 #include "units/Spy.h"
 #include "units/Wagon.h"
 #include "coordinator.h"
+#include "dee.h"
 #include "messages.h"
 #include "sounds/sounds.h"
 #include "engine.h"
@@ -47,6 +48,7 @@ extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern Coordinator coordinator;
+extern DependencyEvaluationEngine dee;
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern ImprovementEffort improvementeffort;
@@ -145,31 +147,40 @@ City* findCityAt(int lat, int lon)
     return city;
 }
 
-// What the city can actually build (based on the faction type).  This is all.
+// Go through all the things a city can build and check all the dependencies.
 void populateCityBuildables(City* city)
 {
-    city->buildable.push_back(new BarracksFactory());
-    city->buildable.push_back(new PalaceFactory());
-    city->buildable.push_back(new ScoutFactory());
-    city->buildable.push_back(new SettlerFactory());
-    city->buildable.push_back(new WorkerFactory());
-    city->buildable.push_back(new GranaryFactory());
-    city->buildable.push_back(new WagonFactory());
-    city->buildable.push_back(new CollosseumFactory());
-    city->buildable.push_back(new MarketFactory());
-    city->buildable.push_back(new WarriorFactory());
-    city->buildable.push_back(new ArcherFactory());
-    city->buildable.push_back(new SpearmanFactory());
-    city->buildable.push_back(new SwordmanFactory());
-    city->buildable.push_back(new PretorianFactory());
-    city->buildable.push_back(new AxemanFactory());
-    city->buildable.push_back(new WorkerFactory());
-    city->buildable.push_back(new HorsemanFactory());
-    city->buildable.push_back(new ChariotFactory());
-    city->buildable.push_back(new WarelephantFactory());
-    city->buildable.push_back(new TriremeFactory());
-    city->buildable.push_back(new GalleyFactory());
-    city->buildable.push_back(new HorsearcherFactory());
+    static std::vector<BuildableFactory*> buildable; // Add all the buildables things of the game.
+    buildable.push_back(new BarracksFactory());
+    buildable.push_back(new PalaceFactory());
+    buildable.push_back(new ScoutFactory());
+    buildable.push_back(new SettlerFactory());
+    buildable.push_back(new WorkerFactory());
+    buildable.push_back(new GranaryFactory());
+    buildable.push_back(new WagonFactory());
+    buildable.push_back(new CollosseumFactory());
+    buildable.push_back(new MarketFactory());
+    buildable.push_back(new WarriorFactory());
+    buildable.push_back(new ArcherFactory());
+    buildable.push_back(new SpearmanFactory());
+    buildable.push_back(new SwordmanFactory());
+    buildable.push_back(new PretorianFactory());
+    buildable.push_back(new AxemanFactory());
+    buildable.push_back(new WorkerFactory());
+    buildable.push_back(new HorsemanFactory());
+    buildable.push_back(new ChariotFactory());
+    buildable.push_back(new WarelephantFactory());
+    buildable.push_back(new TriremeFactory());
+    buildable.push_back(new GalleyFactory());
+    buildable.push_back(new HorsearcherFactory());
+
+
+    for (auto& buildableFactory : buildable)
+    {
+        if (dee.verifyDepAll(factionContext(city->faction), buildableFactory->getDependencyCodes()))
+            city->buildable.push_back(buildableFactory);
+    }
+
 }
 
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id)
