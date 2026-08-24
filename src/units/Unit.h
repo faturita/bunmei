@@ -44,7 +44,7 @@ class Unit : public Buildable
 
         bool autoMode = false;
 
-        float e[5] = {1.0,1.0,1.0,1.0,1.0};
+        float e[5] = {1.0,1.0,1.0,1.0,1.0};    // @FIXME: Currently not used.
         float aw = 1.0;
         float dw = 1.0;
         float utw = 1.0;

@@ -80,7 +80,7 @@ make
  # Running
 
 ```bash
-./bunmei [-nointro] [-seed seed] [-mapsize size]
+./bunmei [-nointro] [-seed seed] [-mapsize size] [-nofog]
 ```
 
 That's all folks.
@@ -129,7 +129,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 
 ## Cities
 
-| Buildings |  Dependencies |  Dep Code (city context) |  |
+| Buildings |  Dep Tech |  City Context Perks |  |
 |---|---|---|---|
 | Palace         | -                 |  | - |
 | Barracks       | Warrior Code    | 0x01 |  |
@@ -241,13 +241,13 @@ Some buildings take commodities and convert them into manufactured goods.  These
 
 Perhaps I can add Laudanum, Rum and Cigars.
 
-So the idea is that those who succeed are able to create the complex chain of productions to create, in the end, better armies.
+So the idea is that those who succeed are able to create the complex supply chains that in the end allow to create better armies.
 
 This will probably lead to the next level which is services.
 
 ## Trade
 
-All the commodities can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.
+All the commodities and manufactured goods can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.
 
 Some buildings and unit require special resources to be produced.
 
