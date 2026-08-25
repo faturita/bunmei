@@ -31,6 +31,9 @@ void drawUnitsAndCities();
 void openCityScreen();
 
 void placeFloat(float x, float y, int sizex, int sizey, GLuint _texture);
+// Solid-color filled rectangle, same screen coordinate space as place() (x,y is the
+// rectangle's center, matching place()'s own convention).
+void placeColorBar(int x, int y, int sizex, int sizey, float r, float g, float b);
 void place(int x, int y, int sizex, int sizey, const char* modelName);
 void place(int x, int y, int sizex, int sizey, GLuint _texture);
 void place(int x, int y, int size, const char* modelName);

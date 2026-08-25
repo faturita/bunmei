@@ -29,6 +29,7 @@
 // RESOURCE requirements (Iron/Copper, Horses, Elephants, etc.) have no entry in the Tech/Dep
 // Code table, so no Factory below can require them yet. See BACKLOG.
 
-#define VETERAN_CODE          0x10  // Perk code for veteran units 
+#define VETERAN_CODE            0x01      // Perk code for veteran units 
+#define HALF_POPULATION_CODE    0x02     // Perk code for half population growth
 
 #endif // CODES_H

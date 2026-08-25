@@ -47,6 +47,7 @@ void drawTexturedBox(GLuint _textureId, float xx, float yy, float zz);
 void drawBox(GLuint texturedId, float xx, float yy, float zz);
 void drawBox(float xx, float yy, float zz);
 
+void drawBox(float x, float y, int sizex, int sizey, float r, float g, float b);
 void drawRedBox(float x, float y, int sizex, int sizey);
 void drawBlueBox(float x, float y, int sizex, int sizey);
 

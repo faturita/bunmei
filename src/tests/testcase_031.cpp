@@ -176,24 +176,23 @@ int TestCase_031::check(int year)
 
     // Check the layout math for a spread of population values, including the city's own
     // (25) and some much larger ones, so the fix is verified beyond a single case.
+    //
+    // @Issue follow-up (issue3.png): the old fixed "natural 16 items/row" floor left the
+    // box's LOWER rows empty whenever a small thresshold didn't need 16/row (e.g. only 7 of
+    // 13 rows used at pop=1) -- and separately, colsepar being a single int (floor()'d once
+    // for the whole row) lost up to itemsPerRow-2 units of width to rounding, visibly
+    // stopping short of the box's right edge. getFoodStorageLayout now always picks the
+    // TIGHTEST itemsPerRow that spreads the thresshold across every row the box has (no
+    // floor, so it always uses the full height), and returns colsepar as a float meant to be
+    // applied per-icon with round() (drawCityScreen does this) rather than truncated once --
+    // that lands the row's LAST icon exactly on the box's edge, using the full width too.
     int testPops[] = {1, 2, 5, 10, 25, 50, 100};
     for (int p : testPops)
     {
-        int itemsPerRow, colsepar;
+        int itemsPerRow; float colsepar;
         getFoodStorageLayout(p, itemsPerRow, colsepar);
 
         int thresshold = getPopulationThresshold(p);
-
-        if (itemsPerRow < 16)
-        {
-            isdone = true;
-            haspassed = false;
-            char buf[256];
-            sprintf(buf,"pop=%d: itemsPerRow(%d) is below the row's natural 16-item capacity.",
-                    p, itemsPerRow);
-            message = std::string(buf);
-            return 0;
-        }
 
         if ((long long)itemsPerRow * FOOD_STORAGE_ROWS < thresshold)
         {
@@ -206,7 +205,24 @@ int TestCase_031::check(int year)
             return 0;
         }
 
-        int span = (itemsPerRow<=1) ? FOOD_ICON_PX : colsepar*(itemsPerRow-1) + FOOD_ICON_PX;
+        // itemsPerRow must be the TIGHTEST fit (one item fewer per row would no longer
+        // cover the thresshold across all the rows) -- otherwise the grid stops short of
+        // the box's bottom, wasting rows, exactly the bug this follow-up fixes.
+        if (itemsPerRow>1 && (long long)(itemsPerRow-1) * FOOD_STORAGE_ROWS >= thresshold)
+        {
+            isdone = true;
+            haspassed = false;
+            char buf[256];
+            sprintf(buf,"pop=%d: itemsPerRow(%d) is looser than necessary -- rows(%d) go unused.",
+                    p, itemsPerRow, FOOD_STORAGE_ROWS);
+            message = std::string(buf);
+            return 0;
+        }
+
+        // Simulate drawCityScreen's per-icon round(colsepar*j): the last icon's right edge
+        // must land at (or just under) the box's actual width, using it fully without
+        // overflowing.
+        int span = (itemsPerRow<=1) ? FOOD_ICON_PX : (int)round((double)colsepar*(itemsPerRow-1)) + FOOD_ICON_PX;
         if (span > FOOD_STORAGE_WIDTH_PX)
         {
             isdone = true;

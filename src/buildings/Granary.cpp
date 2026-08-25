@@ -5,6 +5,7 @@ Granary::Granary()
 {
     strcpy(name,"Granary");
     strncpy(this->assetname,"assets/assets/city/granary.png",256);
+    perkCodes.push_back(HALF_POPULATION_CODE);
 }
 
 int Granary::getSubType()

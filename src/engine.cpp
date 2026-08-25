@@ -179,8 +179,25 @@ void populateCityBuildables(City* city)
 
     for (auto& buildableFactory : buildable)
     {
-        if (dee.verifyDepAll(factionContext(city->faction), buildableFactory->getDependencyCodes()))
-            city->buildable.push_back(buildableFactory);
+        if (!dee.verifyDepAll(factionContext(city->faction), buildableFactory->getDependencyCodes()))
+            continue;
+
+        // Buildings can only be built once per city (units have no such limit, and
+        // city->buildings only ever holds Buildings, never Units, so this check is a
+        // no-op for unit factories). Factory and instance share the same name (e.g.
+        // GranaryFactory/Granary are both "Granary"), so a name match is enough to tell
+        // a building has already been built here.
+        bool alreadyBuilt = false;
+        for (auto& b : city->buildings)
+            if (strcmp(b->name, buildableFactory->name) == 0)
+            {
+                alreadyBuilt = true;
+                break;
+            }
+        if (alreadyBuilt)
+            continue;
+
+        city->buildable.push_back(buildableFactory);
     }
 
 }

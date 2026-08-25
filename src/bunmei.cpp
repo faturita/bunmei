@@ -352,17 +352,22 @@ inline void endOfYear()
         }
         
         // Balance city population according to available resources.
-        if (c->resources[FOOD]>= getPopulationThresshold(c->pop)) 
+        float popFactor = 0.0f;
+        if (dee.verifyDep(cityContext(c->id), HALF_POPULATION_CODE))
         {
-            c->resources[FOOD] = 0;
+            popFactor = 0.5f;
+        }
+        if (c->resources[FOOD]>= getPopulationThresshold(c->pop))
+        {
             c->pop++;
 
+            c->resources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
+
             c->assignWorkingTile();
-        } else 
-        if (c->resources[FOOD]<0)
+        } else
+        if (c->resources[FOOD]<0)  // Out of food, reduce population accordingly.
         {
             c->resources[FOOD] = 0;
-
             if (c->pop>1)
             {
                 c->pop--;

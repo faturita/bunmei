@@ -16,6 +16,7 @@
 #include "tiles.h"
 #include "coordinator.h"
 #include "cityscreenui.h"
+#include "dee.h"
 
 extern float cx;
 extern float cy;
@@ -28,6 +29,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern Controller controller;
 extern Coordinator coordinator;
+extern DependencyEvaluationEngine dee;
 
 // Units currently standing on city's tile, in a stable order shared by drawCityScreen (to
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
@@ -180,32 +182,34 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
 
 }
 
-void getFoodStorageLayout(int pop, int &itemsPerRow, int &colsepar)
+void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar)
 {
-    // Same box width as City Resources/City Commodities above (cols -10..-4, 6 tiles), whose
-    // colsepar formula's own comment says "16 resources fit with a colsepar of 7" -- so 16 is
-    // the row's natural (uncompressed) capacity here too. Picking itemsPerRow only off
-    // ceil(thresshold/rows) (as before) starves small thresholds down to far fewer per row
-    // (e.g. 8 at pop=1) even though the row has room for twice that -- so take whichever is
-    // larger, the natural capacity or what a large thresshold actually needs.
-    const int NATURAL_ITEMS_PER_ROW = 16;
-
+    // Same box width as City Resources/City Commodities above (cols -10..-4, 6 tiles).
+    // itemsPerRow is the TIGHTEST fit that spreads the whole thresshold across every row
+    // the box has (foodStorageRows) -- so the grid always uses the box's full height,
+    // instead of stopping partway down whenever a fixed per-row minimum (this used to be a
+    // "natural" 16-items floor) needed fewer rows than the box actually has.
+    //
+    // colsepar is a FLOAT on purpose: the call site applies it per-icon via
+    // round(colsepar*j), not a single truncated division reused for the whole row. A plain
+    // int colsepar (floor()'d once) loses up to itemsPerRow-2 units of width to rounding,
+    // visibly stopping short of the box's right edge for any row with more than a handful
+    // of items -- per-icon rounding instead lands the LAST icon exactly on the box's edge,
+    // using the full width for any itemsPerRow.
     int foodStorageRows = ((3)-(-3))*16/7;
     int foodStorageWidth = ((-4)-(-10))*16;
     int foodThresshold = getPopulationThresshold(pop);
 
-    itemsPerRow = NATURAL_ITEMS_PER_ROW;
-    int neededPerRow = (int)ceil((float)foodThresshold/(float)foodStorageRows);
-    if (neededPerRow > itemsPerRow)
-        itemsPerRow = neededPerRow;
+    itemsPerRow = (int)ceil((float)foodThresshold/(float)foodStorageRows);
+    if (itemsPerRow<1) itemsPerRow = 1;
 
     // Spacing is measured between an icon's LEFT edges, so the last icon's right edge sits
     // at colsepar*(itemsPerRow-1)+7 (icon width) -- that must stay <= the box width, not
     // colsepar*itemsPerRow, or a tightly packed row overruns the box by up to 7px.
     if (itemsPerRow<=1)
-        colsepar = 7;
+        colsepar = 7.0f;
     else
-        colsepar = clipInt( (int)floor((float)(foodStorageWidth-7)/(float)(itemsPerRow-1)), -7, 7);
+        colsepar = (float)(foodStorageWidth-7)/(float)(itemsPerRow-1);
 }
 
 void drawCityScreen(int cla, int clo, City *city)
@@ -364,15 +368,39 @@ void drawCityScreen(int cla, int clo, City *city)
     // Sized to the food needed to grow population by one (City.cpp getPopulationThresshold),
     // not the current stock -- resources[0] can climb all the way up to that thresshold
     // (bunmei.cpp endOfYear) right before the city grows, so the grid must already fit that
-    // many icons, not just whatever's stored right now. Rows stay fixed at the box's natural
-    // 7px row height; the column spacing (colsepar) is squeezed instead -- same technique as
-    // City Resources/Commodities above, but allowed below their [1,7] floor since the
-    // thresshold (100*pop) grows unbounded with population.
-    int foodItemsPerRow, foodColsepar;
+    // many icons, not just whatever's stored right now. itemsPerRow/colsepar (see
+    // getFoodStorageLayout) are picked to use the box's full height AND full width for any
+    // population -- colsepar is a float applied per-icon with round() below (not truncated
+    // once for the whole row), so the row's last icon lands exactly on the box's edge.
+    int foodItemsPerRow; float foodColsepar;
     getFoodStorageLayout(city->pop, foodItemsPerRow, foodColsepar);
 
     for(int i=0;i<city->resources[0];i++)
-        place((clo+(-10))*16-4+foodColsepar*(i%foodItemsPerRow)  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
+        place((clo+(-10))*16-4+(int)round(foodColsepar*(i%foodItemsPerRow))  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
+
+    // Blue line marking the Granary's reserve (task #26): once HALF_POPULATION_CODE is
+    // active for this city (a Granary has been built, see Granary.cpp/bunmei.cpp endOfYear),
+    // half of the food thresshold needed to grow (City.cpp getPopulationThresshold) is kept
+    // instead of lost (bunmei.cpp endOfYear applies this same half, against the SAME --
+    // already post-growth -- city->pop this line reads, so right after a growth tick the
+    // kept reserve lines up exactly with this row). The line sits at that half-way point in
+    // the same icon grid the food above is drawn in (icons fill top-down as resources[0]
+    // grows), so it splits the box into the kept reserve (above the line) and any food
+    // accumulated since the last growth (below it).
+    if (dee.verifyDep(cityContext(city->id), HALF_POPULATION_CODE))
+    {
+        int halfThresshold = getPopulationThresshold(city->pop)/2;
+        int row = halfThresshold/foodItemsPerRow;
+        // x is measured the same way place() measures icon x: the CENTER of the shape, not
+        // its left edge. The icon ROW's own visual footprint runs from icon 0's center minus
+        // half an icon width to the last icon's center plus half an icon width -- lineSpan is
+        // the distance between those two centers, so the line's center must sit lineSpan/2
+        // past the row's start (icon 0's center), not lineWidth/2 (that overshoots by half an
+        // icon width, landing the line consistently to the right of the icons).
+        int lineSpan = (int)round(foodColsepar*(foodItemsPerRow-1));
+        int lineWidth = lineSpan+7;
+        placeColorBar((clo+(-10))*16-4+lineSpan/2  ,(cla+(-2))*16-4+7*row-4  ,lineWidth,2,0.0f,0.0f,1.0f);
+    }
 
     {
         // Commodity stockpile (task #13): a scrollable list (same mechanism as the Units

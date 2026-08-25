@@ -170,9 +170,14 @@ void unfog(int f_id, int lat, int lon)
 
 
 // These two functions perform the right mapping from model coordinates to opengl coordinates
+void placeColorBar(int x, int y, int sizex, int sizey, float r, float g, float b)
+{
+    drawBox((width/2)+x,-y,sizex,sizey,r,g,b);      // x,y x-> column y-> row
+}
+
 void place(int x, int y, int sizex, int sizey, const char* modelName)
 {
-    placeMark((width/2)+x,-y,sizex,sizey,modelName);      // x,y x-> column y-> row  
+    placeMark((width/2)+x,-y,sizex,sizey,modelName);      // x,y x-> column y-> row
 }
 
 void place(int x, int y, int sizex, int sizey, GLuint _texture)
