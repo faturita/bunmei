@@ -2,10 +2,11 @@
 #define TRIREME_H
 
 #include <iostream>
+#include "Transport.h"
 #include "Unit.h"
 
 
-class Trireme : public Unit
+class Trireme : public Unit, Transport
 {
     protected:
         const int cargo = 2;

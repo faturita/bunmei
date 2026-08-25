@@ -675,8 +675,9 @@ void initFactions()
         for (int i = 0; i < 4; i++)
             faction->rates[i] = def.rates[i];
         faction->autoPlayer = def.autoPlayer;
+        printf ("selected faaction: %d, def.id: %d, autoPlayer: %d\n", selectedFaction, def.id, (selectedFaction != def.id));
         if (selectedFaction >=0)
-            faction->autoPlayer = !(selectedFaction != def.id);
+            faction->autoPlayer = (selectedFaction != def.id);
 
         faction->song = def.song;
 
@@ -759,9 +760,20 @@ void initWorldModelling()
 
     initUnits();
 
-    coordinator.v_f_id = factions[0]->id;
-
+    // @NOTE: Turn order (a_f_id) must always start at the first faction so the round-robin
+    // in update() (bunmei.cpp) walks through every faction each turn. Only the visible
+    // faction (v_f_id, whose map/vision the human sees) should follow -faction.
     coordinator.a_f_id = factions[0]->id;
+
+    if (selectedFaction >= 0)
+    {
+        coordinator.v_f_id = factions[selectedFaction]->id;
+    }
+    else
+    {
+        coordinator.v_f_id = factions[0]->id;
+    }
+
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = true;
 

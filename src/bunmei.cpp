@@ -488,7 +488,7 @@ void update(int value)
         coordinator.endofturn=false;
         factions[coordinator.a_f_id]->done();
 
-        if (coordinator.a_f_id<factions.size()-1) 
+        if (coordinator.a_f_id<factions.size()-1)
         {
             coordinator.a_f_id++;
 

@@ -2,10 +2,11 @@
 #define WAGON_H
 
 #include <iostream>
+#include "Transport.h"
 #include "Unit.h"
 
 
-class Wagon : public Unit
+class Wagon : public Unit, Transport
 {
     protected:
         const int cargo = 2;
