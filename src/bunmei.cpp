@@ -137,6 +137,7 @@ char filegame[256];
 bool autoEndOfTurn;
 bool switchVisibleFaction;
 bool nofog;
+int  selectedFaction;
 
 
 void disclaimer()
@@ -635,6 +636,8 @@ int main(int argc, char** argv) {
     }
 
     nofog = isPresentCommandLineParameter(argc,argv,"-nofog");
+
+    selectedFaction = getDefaultedIntCommandLineParameter(argc,argv,"-faction",-1);
 
     setupWorldModelling();
     initRendering();

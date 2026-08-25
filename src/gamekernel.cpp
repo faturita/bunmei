@@ -60,6 +60,7 @@ extern char filegame[256];
 
 extern bool autoEndOfTurn;
 extern bool switchVisibleFaction;
+extern int selectedFaction;
 
 // context keys for BASE_PRODUCTION_RATE / RESOURCE_RATE_OVERRIDE: real biomas (tiles.h
 // BIOMAS) are all >= 0x20, so these negative sentinels never collide with one.
@@ -655,7 +656,7 @@ struct FactionDefinition
 };
 
 static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0, "Vikings",  255, 0,   0,   {1, 0, 0, 0}, false, vikings  },
+    { 0, "Vikings",  255, 0,   0,   {1, 0, 0, 0}, true, vikings  },
     { 1, "Romans",   255, 255, 255, {1, 0, 0, 0}, true,  romans   },
     { 2, "Greeks",   0,   0,   255, {1, 0, 0, 0}, true,  greeks   },
     { 3, "Chinese", 0,   255, 255, {1, 0, 0, 0}, true,  chinese },
@@ -674,6 +675,9 @@ void initFactions()
         for (int i = 0; i < 4; i++)
             faction->rates[i] = def.rates[i];
         faction->autoPlayer = def.autoPlayer;
+        if (selectedFaction >=0)
+            faction->autoPlayer = !(selectedFaction != def.id);
+
         faction->song = def.song;
 
         factions.push_back(faction);

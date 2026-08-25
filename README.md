@@ -113,7 +113,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Worker          | -    |  |  |
 | Wagon           | Wheel      | - | - |
 | Warrior         | -            | - | - |
-| Scout           | -    |  |  |
+| Scout           | Animal Husbandry     |  |  |
 | Archer          | Archery           | - | - |
 | Spearman        | Warrior Code                | -    | - |
 | Swordman        | Iron Working           | Iron/Copper   | - |
@@ -131,11 +131,31 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 
 | Buildings |  Dep Tech |  City Context Perks |  |
 |---|---|---|---|
-| Palace         | -                 |  | - |
-| Barracks       | Warrior Code    | 0x01 |  |
-| Granary        | Pottery         |  0x02| - |
-| Market         | Currency            | - | - |
-| Collosseum     | Writing            | - | - |
+| Palace         | -                 | 0x01 | - |
+| Barracks       | Warrior Code    | 0x02 |  |
+| Granary        | Pottery         |  0x03| - |
+| Market         | Currency            | 0x04 | - |
+| Collosseum     | Writing            | 0x05 | - |
+| Temple         | Ceremonial Burial  | 0x06 | - |
+| University.    | Education.         | 0x07 | - |
+| Theatre        | Music              | 0x08 | - |
+| Stable         | Horseback Riding   | | |
+| Observatory    | Astronomy          | | |
+| Monument.      | Mysticism.         | | |
+| Lighthouse.    | Map Making.        | | |
+| Library.       | Writing.           | | |
+| Harbor         |                    | | |
+| Grocer         | Trade |||
+| Forge          |.       |||
+| Factory        |        |||
+| CourtHouse     |        |||
+| Cathedral.     |.       |||
+| Castle.        |        |||
+| Fort           |.       | | |
+| Fortress.      |.       | | |
+| Bank           | |||
+| Aqueduct       | |||
+
 
 
 
