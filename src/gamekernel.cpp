@@ -229,9 +229,8 @@ void initMap()
     //std::vector<coordinate> landmassseeds;
 
     // setupWorldModelling() (bunmei.cpp) calls initMap() BEFORE checking loadgame: without
-    // loadgame here too, a -loadgame run would generate a fresh random world and immediately
-    // overwrite saved_map.dat with it (the else branch below always calls saveMap()) before
-    // loadWorldModelling() ever gets a chance to read back the map that matches the save.
+    // loadgame here too, a -loadgame run would generate a fresh random world instead of
+    // loadWorldModelling() ever getting a chance to read back the map that matches the save.
     if (preloadmap || loadgame)
         loadMap();
     else
@@ -590,9 +589,6 @@ void initMap()
 
                 }
             }
-
-
-        saveMap();
     }
 
     // Summary of the world: how much of it is land.

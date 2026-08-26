@@ -14,6 +14,7 @@
 #include "usercontrols.h"
 #include "messages.h"
 #include "savegame.h"
+#include "mapio.h"
 #include "sounds/sounds.h"
 #include "diplomacy.h"
 #include "dee.h"
@@ -48,6 +49,24 @@ void handleKeypress(unsigned char key, int x, int y) {
         if (key == 13) // Enter key
         {
 
+            if (controller.str.find("/savemap")!=std::string::npos)
+            {
+                // /savemap mapnamefile  ->  saves/mapnamefile.map
+                std::istringstream iss(controller.str);
+                std::string cmd, mapname;
+                iss >> cmd >> mapname;
+
+                if (!mapname.empty())
+                {
+                    std::string path = "saves/" + mapname + ".map";
+                    saveMap(path);
+                    message(year, coordinator.a_f_id, "Map saved to %s.", path.c_str());
+                }
+                else
+                {
+                    message(year, coordinator.a_f_id, "Usage: /savemap <mapnamefile>");
+                }
+            } else
             if (controller.str.find("/save")!=std::string::npos)
             {
                 std::string savegamefilename;

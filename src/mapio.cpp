@@ -1,13 +1,18 @@
 #include <fstream>
+#include <filesystem>
 
 #include "map.h"
 #include "mapio.h"
 
 extern Map map;
 
-void saveMap()
+void saveMap(const std::string &path)
 {
-    std::ofstream out("saved_map.dat", std::ios::binary);
+    std::filesystem::path p(path);
+    if (p.has_parent_path())
+        std::filesystem::create_directories(p.parent_path());
+
+    std::ofstream out(path, std::ios::binary);
     if (!out) {
         printf("Error opening file for writing.\n");
         return;
@@ -35,12 +40,12 @@ void saveMap()
         }
     }
     out.close();
-    printf("Map saved to saved_map.dat\n");
+    printf("Map saved to %s\n", path.c_str());
 }
 
-void loadMap()
+void loadMap(const std::string &path)
 {
-    std::ifstream in("saved_map.dat", std::ios::binary);
+    std::ifstream in(path, std::ios::binary);
     if (!in) {
         printf("Error opening file for reading.\n");
         return;
@@ -81,5 +86,5 @@ void loadMap()
         }
     }
     in.close();
-    printf("Map loaded from /tmp/saved_map.dat\n");
+    printf("Map loaded from %s\n", path.c_str());
 }

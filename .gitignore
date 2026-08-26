@@ -11,3 +11,4 @@ src/*.o
 testcase
 simulate
 tmp/
+saves/
