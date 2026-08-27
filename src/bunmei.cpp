@@ -114,7 +114,6 @@ std::vector<Message> messages;
 Coordinator coordinator;
 DependencyEvaluationEngine dee;
 
-extern DiplomacyTable diplomacy;
 extern ImprovementEffort improvementeffort;
 
 
@@ -124,11 +123,8 @@ int REAL_SCREEN_HEIGHT = 1117;
 extern Map map;
 
 int year;
-
 bool mute;
-
 int mapsize;
-
 bool preloadmap;
 
 bool loadgame;
