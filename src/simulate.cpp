@@ -59,6 +59,7 @@ std::vector<Message> messages;
 
 extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
+extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern MovementCost movementcosts;
 extern std::unordered_map<int, int> commodityxresource;
 
@@ -598,6 +599,7 @@ int main(int argc, char *argv[]) {
     initMovementCosts(movementcosts);
     initImprovementEffort(improvementeffort);
     initImprovementResources(improvementresources);
+    initImprovementBiomaRestrictions(improvementbiomarestrictions);
     initImprovements(improvements);
     initNaming(citynames);
     initResources(resources);

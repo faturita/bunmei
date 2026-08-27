@@ -35,6 +35,7 @@ std::unordered_map<int, std::vector<int>> resourcesxbioma;
 extern MovementCost movementcosts;
 extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
+extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern std::unordered_map<int, int> commodityxresource;
 
 extern std::unordered_map<int,std::queue<std::string>> citynames;
@@ -201,6 +202,55 @@ std::vector<std::vector<coordinate>> findLandmasses() {
     return landmasses;
 }
 
+// A connected ocean body at or under this many tiles counts as "landlocked" (a lake) rather
+// than open sea, for the purpose of tagging it with the LAKE bioma -- see the call site below.
+#define LANDLOCKED_OCEAN_MAX_SIZE 30
+
+// Same BFS as findLandmasses() above, but over OCEAN cells instead of LAND.
+std::vector<std::vector<coordinate>> findOceanBodies() {
+    std::set<std::pair<int, int>> visited;
+    std::vector<std::vector<coordinate>> oceanbodies;
+
+    Map m = map;
+
+    for (int lat = m.minlat; lat < m.maxlat; ++lat) {
+        for (int lon = m.minlon; lon < m.maxlon; ++lon) {
+            if (m(lat, lon).code == OCEAN && visited.count({lat, lon}) == 0) {
+                std::vector<coordinate> oceanbody;
+                std::queue<coordinate> q;
+                q.push(coordinate(lat, lon));
+                visited.insert({lat, lon});
+
+                while (!q.empty()) {
+                    coordinate c = q.front(); q.pop();
+                    oceanbody.push_back(c);
+
+                    // Check 4 neighbors (N, S, E, W)
+                    int dlat[] = {-1, 1, 0, 0};
+                    int dlon[] = {0, 0, 1, -1};
+                    for (int d = 0; d < 4; ++d)
+                    {
+                        int nlat;
+                        int nlon;
+                        coordinate co = m.displacement(c.lat,c.lon,dlat[d],dlon[d]);
+                        nlat = co.lat;
+                        nlon = co.lon;
+                        if (nlat >= m.minlat && nlat < m.maxlat &&
+                            nlon >= m.minlon && nlon < m.maxlon &&
+                            m(nlat, nlon).code == OCEAN &&
+                            visited.count({nlat, nlon}) == 0) {
+                            q.push(coordinate(nlat, nlon));
+                            visited.insert({nlat, nlon});
+                        }
+                    }
+                }
+                oceanbodies.push_back(oceanbody);
+            }
+        }
+    }
+    return oceanbodies;
+}
+
 void initMap()
 {
     initTiles(tiles);
@@ -212,6 +262,8 @@ void initMap()
     initImprovementEffort(improvementeffort);
 
     initImprovementResources(improvementresources);
+
+    initImprovementBiomaRestrictions(improvementbiomarestrictions);
 
     initCommodities(commodityxresource);
 
@@ -616,6 +668,24 @@ void initMap()
     }
     fflush(stdout);
 
+    // Landlocked oceans (small enclosed ocean bodies, which map generation can produce by
+    // chance) become the LAKE bioma so Irrigation can use them as a water source (see
+    // tileHasWaterOasisOrIrrigationNearby, engine.cpp). Cells already carrying a river/estuary bioma
+    // are left alone (still a valid water source for irrigation either way).
+    std::vector<std::vector<coordinate>> oceanbodies = findOceanBodies();
+    int lakecount = 0;
+    for (auto &body : oceanbodies)
+    {
+        if ((int)body.size() <= LANDLOCKED_OCEAN_MAX_SIZE)
+        {
+            for (auto &c : body)
+                if (map(c.lat,c.lon).bioma == 0)
+                    map.set(c.lat,c.lon).bioma = LAKE;
+            lakecount++;
+        }
+    }
+    printf("Detected %d lake(s) from landlocked oceans\n", lakecount);
+    fflush(stdout);
 
     int lat = 23;
     int lon = 35;

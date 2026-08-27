@@ -53,6 +53,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
+extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern MovementCost movementcosts;
 
 extern DiplomacyTable diplomacy;
@@ -815,6 +816,32 @@ void switchUnitIfNoMovesLeft()
             }
 }
 
+// Irrigation must sit next to a water source: a RIVER tile (any form -- the base RIVER
+// bioma on land, or one of its RIVER_MOUTH_* estuary variants on the ocean tile it flows
+// into), a tile with the OASIS special resource, a landlocked ocean (the LAKE bioma,
+// tagged by findOceanBodies() at map generation time, gamekernel.cpp), OR a neighbouring
+// tile that already has irrigation -- irrigation forms a NETWORK that can be extended
+// tile-by-tile away from the original water source with no distance limit, same as the
+// classic Civilization mechanic (@Issue: a worker next to an already-irrigated tile was
+// being rejected because that tile itself isn't a water/oasis/lake tile). A plain open-ocean
+// coastal neighbour does NOT count. Checked on the 4 orthogonal neighbours only (N/S/E/W),
+// per the task.
+bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon)
+{
+    mapcell neighbours[4] = { map.north(lat,lon), map.south(lat,lon), map.east(lat,lon), map.west(lat,lon) };
+
+    for (auto &n : neighbours)
+    {
+        if ((n.bioma & 0xf0) == RIVER) return true;
+        if (n.bioma == RIVER_MOUTH_W || n.bioma == RIVER_MOUTH_S || n.bioma == RIVER_MOUTH_E || n.bioma == RIVER_MOUTH_N) return true;
+        if (n.bioma == LAKE) return true;
+        if (n.resource == OASIS) return true;
+        if (n.hasIrrigation()) return true;
+    }
+
+    return false;
+}
+
 void processCommandOrders()
 {
   while (!coordinator.empty())
@@ -980,47 +1007,87 @@ void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            int effort = getImprovementEffort(improvementeffort, ROAD, map.set(worker->latitude,worker->longitude).bioma);
-            worker->roading(effort);
-            worker->availablemoves = 0;
+            if (map.set(worker->latitude,worker->longitude).hasRoad())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a road here: already built.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, ROAD, map.set(worker->latitude,worker->longitude).bioma);
+                worker->roading(effort);
+                worker->availablemoves = 0;
 
-            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
         }
     } else if (co.command == Command::BuildIrrigationOrder)
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            int effort = getImprovementEffort(improvementeffort, IRRIGATION, map.set(worker->latitude,worker->longitude).bioma);
-            worker->irrigating(effort);
-            worker->availablemoves = 0;
+            if (map.set(worker->latitude,worker->longitude).hasIrrigation())
+            {
+                message(year, coordinator.a_f_id, "Cannot build an irrigation here: already irrigated.");
+            }
+            else if (!tileBiomaAllowsImprovement(improvementbiomarestrictions, IRRIGATION, map.set(worker->latitude,worker->longitude).bioma))
+            {
+                message(year, coordinator.a_f_id, "Cannot build an irrigation here: unsuitable terrain.");
+            }
+            else if (!tileHasWaterOasisOrIrrigationNearby(worker->latitude, worker->longitude))
+            {
+                message(year, coordinator.a_f_id, "Cannot build an irrigation here: no river, oasis, lake or irrigated tile nearby.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, IRRIGATION, map.set(worker->latitude,worker->longitude).bioma);
+                worker->irrigating(effort);
+                worker->availablemoves = 0;
 
-            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
         }
     } else if (co.command == Command::BuildMineOrder)
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            int effort = getImprovementEffort(improvementeffort, MINE, map.set(worker->latitude,worker->longitude).bioma);
-            worker->mining(effort);
-            worker->availablemoves = 0;
+            if (map.set(worker->latitude,worker->longitude).hasMine())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a mine here: already built.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, MINE, map.set(worker->latitude,worker->longitude).bioma);
+                worker->mining(effort);
+                worker->availablemoves = 0;
 
-            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
         }
     } else if (co.command == Command::BuildRailroadOrder)
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            int effort = getImprovementEffort(improvementeffort, RAILROAD, map.set(worker->latitude,worker->longitude).bioma);
-            worker->railroading(effort);
-            worker->availablemoves = 0;
+            if (map.set(worker->latitude,worker->longitude).hasRailroad())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a railroad here: already built.");
+            }
+            else
+            {
+                int effort = getImprovementEffort(improvementeffort, RAILROAD, map.set(worker->latitude,worker->longitude).bioma);
+                worker->railroading(effort);
+                worker->availablemoves = 0;
 
-            coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+            }
         }
     } else if (co.command == Command::BuildQuarryOrder)
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            if (!tileHasRequiredResource(improvementresources, QUARRY, map.set(worker->latitude,worker->longitude).resource))
+            if (map.set(worker->latitude,worker->longitude).hasQuarry())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a quarry here: already built.");
+            }
+            else if (!tileHasRequiredResource(improvementresources, QUARRY, map.set(worker->latitude,worker->longitude).resource))
             {
                 message(year, coordinator.a_f_id, "Cannot build a quarry here: no marble.");
             }
@@ -1037,7 +1104,11 @@ void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            if (!tileHasRequiredResource(improvementresources, CAMP, map.set(worker->latitude,worker->longitude).resource))
+            if (map.set(worker->latitude,worker->longitude).hasCamp())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a camp here: already built.");
+            }
+            else if (!tileHasRequiredResource(improvementresources, CAMP, map.set(worker->latitude,worker->longitude).resource))
             {
                 message(year, coordinator.a_f_id, "Cannot build a camp here: no doe, game or seal.");
             }
@@ -1054,7 +1125,11 @@ void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            if (!tileHasRequiredResource(improvementresources, DERRICK, map.set(worker->latitude,worker->longitude).resource))
+            if (map.set(worker->latitude,worker->longitude).hasDerrick())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a derrick here: already built.");
+            }
+            else if (!tileHasRequiredResource(improvementresources, DERRICK, map.set(worker->latitude,worker->longitude).resource))
             {
                 message(year, coordinator.a_f_id, "Cannot build a derrick here: no oil.");
             }
@@ -1071,7 +1146,11 @@ void processCommandOrders()
     {
         if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
         {
-            if (!tileHasRequiredResource(improvementresources, PLANTATION, map.set(worker->latitude,worker->longitude).resource))
+            if (map.set(worker->latitude,worker->longitude).hasPlantation())
+            {
+                message(year, coordinator.a_f_id, "Cannot build a plantation here: already built.");
+            }
+            else if (!tileHasRequiredResource(improvementresources, PLANTATION, map.set(worker->latitude,worker->longitude).resource))
             {
                 message(year, coordinator.a_f_id, "Cannot build a plantation here: no grapes, sugar, tobacco or cotton.");
             }

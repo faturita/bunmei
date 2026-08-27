@@ -26,6 +26,7 @@ enum BIOMAS
     SWAMP = 0xb0,
     TUNDRA = 0xc0,
     OCEANBIOMA = 0xd0,
+    LAKE = 0xe0,        // A landlocked (small, enclosed) ocean body -- see findOceanBodies() (gamekernel.cpp).
     LANDBIOMA = 0x01,
     RIVER_MOUTH_W = 0x02,
     RIVER_MOUTH_S = 0x03,
@@ -52,6 +53,13 @@ typedef std::unordered_map<int, std::unordered_map<int, int>> ImprovementEffort;
 // (getRequiredImprovement) -- building a mine itself stays unrestricted, nothing checks
 // this table for BuildMineOrder.
 typedef std::unordered_map<int, std::vector<int>> ImprovementResources;
+
+// Biomas an improvement type must NOT be built on (a deny-list, unlike ImprovementResources'
+// allow-list), indexed by improvement type (IMPROVEMENT_TYPES, improvements.h). An
+// improvement type with no entry has no bioma restriction. Matched against the tile's BASE
+// bioma (bioma & 0xf0), same masking as ImprovementEffort/getImprovementEffort, so terrain
+// directional-blend variants (e.g. arctic_w) still match their base bioma.
+typedef std::unordered_map<int, std::vector<int>> ImprovementBiomaRestrictions;
 
 enum SPECIALRESOURCES
 {
@@ -130,6 +138,8 @@ void initImprovementEffort(ImprovementEffort &improvementeffort);
 int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementtype, int bioma);
 void initImprovementResources(ImprovementResources &improvementresources);
 bool tileHasRequiredResource(ImprovementResources &improvementresources, int improvementtype, int resource);
+void initImprovementBiomaRestrictions(ImprovementBiomaRestrictions &restrictions);
+bool tileBiomaAllowsImprovement(ImprovementBiomaRestrictions &restrictions, int improvementtype, int bioma);
 // The improvement type (IMPROVEMENT_TYPES) a special resource needs before its commodity is
 // produced, or 0 if it is produced unconditionally (e.g. Whales/Horse/Elephants/Silk/Spices).
 int getRequiredImprovement(ImprovementResources &improvementresources, int resource);

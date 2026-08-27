@@ -30,6 +30,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[SWAMP] = "assets/assets/terrain/swamp.png";
     tiles[TUNDRA] = "assets/assets/terrain/tundra.png";
     tiles[OCEANBIOMA] = "assets/assets/terrain/ocean.png";
+    tiles[LAKE] = "assets/assets/terrain/ocean.png";
 
     tiles[0x20] = "assets/assets/terrain/arctic.png";
     tiles[0x21] = "assets/assets/terrain/arctic_w.png";
@@ -376,6 +377,32 @@ int getRequiredImprovement(ImprovementResources &improvementresources, int resou
                 return kv.first;
 
     return 0;
+}
+
+// Defined here (and not in gamekernel.cpp), same reason as movementcosts/improvementeffort/
+// improvementresources above.
+ImprovementBiomaRestrictions improvementbiomarestrictions;
+
+// Extends the resource-gating mechanism above (ImprovementResources/tileHasRequiredResource)
+// with a bioma DENY-list instead of a resource ALLOW-list: Irrigation cannot be built on
+// HILLS, ARCTIC or MOUNTAINS.
+void initImprovementBiomaRestrictions(ImprovementBiomaRestrictions &restrictions)
+{
+    restrictions[IRRIGATION] = {HILLS, ARCTIC, MOUNTAINS};
+}
+
+bool tileBiomaAllowsImprovement(ImprovementBiomaRestrictions &restrictions, int improvementtype, int bioma)
+{
+    auto it = restrictions.find(improvementtype);
+    if (it == restrictions.end())
+        return true;
+
+    int basebioma = bioma & 0xf0;
+    for (int b : it->second)
+        if (b == basebioma)
+            return false;
+
+    return true;
 }
 
 void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma)

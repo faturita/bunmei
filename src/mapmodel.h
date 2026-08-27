@@ -202,9 +202,19 @@ struct mapcell
         improvements |= 0x01;
     }
 
+    bool hasIrrigation()
+    {
+        return (improvements & 0x01) == 0x01;
+    }
+
     void buildMine()
     {
         improvements |= 0x02;
+    }
+
+    bool hasMine()
+    {
+        return (improvements & 0x02) == 0x02;
     }
 
     void buildRoad()
