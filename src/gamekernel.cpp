@@ -283,7 +283,11 @@ void initMap()
     // setupWorldModelling() (bunmei.cpp) calls initMap() BEFORE checking loadgame: without
     // loadgame here too, a -loadgame run would generate a fresh random world instead of
     // loadWorldModelling() ever getting a chance to read back the map that matches the save.
-    if (preloadmap || loadgame)
+    // The map savegame() wrote is paired with the save file itself (filegame + ".map", see
+    // savegame.cpp) rather than a single shared file, so each save keeps its own map.
+    if (loadgame)
+        loadMap(std::string(filegame) + ".map");
+    else if (preloadmap)
         loadMap();
     else
     {
@@ -722,10 +726,14 @@ struct FactionDefinition
 };
 
 static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0, "Vikings",  255, 0,   0,   {1, 0, 0, 0}, true, vikings  },
-    { 1, "Romans",   255, 255, 255, {1, 0, 0, 0}, true,  romans   },
-    { 2, "Greeks",   0,   0,   255, {1, 0, 0, 0}, true,  greeks   },
-    { 3, "Chinese", 0,   255, 255, {1, 0, 0, 0}, true,  chinese },
+    { 0, "Vikings",     255, 0,   0,   {1, 0, 0, 0}, true, vikings     },
+    { 1, "Romans",      255, 255, 255, {1, 0, 0, 0}, true, romans      },
+    { 2, "Greeks",      0,   0,   255, {1, 0, 0, 0}, true, greeks      },
+    { 3, "Chinese",     0,   255, 255, {1, 0, 0, 0}, true, chinese     },
+    { 4, "Egyptians",   255, 255, 0,   {1, 0, 0, 0}, true, egyptians   },
+    { 5, "Babylonians", 0,   255, 0,   {1, 0, 0, 0}, true, babylonians },
+    { 6, "English",     255, 105, 180, {1, 0, 0, 0}, true, english     },
+    { 7, "Mongols",     128, 128, 128, {1, 0, 0, 0}, true, mongols     },
 };
 
 void initFactions()

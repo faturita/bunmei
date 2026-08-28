@@ -1,5 +1,6 @@
 
 #include <fstream>
+#include <filesystem>
 
 #include "Faction.h"
 #include "gamekernel.h"
@@ -52,16 +53,29 @@ extern int year;
 
 void savegame(const char* filename)
 {
-    std::ofstream out(filename, std::ios::binary);
+    // Every savegame (and its paired map) lives under saves/, regardless of what the
+    // caller passed in -- prepend it here, once, so every caller gets this for free
+    // (same "handle the directory in the function that owns the format" pattern saveMap()
+    // already uses, mapio.cpp).
+    std::string path = filename;
+    if (path.rfind("saves/", 0) != 0)
+        path = "saves/" + path;
+
+    std::filesystem::path p(path);
+    if (p.has_parent_path())
+        std::filesystem::create_directories(p.parent_path());
+
+    std::ofstream out(path, std::ios::binary);
     if (!out) {
-        printf("Error opening %s for writing.\n", filename);
+        printf("Error opening %s for writing.\n", path.c_str());
         return;
     }
 
-    // Save the map (terrain, resources, ownership -- including mid-game changes like
-    // roads/mines/irrigation and tile ownership) to saved_map.dat, so a later -loadgame
-    // restores the exact map the game was saved on instead of a freshly generated one.
-    saveMap();
+    // Save the map (terrain, resources, ownership, improvements, per-faction visibility --
+    // including mid-game changes like roads/mines/irrigation and tile ownership) alongside
+    // the savegame itself, so a later -loadgame restores the exact map the game was saved
+    // on (fog of war included) instead of a freshly generated one.
+    saveMap(path + ".map");
 
     // Save year
     out.write(reinterpret_cast<const char*>(&year), sizeof(year));
@@ -183,7 +197,7 @@ void savegame(const char* filename)
     }
 
     out.close();
-    printf("Game saved to %s\n", filename);
+    printf("Game saved to %s\n", path.c_str());
 }
 
 

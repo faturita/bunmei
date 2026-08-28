@@ -214,6 +214,26 @@ void chinese()
     playthissound(Vec3f(0,0,0), "sounds/chinese.wav");
 }
 
+void egyptians()
+{
+    playthissound(Vec3f(0,0,0), "sounds/egyptians.wav");
+}
+
+void babylonians()
+{
+    playthissound(Vec3f(0,0,0), "sounds/babylonians.wav");
+}
+
+void english()
+{
+    playthissound(Vec3f(0,0,0), "sounds/english.wav");
+}
+
+void mongols()
+{
+    playthissound(Vec3f(0,0,0), "sounds/mongols.wav");
+}
+
 void peace()
 {
     playthissound(Vec3f(0,0,0), "sounds/peacesound.wav");

@@ -37,6 +37,16 @@ void saveMap(const std::string &path)
             out.write(reinterpret_cast<const char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
             out.write(reinterpret_cast<const char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
             out.write(reinterpret_cast<const char*>(&cell.owners), sizeof(cell.owners));
+            // Save improvements bitmap (road/irrigation/mine/etc).
+            out.write(reinterpret_cast<const char*>(&cell.improvements), sizeof(cell.improvements));
+            // Save per-faction fog of war. vector<bool> is bit-packed, not a flat buffer, so
+            // each entry is written as one byte rather than memcpy'd as a block.
+            size_t vsz = cell.visible.size();
+            out.write(reinterpret_cast<const char*>(&vsz), sizeof(vsz));
+            for (size_t i = 0; i < vsz; ++i) {
+                char v = cell.visible[i] ? 1 : 0;
+                out.write(&v, sizeof(v));
+            }
         }
     }
     out.close();
@@ -83,6 +93,17 @@ void loadMap(const std::string &path)
             in.read(reinterpret_cast<char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
             in.read(reinterpret_cast<char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
             in.read(reinterpret_cast<char*>(&cell.owners), sizeof(cell.owners));
+            // Load improvements bitmap.
+            in.read(reinterpret_cast<char*>(&cell.improvements), sizeof(cell.improvements));
+            // Load per-faction fog of war (see saveMap's per-byte encoding above).
+            size_t vsz = 0;
+            in.read(reinterpret_cast<char*>(&vsz), sizeof(vsz));
+            cell.visible.resize(vsz);
+            for (size_t i = 0; i < vsz; ++i) {
+                char v = 0;
+                in.read(&v, sizeof(v));
+                cell.visible[i] = (v != 0);
+            }
         }
     }
     in.close();

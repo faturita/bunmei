@@ -31,6 +31,10 @@ void russians();
 void vikings();
 void greeks();
 void chinese();
+void egyptians();
+void babylonians();
+void english();
+void mongols();
 
 void peace();
 void war();

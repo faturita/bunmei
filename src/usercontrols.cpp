@@ -69,14 +69,15 @@ void handleKeypress(unsigned char key, int x, int y) {
             } else
             if (controller.str.find("/save")!=std::string::npos)
             {
-                std::string savegamefilename;
+                // /save [filename]  ->  saves/[filename] (default "savegame.dat"); savegame()
+                // itself routes into saves/ and writes the paired map alongside it.
+                std::istringstream iss(controller.str);
+                std::string cmd, savegamefilename;
+                iss >> cmd >> savegamefilename;
 
-                if (controller.str.length()<=4)
-                {
+                if (savegamefilename.empty())
                     savegamefilename = "savegame.dat";
-                } else {
-                    savegamefilename = controller.str.substr(5);
-                }
+
                 savegame(savegamefilename.c_str());
             } else
             if (controller.str.find("/autoplayer")!=std::string::npos)

@@ -484,10 +484,42 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
         "Zhengzhou","Changsha","Nanchang","Guilin","Hefei","Jingzhou"
     };
 
+    std::vector<std::string> egyptians = {
+        "Thebes","Memphis","Heliopolis","Giza","Luxor","Abydos",
+        "Elephantine","Bubastis","Tanis","Amarna","Edfu","Karnak",
+        "Aswan","Philae","Dendera","Kom Ombo","Hierakonpolis","Naqada",
+        "Avaris","Pi-Ramesses"
+    };
+
+    std::vector<std::string> babylonians = {
+        "Babylon","Ur","Uruk","Nippur","Kish","Eridu",
+        "Lagash","Sippar","Akkad","Mari","Assur","Nimrud",
+        "Isin","Larsa","Borsippa","Dilbat","Kutha","Opis",
+        "Ctesiphon","Nineveh"
+    };
+
+    std::vector<std::string> english = {
+        "London","York","Nottingham","Canterbury","Winchester","Oxford",
+        "Cambridge","Bristol","Coventry","Norwich","Chester","Exeter",
+        "Gloucester","Lincoln","Bath","Durham","Salisbury","Warwick",
+        "Shrewsbury","Ipswich"
+    };
+
+    std::vector<std::string> mongols = {
+        "Karakorum","Avarga","Khanbaliq","Sarai","Almaliq","Beshbalik",
+        "Turfan","Ulaanbaatar","Kobdo","Hovd","Erdenet","Darkhan",
+        "Tsetserleg","Choibalsan","Baruun-Urt","Sukhbaatar","Ondorkhaan","Bayankhongor",
+        "Mandalgovi","Uliastai"
+    };
+
     citynames[0] = std::queue<std::string>();       // Vikings
     citynames[1] = std::queue<std::string>();       // Romans
     citynames[2] = std::queue<std::string>();       // Greeks
     citynames[3] = std::queue<std::string>();       // Chinnese
+    citynames[4] = std::queue<std::string>();       // Egyptians
+    citynames[5] = std::queue<std::string>();       // Babylonians
+    citynames[6] = std::queue<std::string>();       // English
+    citynames[7] = std::queue<std::string>();       // Mongols
 
     for(int i=0;i<CITY_NAMES_PER_CIVILIZATION;i++)
     {
@@ -495,6 +527,10 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
         citynames[1].push(romans[i % romans.size()]);
         citynames[2].push(greeks[i % greeks.size()]);
         citynames[3].push(chinnese[i % chinnese.size()]);
+        citynames[4].push(egyptians[i % egyptians.size()]);
+        citynames[5].push(babylonians[i % babylonians.size()]);
+        citynames[6].push(english[i % english.size()]);
+        citynames[7].push(mongols[i % mongols.size()]);
     }
 }
 
