@@ -4,7 +4,17 @@
 #include <queue>
 #include "tiles.h"
 
+// GAME Tables
+MovementCost movementcosts;                                     // Movement Cost per Tile Bioma
+ImprovementEffort improvementeffort;
+ImprovementResources improvementresources;
+ImprovementBiomaRestrictions improvementbiomarestrictions;
+std::unordered_map<int, int> commodityxresource;
 
+const std::vector<int> ALL_COMMODITIES = {
+    copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk,
+    wine, spices, gunpowder,sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3
+};
 
 
 void initTiles(std::unordered_map<int, std::string> &tiles)
@@ -30,7 +40,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[SWAMP] = "assets/assets/terrain/swamp.png";
     tiles[TUNDRA] = "assets/assets/terrain/tundra.png";
     tiles[OCEANBIOMA] = "assets/assets/terrain/ocean.png";
-    tiles[LAKE] = "assets/assets/terrain/ocean.png";
+    tiles[LAKE] = "assets/assets/terrain/lake.png";
 
     tiles[0x20] = "assets/assets/terrain/arctic.png";
     tiles[0x21] = "assets/assets/terrain/arctic_w.png";
@@ -278,9 +288,7 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[helium_3]  = "assets/assets/city/helium_3.png";
 }
 
-// Defined here (and not in gamekernel.cpp) so that the testcase build, which does not
-// link gamekernel.o, can also use the travel costs.
-MovementCost movementcosts;
+
 
 void initMovementCosts(MovementCost &movementcosts)
 {
@@ -297,9 +305,6 @@ void initMovementCosts(MovementCost &movementcosts)
     movementcosts[TUNDRA] = 1.5;
     movementcosts[OCEANBIOMA] = 1.0;
 }
-
-// Defined here (and not in gamekernel.cpp), same reason as movementcosts above.
-ImprovementEffort improvementeffort;
 
 // All biomas/improvements start at 6 required worker-turns; tune per bioma later.
 void initImprovementEffort(ImprovementEffort &improvementeffort)
@@ -338,15 +343,7 @@ int getImprovementEffort(ImprovementEffort &improvementeffort, int improvementty
     return 1;
 }
 
-// Defined here (and not in gamekernel.cpp), same reason as movementcosts/improvementeffort above.
-ImprovementResources improvementresources;
 
-// README.md's resource table: which special resource(s) a tile needs for each
-// resource-gated improvement. Road/Irrigation/Railroad have no entry here and stay
-// unrestricted -- for BUILDING purposes so does Mine (nothing calls tileHasRequiredResource
-// with MINE), but its entry here still drives commodity PRODUCTION gating below
-// (getRequiredImprovement): Gold/Copper/Iron/Silver/Gems/Carbon/Uranium/Litium/Aluminium/
-// Helium-3 all need a mine built before their commodity is produced, per README.md's table.
 void initImprovementResources(ImprovementResources &improvementresources)
 {
     improvementresources[MINE]       = {GOLD, COPPER, IRON, SILVER, GEMS, CARBON, URANIUM, LITIUM, ALUMINIUM, HELIUM_3};
@@ -379,13 +376,7 @@ int getRequiredImprovement(ImprovementResources &improvementresources, int resou
     return 0;
 }
 
-// Defined here (and not in gamekernel.cpp), same reason as movementcosts/improvementeffort/
-// improvementresources above.
-ImprovementBiomaRestrictions improvementbiomarestrictions;
 
-// Extends the resource-gating mechanism above (ImprovementResources/tileHasRequiredResource)
-// with a bioma DENY-list instead of a resource ALLOW-list: Irrigation cannot be built on
-// HILLS, ARCTIC or MOUNTAINS.
 void initImprovementBiomaRestrictions(ImprovementBiomaRestrictions &restrictions)
 {
     restrictions[IRRIGATION] = {HILLS, ARCTIC, MOUNTAINS};
@@ -421,13 +412,7 @@ void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma)
     resourcexbioma[OCEANBIOMA] = {FISH,WHALES,OIL};
 }
 
-// Defined here (and not in gamekernel.cpp), same reason as the tables above.
-std::unordered_map<int, int> commodityxresource;
 
-const std::vector<int> ALL_COMMODITIES = {
-    copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk,
-    wine, spices, gunpowder,sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3
-};
 
 void initCommodities(std::unordered_map<int, int> &commodityxresource)
 {

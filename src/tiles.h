@@ -26,7 +26,7 @@ enum BIOMAS
     SWAMP = 0xb0,
     TUNDRA = 0xc0,
     OCEANBIOMA = 0xd0,
-    LAKE = 0xe0,        // A landlocked (small, enclosed) ocean body -- see findOceanBodies() (gamekernel.cpp).
+    LAKE = 0xe0,        
     LANDBIOMA = 0x01,
     RIVER_MOUTH_W = 0x02,
     RIVER_MOUTH_S = 0x03,
@@ -121,6 +121,19 @@ enum COMMODITIES
     litium     = 0x215,
     aluminium  = 0x216,
     helium_3   = 0x217
+};
+
+enum MFGOODS
+{
+    tools           = 0x301,
+    guns            = 0x302,
+    textiles        = 0x303,
+    steel           = 0x304,
+    automobiles     = 0x305,
+    plastics        = 0x306,
+    pharmaceuticals = 0x307,
+    electronics     = 0x308,
+    robotics        = 0x309
 };
 
 typedef std::unordered_map<int, std::string> Tiles;
