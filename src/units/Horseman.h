@@ -2,10 +2,11 @@
 #define HORSEMAN_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Horseman : public Unit
+class Horseman : public Unit, public Shippable
 {
     public:
     Horseman();

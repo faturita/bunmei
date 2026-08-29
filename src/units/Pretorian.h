@@ -2,10 +2,11 @@
 #define PRETORIAN_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Pretorian : public Unit
+class Pretorian : public Unit, public Shippable
 {
     public:
     Pretorian();

@@ -2,10 +2,11 @@
 #define WARELEPHANT_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Warelephant : public Unit
+class Warelephant : public Unit, public Shippable
 {
     public:
     Warelephant();

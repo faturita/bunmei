@@ -41,7 +41,6 @@ extern Map map;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 
 extern float mapzoom;
@@ -82,8 +81,6 @@ void TestCase_021::init()
         {
             map.set(lat,lon) = mapcell(LAND);
         }
-
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
 
     Faction *faction = new Faction();
     faction->id = 0;

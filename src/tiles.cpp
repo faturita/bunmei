@@ -11,10 +11,10 @@ ImprovementResources improvementresources;
 ImprovementBiomaRestrictions improvementbiomarestrictions;
 std::unordered_map<int, int> commodityxresource;
 
-const std::vector<int> ALL_COMMODITIES = {
-    copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk,
-    wine, spices, gunpowder,sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3
-};
+// const std::vector<int> ALL_COMMODITIES = {
+//     copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk,
+//     wine, spices, gunpowder,sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3
+// };
 
 
 void initTiles(std::unordered_map<int, std::string> &tiles)

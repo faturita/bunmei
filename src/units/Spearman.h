@@ -2,10 +2,11 @@
 #define SPEARMAN_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Spearman : public Unit
+class Spearman : public Unit, public Shippable
 {
     public:
     Spearman();

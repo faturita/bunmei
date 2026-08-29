@@ -365,4 +365,5 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * https://github.com/boostorg/graph
 * https://github.com/rajko-horvat/OpenCiv1
 * https://github.com/SWY1985/CivOne
+* https://codeberg.org/rhorvat/OpenCivOne
 

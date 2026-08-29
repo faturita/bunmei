@@ -2,10 +2,11 @@
 #define SCOUT_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Scout : public Unit
+class Scout : public Unit, public Shippable
 {
     public:
     Scout();

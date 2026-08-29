@@ -52,7 +52,6 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 extern DependencyEvaluationEngine dee;
 extern void endOfYear();
@@ -107,13 +106,6 @@ void TestCase_035::init()
         for (int lon=map.minlon;lon<map.maxlon;lon++)
             map.set(lat,lon).setVisible(0);
 
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
-
     Faction *faction = new Faction();
     faction->id = 0;
     strcpy(faction->name,"Vikings");
@@ -131,7 +123,7 @@ void TestCase_035::init()
     cityid = city->id;
 
     city->pop = 5;
-    city->resources[0] = getPopulationThresshold(city->pop)/2;
+    city->coreresources[0] = getPopulationThresshold(city->pop)/2;
 
     citynames[0] = std::queue<std::string>();
 
@@ -261,7 +253,7 @@ int TestCase_035::check(int year)
     {
         int pop = city->pop;
         int thresshold = getPopulationThresshold(pop);
-        city->resources[0] = thresshold + 37; // deliberate overshoot past the thresshold
+        city->coreresources[0] = thresshold + 37; // deliberate overshoot past the thresshold
         endOfYear();
 
         if (city->pop != pop+1)
@@ -275,13 +267,13 @@ int TestCase_035::check(int year)
         }
 
         int expected = (int)(0.5f * (float)getPopulationThresshold(city->pop));  // NEW (post-growth) pop's thresshold -- what the UI line also uses.
-        if (city->resources[0] != expected)
+        if (city->coreresources[0] != expected)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
             sprintf(buf,"Granary reserve after growth was %d, expected half of the CURRENT pop's thresshold (%d) -- matching the UI line -- not half of the pre-growth thresshold or the overshot stock.",
-                    city->resources[0], expected);
+                    city->coreresources[0], expected);
             message = std::string(buf);
             return 0;
         }

@@ -108,7 +108,6 @@ std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
 std::vector<Faction*> factions;
 DiplomacyTable diplomacy;
-std::vector<Resource*> resources;
 std::vector<Message> messages;
 
 Coordinator coordinator;
@@ -277,11 +276,11 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
-        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
+        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->coreresources[FOOD]);
         // Go through all the map locations and gather all the resources.
-        for(auto &r:resources)
+        for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->resources[r->id] += c->getProductionRate(r->id);
+            c->coreresources[r_id] += c->getProductionRate(r_id);
         }
 
         // Commodities: gathered from every special resource within range regardless of
@@ -292,28 +291,28 @@ inline void endOfYear()
         }
 
         // Reduce the number of resources according to what is required now.
-        for(auto &r:resources)
+        for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->resources[r->id] -= c->getConsumptionRate(r->id);
+            c->coreresources[r_id] -= c->getConsumptionRate(r_id);
         }
 
         // Convert trade accordingly.  Trade is not accummulated
 
-        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
-        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
-        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
-        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
+        c->coreresources[COINS] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0]);
+        c->coreresources[SCIENCE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[1]);
+        //c->coreresources[LUXURY] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0])
+        c->coreresources[CULTURE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[2]);
 
-        c->resources[TRADE]=0;
+        c->coreresources[TRADE]=0;
         
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)
         {
             BuildableFactory *bf = c->productionQueue.front();
-            if (c->resources[SHIELDS]>=bf->cost(1))
+            if (c->coreresources[SHIELDS]>=bf->cost(SHIELDS))
             {
-                c->resources[SHIELDS] -= bf->cost(1);          // @FIXME This can be extended to more resources.
+                c->coreresources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();
@@ -349,7 +348,7 @@ inline void endOfYear()
 
             }
         } else { // Reset resources if there is nothing to build.
-            c->resources[SHIELDS] = 0;
+            c->coreresources[SHIELDS] = 0;
             message(year, c->faction, "City %s has nothing to build.",c->name);
         }
         
@@ -359,17 +358,17 @@ inline void endOfYear()
         {
             popFactor = 0.5f;
         }
-        if (c->resources[FOOD]>= getPopulationThresshold(c->pop))
+        if (c->coreresources[FOOD]>= getPopulationThresshold(c->pop))
         {
             c->pop++;
 
-            c->resources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
+            c->coreresources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
 
             c->assignWorkingTile();
         } else
-        if (c->resources[FOOD]<0)  // Out of food, reduce population accordingly.
+        if (c->coreresources[FOOD]<0)  // Out of food, reduce population accordingly.
         {
-            c->resources[FOOD] = 0;
+            c->coreresources[FOOD] = 0;
             if (c->pop>1)
             {
                 c->pop--;

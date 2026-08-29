@@ -2,10 +2,11 @@
 #define SPY_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
     
-class Spy : public Unit
+class Spy : public Unit, public Shippable
 {
     public:
     Spy();

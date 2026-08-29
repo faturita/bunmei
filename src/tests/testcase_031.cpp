@@ -59,7 +59,6 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 extern MovementCost movementcosts;
 extern ImprovementEffort improvementeffort;
@@ -122,13 +121,6 @@ void TestCase_031::init()
         for (int lon=map.minlon;lon<map.maxlon;lon++)
             map.set(lat,lon).setVisible(0);
 
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
-
     Faction *faction = new Faction();
     faction->id = 0;
     strcpy(faction->name,"Vikings");
@@ -149,7 +141,7 @@ void TestCase_031::init()
     // fixed-10-items-per-row (and later the items-per-row-clamped-to-the-box) layout would
     // need far more than the box's ~13 rows.
     city->pop = 25;
-    city->resources[0] = getPopulationThresshold(city->pop); // right at the growth threshold
+    city->coreresources[0] = getPopulationThresshold(city->pop); // right at the growth threshold
 
     citynames[0] = std::queue<std::string>();
 

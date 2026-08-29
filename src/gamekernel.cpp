@@ -116,16 +116,14 @@ static const std::vector<ResourceRateOverride> RESOURCE_RATE_OVERRIDE = {
     { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
 };
 
-void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
+void assignProductionRates(Map &mmp)
 {
-    initResources(resources);
-
     for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
         for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
         {
             mapcell &cell = mmp.set(lat,lon);
 
-            for(auto &r:resources)
+            for(auto &r:ALL_CORE_RESOURCES)
             {
                 cell.addResourceProductionRate(0);
             }
@@ -255,6 +253,8 @@ std::vector<std::vector<coordinate>> findOceanBodies() {
 void initMap()
 {
     initTiles(tiles);
+
+    initCoreResources();
 
     initResources(resourcesxbioma);
 
@@ -709,7 +709,7 @@ void initMap()
 
     //exit(-1);
    
-    assignProductionRates(map, resources);
+    assignProductionRates(map);
 }
 
 

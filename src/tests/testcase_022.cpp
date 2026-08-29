@@ -45,7 +45,6 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 extern MovementCost movementcosts;
 extern ImprovementEffort improvementeffort;
@@ -101,17 +100,10 @@ void TestCase_022::init()
     // GRASSLAND costs 6 worker-turns to road (initImprovementEffort default).
     map.set(0,0).bioma = GRASSLAND;
 
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
-
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            for(auto &r:resources)
+            for(auto &r:ALL_CORE_RESOURCES)
             {
                 map.set(lat,lon).addResourceProductionRate(2);
             }

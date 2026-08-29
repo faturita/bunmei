@@ -51,7 +51,6 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 extern MovementCost movementcosts;
 extern ImprovementEffort improvementeffort;
@@ -122,17 +121,10 @@ void TestCase_029::init()
         for (int lon=map.minlon;lon<map.maxlon;lon++)
             map.set(lat,lon).setVisible(0);
 
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
-
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            for(auto &r:resources)
+            for(auto &r:ALL_CORE_RESOURCES)
             {
                 map.set(lat,lon).addResourceProductionRate(2);
             }
@@ -157,7 +149,7 @@ void TestCase_029::init()
     // A big food stockpile (more than the old flat 10-per-row would have fit in the new,
     // shorter box) and NUMCOMMODITIES (7) stocked commodities -- more than
     // COMMODITIES_STORAGE_ROWS (5), so the Commodities Storage box must scroll.
-    city->resources[0] = 47;
+    city->coreresources[0] = 47;
     city->commodities[copper]    = 4;
     city->commodities[iron]      = 8;
     city->commodities[marble]    = 2;

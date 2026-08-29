@@ -4,6 +4,7 @@
 #include <queue>
 #include <unordered_map>
 
+#include "resources.h"
 #include "improvements.h"
 
 enum TERRAIN
@@ -95,53 +96,8 @@ enum SPECIALRESOURCES
     HELIUM_3    = 0x11c
 };
 
-
-enum COMMODITIES
-{
-    copper     = 0x201,
-    iron       = 0x202,
-    silver     = 0x203,
-    marble     = 0x204,
-    furs       = 0x205,
-    traan      = 0x206,
-    gems       = 0x207,
-    meat       = 0x208,
-    horses     = 0x209,
-    elephants  = 0x20a,
-    silk       = 0x20b,
-    wine       = 0x20c,
-    spices     = 0x20d,
-    gunpowder  = 0x20e,
-    sugar      = 0x20f,
-    tobacco    = 0x210,
-    cotton     = 0x211,
-    carbon     = 0x212,
-    uranium    = 0x213,
-    oil        = 0x214,
-    litium     = 0x215,
-    aluminium  = 0x216,
-    helium_3   = 0x217
-};
-
-enum MFGOODS
-{
-    tools           = 0x301,
-    guns            = 0x302,
-    textiles        = 0x303,
-    steel           = 0x304,
-    automobiles     = 0x305,
-    plastics        = 0x306,
-    pharmaceuticals = 0x307,
-    electronics     = 0x308,
-    robotics        = 0x309
-};
-
 typedef std::unordered_map<int, std::string> Tiles;
 typedef std::unordered_map<int, std::vector<int>> Commodities;
-
-// Every COMMODITIES value, for code that needs to iterate "all commodities" (e.g. gathering
-// a city's yearly commodity production) without hand-maintaining a second copy of the enum.
-extern const std::vector<int> ALL_COMMODITIES;
 
 void initTiles(std::unordered_map<int, std::string> &tiles);
 void initResources(std::unordered_map<int, std::vector<int>> &resourcexbioma);

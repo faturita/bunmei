@@ -41,7 +41,6 @@ typedef std::unordered_map<int, Unit*> Units;
 
 Tiles tiles;
 std::unordered_map<int,std::queue<std::string>> citynames;
-std::vector<Resource*> resources;
 
 Factions factions;
 Units units;
@@ -201,14 +200,14 @@ void initUnits()
     }    
 }
 
-void assignProductionRates(Map &mmp, std::vector<Resource*> &resources)
+void assignProductionRates(Map &mmp)
 {
     for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
         for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
         {
             mapcell &cell = mmp.set(lat,lon);
 
-            for(auto &r:resources)
+            for(auto &r:ALL_CORE_RESOURCES)
             {
                 cell.addResourceProductionRate(0);
             }
@@ -369,11 +368,11 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
-        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[0]);
+        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->coreresources[FOOD]);
         // Go through all the map locations and gather all the resources.
-        for(auto &r:resources)
+        for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->resources[r->id] += c->getProductionRate(r->id);
+            c->coreresources[r_id] += c->getProductionRate(r_id);
         }
 
         // Commodities: gathered from every special resource within range regardless of
@@ -384,28 +383,28 @@ inline void endOfYear()
         }
 
         // Reduce the number of resources according to what is required now.
-        for(auto &r:resources)
+        for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->resources[r->id] -= c->getConsumptionRate(r->id);
+            c->coreresources[r_id] -= c->getConsumptionRate(r_id);
         }
 
         // Convert trade accordingly.  Trade is not accummulated
 
-        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
-        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
-        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
-        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
+        c->coreresources[COINS] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0]);
+        c->coreresources[SCIENCE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[1]);
+        //c->coreresources[LUXURY] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0])
+        c->coreresources[CULTURE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[2]);
 
-        c->resources[TRADE]=0;
-        
+        c->coreresources[TRADE]=0;
+
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)
         {
             BuildableFactory *bf = c->productionQueue.front();
-            if (c->resources[1]>=bf->cost(1))
+            if (c->coreresources[SHIELDS]>=bf->cost(SHIELDS))
             {
-                c->resources[1] -= bf->cost(1);          // @FIXME This can be extended to more resources.
+                c->coreresources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();
@@ -436,16 +435,16 @@ inline void endOfYear()
         }
         
         // Balance city population according to available resources.
-        if (c->resources[FOOD]>100*c->pop) 
+        if (c->coreresources[FOOD]>100*c->pop)
         {
-            c->resources[FOOD] = 0;
+            c->coreresources[FOOD] = 0;
             c->pop++;
 
             c->assignWorkingTile();
-        } else 
-        if (c->resources[FOOD]<0)
+        } else
+        if (c->coreresources[FOOD]<0)
         {
-            c->resources[FOOD] = 0;
+            c->coreresources[FOOD] = 0;
 
             if (c->pop>1)
             {
@@ -602,16 +601,15 @@ int main(int argc, char *argv[]) {
     initImprovementBiomaRestrictions(improvementbiomarestrictions);
     initImprovements(improvements);
     initNaming(citynames);
-    initResources(resources);
 
     MapDimension dimension = getMapDimension(mapsize);
-    map.init(dimension.halfheight,dimension.halfwidth);    
+    map.init(dimension.halfheight,dimension.halfwidth);
 
     initMap();
 
     printf("Map minlat %d maxlat %d minlon %d maxlon %d\n", map.minlat, map.maxlat, map.minlon, map.maxlon);
 
-    assignProductionRates(map, resources);
+    assignProductionRates(map);
 
     initFactions();
 

@@ -2,10 +2,11 @@
 #define SWORDMAN_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Swordman : public Unit
+class Swordman : public Unit, public Shippable
 {
     public:
     Swordman();

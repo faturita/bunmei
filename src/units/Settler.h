@@ -2,10 +2,11 @@
 #define SETTLER_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Settler : public Unit
+class Settler : public Unit, public Shippable
 {
     public:
     Settler();

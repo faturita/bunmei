@@ -2,10 +2,11 @@
 #define AXEMAN_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Axeman : public Unit
+class Axeman : public Unit, public Shippable
 {
     public:
     Axeman();

@@ -28,8 +28,10 @@ public:
     std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
-    std::vector<int> resources;                                 // @FIXME Requires configuration according to the global resources.
-    std::unordered_map<int,int> commodities;                    // Commodity stockpile, keyed by COMMODITIES id (tiles.h), gathered each year.
+    std::unordered_map<int, int> coreresources;              // Core resources workable
+    std::unordered_map<int, int> commodities;               // Commodity stockpile, keyed by COMMODITIES id (tiles.h), gathered each year.
+    std::unordered_map<int, int> mfggoods;                    // Manufactured goods stockpile, keyed by MANUFACTURED GOODS id (tiles.h), gathered each year.
+
 
     City(Map *map, int faction, int id, int latitude, int longitude);
     int latitude;

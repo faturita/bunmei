@@ -21,4 +21,6 @@ void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar);
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
 std::vector<Unit*> getUnitsAtCity(City* city);
 
+void initCoreResources();
+
 #endif   // CITYSCREENUI_H

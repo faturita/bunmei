@@ -2,10 +2,11 @@
 #define HORSEARCHER_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Horsearcher : public Unit
+class Horsearcher : public Unit, public Shippable
 {
     public:
     Horsearcher();

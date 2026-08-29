@@ -54,7 +54,6 @@ struct Co {
 
 };
 
-
 struct Vertex {
     double m_d  = 0;
     size_t m_id = -1;
@@ -100,7 +99,6 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 
 void TestCase_001::init()
@@ -156,18 +154,10 @@ void TestCase_001::init()
         }
     }   
 
-
-    resources.push_back(new Resource(0,0,"assets/assets/city/food.png","Food"));
-    resources.push_back(new Resource(1,0,"assets/assets/city/production.png","Shields"));
-    resources.push_back(new Resource(2,0,"assets/assets/city/trade.png","Trade"));
-    resources.push_back(new Resource(3,0,"assets/assets/city/gold.png","Coins"));
-    resources.push_back(new Resource(4,0,"assets/assets/city/bulb.png","Science"));
-    resources.push_back(new Resource(5,0,"assets/assets/city/culture.png","Culture"));
-
     for(int lat=map.minlat;lat<map.maxlat;lat++)
         for (int lon=map.minlon;lon<map.maxlon;lon++)
         {
-            for(auto &r:resources)
+            for(auto &r:ALL_CORE_RESOURCES)
             {
                 map.set(lat,lon).addResourceProductionRate(2);
             }
@@ -284,9 +274,6 @@ void TestCase_001::init()
         std::cout << ed << " cost " << cost[ed] << "\n";
     }**/
 
-
-
-
     Tree tree;
     auto root = add_vertex({15,10}, tree);
     auto north = add_vertex({10,10}, tree);
@@ -297,7 +284,6 @@ void TestCase_001::init()
     add_edge(root, north, Edge{100}, tree);
     add_edge(root, south, Edge{200}, tree);
     add_edge(north, f, Edge{300}, tree);
-
 
     // cool, i now have the tree
 
@@ -315,10 +301,7 @@ void TestCase_001::init()
         std::cout << "Edge " << ed << " has cost " << tree[ed].cost << std::endl;
     }
 
-
-
     dijkstra_shortest_paths(tree, root, predecessor_map( get(&Co::pred, tree)).weight_map(get(&Edge::cost, tree)).distance_map(get(&Co::dist, tree)));
-
 
     vpair = vertices(tree);
     for(auto iter=vpair.first; iter!=vpair.second; iter++)
@@ -326,9 +309,6 @@ void TestCase_001::init()
         auto vd = *iter;
         std::cout << "Vertex " << vd << " has lat " << tree[vd].lat << " and lon " << tree[vd].lon << " and " << tree[vd].pred << std::endl;
     }
-
-
-
 
     auto co = boost::get(&Co::lat, tree);
     auto lo = boost::get(&Co::lon, tree);
@@ -395,7 +375,6 @@ int TestCase_001::check(int year)
    add_edge(5, 7, g);
 
     isdone = true;
-
 
     return 0;
 }

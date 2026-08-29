@@ -22,7 +22,6 @@ extern float cx;
 extern float cy;
 
 extern Map map;
-extern std::vector<Resource*> resources;
 extern Tiles tiles;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
@@ -30,6 +29,19 @@ extern std::vector<Faction*> factions;
 extern Controller controller;
 extern Coordinator coordinator;
 extern DependencyEvaluationEngine dee;
+
+std::unordered_map<int, std::string> coreresources;
+
+void initCoreResources()
+{
+    coreresources[FOOD] = "assets/assets/city/food.png";
+    coreresources[SHIELDS] = "assets/assets/city/production.png";
+    coreresources[TRADE] = "assets/assets/city/trade.png";
+    coreresources[COINS] = "assets/assets/city/gold.png";
+    coreresources[SCIENCE] = "assets/assets/city/bulb.png";
+    coreresources[CULTURE] = "assets/assets/city/culture.png";
+}
+
 
 // Units currently standing on city's tile, in a stable order shared by drawCityScreen (to
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
@@ -307,11 +319,11 @@ void drawCityScreen(int cla, int clo, City *city)
         drawBoundingBox(clo,cla,-10,-8,-4,-4);
 
         // In the box 16 resources fit with a colsepar of 7.
-        for(int i=0;i<resources.size();i++)
+        for (int i=0;i<sizeof(ALL_CORE_RESOURCES)/sizeof(int);i++)
         {
-            Resource* r = resources[i];
-            int consumptionrate = city->getConsumptionRate(r->id);
-            int productionrate = city->getProductionRate(r->id)-consumptionrate;
+            int r = ALL_CORE_RESOURCES[i];
+            int consumptionrate = city->getConsumptionRate(r);
+            int productionrate = city->getProductionRate(r)-consumptionrate;
 
             // @FIXME: This works but it is not very good.
             // @TODO: Pick an icon to highlight the situation where resources are not enough to cover the consumption rate.  This is a very important situation and should be highlighted.
@@ -322,12 +334,12 @@ void drawCityScreen(int cla, int clo, City *city)
 
             for(j=0;j<consumptionrate;j++)
             {
-                place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,r->assetname);
+                place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,coreresources[r].c_str());
             }
 
             for(;j<consumptionrate+productionrate;j++)
             {
-                place((clo + (-10))*16-4+colsepar*(j+1)  ,(cla + (-7))*16-4+7*(i)  ,7,7,r->assetname);
+                place((clo + (-10))*16-4+colsepar*(j+1)  ,(cla + (-7))*16-4+7*(i)  ,7,7,coreresources[r].c_str());
             }
 
         }
@@ -375,7 +387,7 @@ void drawCityScreen(int cla, int clo, City *city)
     int foodItemsPerRow; float foodColsepar;
     getFoodStorageLayout(city->pop, foodItemsPerRow, foodColsepar);
 
-    for(int i=0;i<city->resources[0];i++)
+    for(int i=0;i<city->coreresources[FOOD];i++)
         place((clo+(-10))*16-4+(int)round(foodColsepar*(i%foodItemsPerRow))  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
 
     // Blue line marking the Granary's reserve (task #26): once HALF_POPULATION_CODE is
@@ -512,7 +524,7 @@ void drawCityScreen(int cla, int clo, City *city)
     }
     else
     {
-        for(int i=0;i<city->resources[1];i++)
+        for(int i=0;i<city->coreresources[SHIELDS];i++)
         {
             place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
         }
@@ -555,9 +567,9 @@ void drawCityScreen(int cla, int clo, City *city)
                 //   in this order:  Food, Production, Trade, Gold, Science, and whatever is left
                 //   Then accumulate all the resources, divide them in two rows, and place them
                 //   based on the allowed distance.  The maximimun is then 16 times 2, which is 32.
-                std::vector<Resource*> resourcesToDisplay;
+                std::vector<int> resourcesToDisplay;
 
-                for(int i=0;i<resources.size();i++)
+                for(int i=0;i<sizeof(ALL_CORE_RESOURCES)/sizeof(int);i++)
                 {
                     float resourceProductionRate = map(la,lo).getResourceProductionRate(i);
 
@@ -570,7 +582,7 @@ void drawCityScreen(int cla, int clo, City *city)
 
                     for(int j=0;j<resourceProductionRate;j++)
                     {
-                        resourcesToDisplay.push_back(resources[i]);
+                        resourcesToDisplay.push_back(i);
                     }
                 }
 
@@ -583,7 +595,7 @@ void drawCityScreen(int cla, int clo, City *city)
                 for(int i=0;i<resourcesToDisplay.size();i++)
                 {
                     //printf("Resource %d %s\n",i,resourcesToDisplay[i]->name);
-                    place((lo)*16-4+colsepar*(i%resperrow)  ,(la)*16-4+7*(i/resperrow)  ,7,7,resourcesToDisplay[i]->assetname);
+                    place((lo)*16-4+colsepar*(i%resperrow)  ,(la)*16-4+7*(i/resperrow)  ,7,7,coreresources[resourcesToDisplay[i]].c_str());
                 }
 
 

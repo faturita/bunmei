@@ -2,10 +2,11 @@
 #define WARRIOR_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Warrior : public Unit
+class Warrior : public Unit, public Shippable
 {
     public:
     Warrior();

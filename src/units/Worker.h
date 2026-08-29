@@ -2,10 +2,11 @@
 #define WORKER_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Worker : public Unit
+class Worker : public Unit, public Shippable
 {
     public:
     Worker();

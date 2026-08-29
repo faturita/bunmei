@@ -2,10 +2,11 @@
 #define CHARIOT_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Chariot : public Unit
+class Chariot : public Unit, public Shippable
 {
     public:
     Chariot();

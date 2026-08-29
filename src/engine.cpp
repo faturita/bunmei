@@ -331,7 +331,7 @@ void reSetCities()
         c->deAssigntWorkingTile();
 
         // @NOTE Collect taxes....
-        factions[c->faction]->coins += c->resources[COINS];
+        factions[c->faction]->coins += c->coreresources[COINS];
 
         // @FIXME: Spread culture
 
@@ -582,7 +582,7 @@ bool captureCity(Unit* invader, int lat, int lon)
                 }
 
                 march();
-                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
+                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->coreresources[COINS]);  
 
                 // @FIXME: We may loose some coins here.  I am just capturing everything.
                 printf("Capture City Condition\n");

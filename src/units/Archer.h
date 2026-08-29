@@ -2,10 +2,11 @@
 #define ARCHER_H
 
 #include <iostream>
+#include "../shippable.h"
 #include "Unit.h"
 
 
-class Archer : public Unit
+class Archer : public Unit, public Shippable
 {
     public:
     Archer();
