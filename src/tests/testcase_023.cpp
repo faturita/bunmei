@@ -172,6 +172,8 @@ int TestCase_023::check(int year)
     {
         CommandOrder co;
         co.command = Command::BuildRailroadOrder;
+        co.parameters.spawnid = workerid;
+        co.parameters.factionid = u->faction;
         coordinator.push(co);
     }
 

@@ -256,6 +256,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerNoWaterId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 303)
@@ -280,6 +282,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerBadBiomaId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 307)
@@ -308,6 +312,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerRiverId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 311)
@@ -361,6 +367,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerRiverId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 342)
@@ -386,6 +394,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerOasisId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 346)
@@ -410,6 +420,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerLakeId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 350)
@@ -436,6 +448,8 @@ int TestCase_038::check(int year)
         coordinator.a_u_id = workerChainId;
         CommandOrder co;
         co.command = Command::BuildIrrigationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 354)

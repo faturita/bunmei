@@ -160,6 +160,8 @@ int TestCase_020::check(int year)
     {
         CommandOrder co;
         co.command = Command::BuildCityOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
 

@@ -200,6 +200,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerRoadId;
         CommandOrder co;
         co.command = Command::BuildRoadOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 13)
@@ -219,6 +221,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerMineId;
         CommandOrder co;
         co.command = Command::BuildMineOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 17)
@@ -238,6 +242,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerRailroadId;
         CommandOrder co;
         co.command = Command::BuildRailroadOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 21)
@@ -257,6 +263,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerQuarryId;
         CommandOrder co;
         co.command = Command::BuildQuarryOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 25)
@@ -276,6 +284,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerCampId;
         CommandOrder co;
         co.command = Command::BuildCampOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 29)
@@ -295,6 +305,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerDerrickId;
         CommandOrder co;
         co.command = Command::BuildDerrickOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 33)
@@ -314,6 +326,8 @@ int TestCase_039::check(int year)
         coordinator.a_u_id = workerPlantationId;
         CommandOrder co;
         co.command = Command::BuildPlantationOrder;
+        co.parameters.spawnid = coordinator.a_u_id;
+        co.parameters.factionid = coordinator.a_f_id;
         coordinator.push(co);
     }
     if (ticks == 37)

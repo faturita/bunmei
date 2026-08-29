@@ -135,6 +135,11 @@ bool switchVisibleFaction;
 bool nofog;
 int  selectedFaction;
 
+// -civs N: how many of the defined civilizations to load, clamped to [2,7] in
+// initFactions() (gamekernel.cpp). -1 (unset) means "no cap, load every defined civ" --
+// same sentinel convention as selectedFaction above.
+int  numCivs;
+
 
 void disclaimer()
 {
@@ -420,8 +425,10 @@ void adjustMovements()
 
         CommandOrder co;
         co.command = Command::MoveUnitTo;
+        co.parameters.spawnid = units[coordinator.a_u_id]->id;
+        co.parameters.factionid = units[coordinator.a_u_id]->faction;
         co.parameters.latitude = lat;
-        co.parameters.longitude = lon;          // @FIXME: This is assuming the unit to move is the active one.
+        co.parameters.longitude = lon;
         coordinator.push(co);
 
         // Reset the controller registers to avoid moving again in the same direction.
@@ -634,6 +641,8 @@ int main(int argc, char** argv) {
     nofog = isPresentCommandLineParameter(argc,argv,"-nofog");
 
     selectedFaction = getDefaultedIntCommandLineParameter(argc,argv,"-faction",-1);
+
+    numCivs = getDefaultedIntCommandLineParameter(argc,argv,"-civs",-1);
 
     setupWorldModelling();
     initRendering();

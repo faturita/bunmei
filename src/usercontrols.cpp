@@ -267,6 +267,8 @@ void handleKeypress(unsigned char key, int x, int y) {
                 {
                     CommandOrder co;
                     co.command = Command::BuildCityOrder;
+                    co.parameters.spawnid = coordinator.a_u_id;
+                    co.parameters.factionid = coordinator.a_f_id;
                     coordinator.push(co);
                 }
             }
@@ -276,6 +278,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::DisbandUnitOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -283,6 +287,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildRoadOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -290,6 +296,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildRailroadOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -297,6 +305,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildIrrigationOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -304,6 +314,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildMineOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -311,6 +323,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildQuarryOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -318,6 +332,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildCampOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -325,6 +341,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildDerrickOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -332,6 +350,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::BuildPlantationOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -339,6 +359,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::FortifyUnitOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         break;
@@ -346,6 +368,8 @@ void handleKeypress(unsigned char key, int x, int y) {
         {
             CommandOrder co;
             co.command = Command::SentryUnitOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
             coordinator.push(co);
         }
         default:break;

@@ -232,6 +232,8 @@ int TestCase_027::check(int year)
     {
         CommandOrder co;
         co.command = Command::BuildQuarryOrder;
+        co.parameters.spawnid = workerid;
+        co.parameters.factionid = u->faction;
         coordinator.push(co);
     }
 
@@ -257,6 +259,8 @@ int TestCase_027::check(int year)
 
         CommandOrder co;
         co.command = Command::BuildQuarryOrder;
+        co.parameters.spawnid = workerid;
+        co.parameters.factionid = u->faction;
         coordinator.push(co);
     }
 

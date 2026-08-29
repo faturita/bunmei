@@ -593,6 +593,8 @@ void autoPlayerMoveUnits()
                 {
                     CommandOrder co;
                     co.command = Command::BuildCityOrder;
+                    co.parameters.spawnid = s->id;
+                    co.parameters.factionid = s->faction;
                     coordinator.push(co);
                 }
                 else
@@ -615,6 +617,8 @@ void autoPlayerMoveUnits()
 
                         CommandOrder co;
                         co.command = Command::DisbandUnitOrder;
+                        co.parameters.spawnid = s->id;
+                        co.parameters.factionid = s->faction;
                         coordinator.push(co);
                     }
                 }
@@ -633,6 +637,8 @@ void autoPlayerMoveUnits()
                     nc = c;
                     CommandOrder co;
                     co.command = Command::FortifyUnitOrder;
+                    co.parameters.spawnid = unit->id;
+                    co.parameters.factionid = unit->faction;
                     coordinator.push(co);
                 }
             }
@@ -645,6 +651,8 @@ void autoPlayerMoveUnits()
                     nc = c;
                     CommandOrder co;
                     co.command = Command::FortifyUnitOrder;
+                    co.parameters.spawnid = unit->id;
+                    co.parameters.factionid = unit->faction;
                     coordinator.push(co);
                 }
             }
@@ -719,6 +727,8 @@ void autoPlayerMoveUnits()
 
                         CommandOrder co;
                         co.command = Command::MoveUnitTo;
+                        co.parameters.spawnid = unit->id;
+                        co.parameters.factionid = unit->faction;
                         co.parameters.latitude = c.lat;
                         co.parameters.longitude = c.lon;
                         coordinator.push(co);
@@ -747,6 +757,8 @@ void processGoTo()
 
             CommandOrder co;
             co.command = Command::MoveUnitTo;
+            co.parameters.spawnid = units[coordinator.a_u_id]->id;
+            co.parameters.factionid = units[coordinator.a_u_id]->faction;
             co.parameters.latitude = c.lat;
             co.parameters.longitude = c.lon;
             coordinator.push(co);

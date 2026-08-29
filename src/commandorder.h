@@ -43,8 +43,21 @@ enum class Command {
 
 struct commandparameters
 {
-    // Unit id.
+    // Unit id -- for any command that addresses a unit (MoveUnitTo, BuildCityOrder,
+    // DisbandUnitOrder, FortifyUnitOrder, SentryUnitOrder, BuildRoadOrder/BuildIrrigationOrder/
+    // BuildMineOrder/BuildRailroadOrder/BuildQuarryOrder/BuildCampOrder/BuildDerrickOrder/
+    // BuildPlantationOrder). Set by the caller at push() time from whichever unit is driving
+    // the order (coordinator.a_u_id for the human player, the AI's own unit pointer, etc.) so
+    // processCommandOrders() reads the unit id from here instead of coordinator.a_u_id --
+    // the command carries everything it needs to run on its own.
     int spawnid;
+
+    // Faction id -- same reasoning as spawnid above, for commands that need to know which
+    // faction issued them (BuildCityOrder's capital/city-naming logic, and the
+    // nextMovableUnitId() call every unit-order handler makes once it's done). Set from the
+    // acting unit's own ->faction field (or coordinator.a_f_id where no unit is involved yet),
+    // NOT read from coordinator.a_f_id at process time.
+    int factionid;
 
     // City id -- for any command that addresses a city (e.g. AssignWorkTileOrder). Kept
     // separate from spawnid (units), so reusing one for the other doesn't risk colliding if

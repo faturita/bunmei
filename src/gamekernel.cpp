@@ -62,6 +62,7 @@ extern char filegame[256];
 extern bool autoEndOfTurn;
 extern bool switchVisibleFaction;
 extern int selectedFaction;
+extern int numCivs;
 
 // context keys for BASE_PRODUCTION_RATE / RESOURCE_RATE_OVERRIDE: real biomas (tiles.h
 // BIOMAS) are all >= 0x20, so these negative sentinels never collide with one.
@@ -736,10 +737,38 @@ static const FactionDefinition FACTION_DEFINITIONS[] = {
     { 7, "Mongols",     128, 128, 128, {1, 0, 0, 0}, true, mongols     },
 };
 
+#define NUMBER_OF_FACTION_DEFINITIONS ((int)(sizeof(FACTION_DEFINITIONS)/sizeof(FACTION_DEFINITIONS[0])))
+
+// -civs N (bunmei.cpp numCivs): how many of the defined civilizations actually get loaded.
+#define MIN_CIVS 2
+#define MAX_CIVS 7
+
 void initFactions()
 {
+    // numCivs<0 (unset, the default) means "no cap": load every defined civilization, same
+    // as before -civs existed. An explicit value is clamped into [MIN_CIVS, MAX_CIVS] --
+    // MAX_CIVS is deliberately one less than NUMBER_OF_FACTION_DEFINITIONS.
+    int civsToLoad = NUMBER_OF_FACTION_DEFINITIONS;
+    if (numCivs >= 0)
+    {
+        civsToLoad = numCivs;
+        if (civsToLoad < MIN_CIVS)
+        {
+            printf("-civs %d is below the minimum of %d; using %d.\n", numCivs, MIN_CIVS, MIN_CIVS);
+            civsToLoad = MIN_CIVS;
+        }
+        else if (civsToLoad > MAX_CIVS)
+        {
+            printf("-civs %d is above the maximum of %d; using %d.\n", numCivs, MAX_CIVS, MAX_CIVS);
+            civsToLoad = MAX_CIVS;
+        }
+    }
+
+    int civIndex = 0;
     for (auto &def : FACTION_DEFINITIONS)
     {
+        if (civIndex++ >= civsToLoad)
+            break;
         Faction *faction = new Faction();
         faction->id = def.id;
         strcpy(faction->name, def.name);
@@ -896,8 +925,25 @@ void loadWorldModelling()
     //initUnits();
 
     coordinator.a_f_id = factions[0]->id;
+
+    if (selectedFaction >= 0)
+    {
+        coordinator.v_f_id = factions[selectedFaction]->id;
+    }
+    else
+    {
+        coordinator.v_f_id = factions[0]->id;
+    }
+
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = false;
+
+    // @NOTE: Allow to finish the turn automatically when all units have moved, so the player
+    // does not have to click "End Turn" every time -- same as initWorldModelling() (new game);
+    // this was missing here, so a loaded game never auto-ended a turn once units ran out of
+    // moves (autoEndOfTurn defaults to false, only initWorldModelling() ever set it to true).
+    autoEndOfTurn = true;
+    switchVisibleFaction = false;
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();

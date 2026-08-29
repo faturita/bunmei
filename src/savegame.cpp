@@ -208,7 +208,17 @@ void loadCities(std::ifstream& in)
     in.read(reinterpret_cast<char*>(&city_count), sizeof(city_count));
     printf("Loading %zu cities...\n", city_count);
     for (size_t i = 0; i < city_count; ++i) {
+        // City's constructor unconditionally claims map tile (0,0) -- the map's actual
+        // origin, not a safe placeholder -- as a side effect of these temporary (0,0,0,0)
+        // values (real id/latitude/longitude are read right after and may not even BE
+        // (0,0)). loadMap() (initMap(), called before loadWorldModelling() reaches this
+        // function) already restored that tile's correct ownership from the map file;
+        // snapshot/restore it around construction so this placeholder claim doesn't corrupt
+        // whatever legitimately occupies it (including this very city, if it turns out to
+        // actually be located at (0,0)).
+        mapcell origin_snapshot = map(0,0);
         City* c = new City(&map, 0, 0, 0, 0); // Temporary values
+        map.set(0,0) = origin_snapshot;
         in.read(reinterpret_cast<char*>(&c->id), sizeof(c->id));
         bool isCapital;
         in.read(reinterpret_cast<char*>(&isCapital), sizeof(isCapital));
@@ -241,7 +251,16 @@ void loadCities(std::ifstream& in)
             in.read(reinterpret_cast<char*>(&c->resources[j]), sizeof(c->resources[j]));
         }
 
-        // Load working tiles
+        // Working tiles are NOT re-assigned here: the map file (saveMap()/loadMap(),
+        // mapio.cpp) already serializes each tile's c_id_owner/f_id_owner/owners, and
+        // initMap() loads that map BEFORE loadCities() runs (see the @NOTE above), so a
+        // city's working tiles are already correctly restored by the time we get here.
+        // City::assignWorkingTile(coordinate) is a TOGGLE (used by the city UI's tile
+        // click) -- calling it on a tile the map file already assigned to this city would
+        // RELEASE it instead of leaving it alone, silently losing every working tile except
+        // the city centre (which reSetCities()'s own workaround patches back in every tick
+        // regardless). Still read the (lats,lons) pairs, purely to stay aligned with what
+        // savegame() wrote (buildings and the next city/unit follow in the stream).
         int number_of_working_tiles = 0;
         in.read(reinterpret_cast<char*>(&number_of_working_tiles), sizeof(number_of_working_tiles));
         for (int j = 0; j < number_of_working_tiles; ++j) {
@@ -249,8 +268,7 @@ void loadCities(std::ifstream& in)
             int lons = 0;
             in.read(reinterpret_cast<char*>(&lats), sizeof(lats));
             in.read(reinterpret_cast<char*>(&lons), sizeof(lons));
-            c->assignWorkingTile(coordinate(lats, lons));
-            printf("Loaded working tile at offset (%d,%d) for city %s\n", lats, lons, c->name);
+            printf("City %s already working tile at offset (%d,%d) (restored from the map file)\n", c->name, lats, lons);
         }
 
         // Load buildings

@@ -326,10 +326,9 @@ void reSetCities()
         // @FIXME: This is a workaround
         if (!c->workingOn(0,0))
         {
-            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);        
+            map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);
         }
         c->deAssigntWorkingTile();
-
 
         // @NOTE Collect taxes....
         factions[c->faction]->coins += c->resources[COINS];
@@ -854,12 +853,15 @@ void processCommandOrders()
     // the faction's last movable unit), so these must run before the active-unit guard below.
     if (co.command == Command::MoveUnitTo)
     {
-        printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude, co.parameters.latitude,co.parameters.longitude, map.set(co.parameters.latitude,co.parameters.longitude).code, map.set(co.parameters.latitude,co.parameters.longitude).bioma);
+        if (units.find(co.parameters.spawnid) != units.end())
+        {
+            printf("Lat %d Lon %d  -> (%d,%d) Land %d  Bioma  %x  \n",units[co.parameters.spawnid]->latitude,units[co.parameters.spawnid]->longitude, co.parameters.latitude,co.parameters.longitude, map.set(co.parameters.latitude,co.parameters.longitude).code, map.set(co.parameters.latitude,co.parameters.longitude).bioma);
 
-        // Now move the unit if it is possible.
-        moveUnit(units[coordinator.a_u_id],co.parameters.latitude,co.parameters.longitude);
+            // Now move the unit if it is possible.
+            moveUnit(units[co.parameters.spawnid],co.parameters.latitude,co.parameters.longitude);
 
-        switchUnitIfNoMovesLeft();
+            switchUnitIfNoMovesLeft();
+        }
     }
 
     if (co.command == Command::BuildRoad)
@@ -924,7 +926,7 @@ void processCommandOrders()
         continue;
     }
 
-    if (units.find(coordinator.a_u_id) == units.end())
+    if (units.find(co.parameters.spawnid) == units.end())
     {
         continue;
     }
@@ -932,19 +934,19 @@ void processCommandOrders()
     if (co.command == Command::BuildCityOrder)
     {
         // You cannot build a city in a land CLAIMED already by another city.
-        if (!map.set(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude).isUnassignedLand())
+        if (!map.set(units[co.parameters.spawnid]->latitude,units[co.parameters.spawnid]->longitude).isUnassignedLand())
         {
-            message(year, coordinator.a_f_id, "City cannot be built here.  The land is already claimed by another city.");
+            message(year, co.parameters.factionid, "City cannot be built here.  The land is already claimed by another city.");
             return;
         }
 
 
-        City *city = new City(&map, units[coordinator.a_u_id]->faction,getNextCityId(),units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
-        city->setName(citynames[coordinator.a_f_id].front().c_str());
-        citynames[coordinator.a_f_id].pop();
+        City *city = new City(&map, units[co.parameters.spawnid]->faction,getNextCityId(),units[co.parameters.spawnid]->latitude,units[co.parameters.spawnid]->longitude);
+        city->setName(citynames[co.parameters.factionid].front().c_str());
+        citynames[co.parameters.factionid].pop();
 
         // @NOTE: When the population is zero, the first city is the capital city.
-        if (factions[coordinator.a_f_id]->pop==0)
+        if (factions[co.parameters.factionid]->pop==0)
         {
             city->setCapitalCity();
             // Buildings already built in the city
@@ -964,52 +966,52 @@ void processCommandOrders()
         // We add the Warrior as the first thing to build in the city.
         city->productionQueue.push(new WarriorFactory());
 
-        
+
         cities[city->id] = city;
 
         // @FIXME: Disband the settler unit.
-        Unit *settler = units[coordinator.a_u_id];
+        Unit *settler = units[co.parameters.spawnid];
         map.set(settler->latitude,settler->longitude).releaseOwner();
-        units.erase(coordinator.a_u_id);
+        units.erase(co.parameters.spawnid);
         delete settler;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
 
-        message(year, coordinator.a_f_id, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
+        message(year, co.parameters.factionid, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
 
 
     }
     else if (co.command == Command::DisbandUnitOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
+        Unit *unit = units[co.parameters.spawnid];
         map.set(unit->latitude,unit->longitude).releaseOwner();
-        units.erase(coordinator.a_u_id);
+        units.erase(co.parameters.spawnid);
         delete unit;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);  //@FIXME: There could be the case that there are no more units.
+        coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);  //@FIXME: There could be the case that there are no more units.
     }
     else if (co.command == Command::FortifyUnitOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
+        Unit *unit = units[co.parameters.spawnid];
         unit->fortify();
         unit->availablemoves = 0;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
     }
     else if (co.command == Command::SentryUnitOrder)
     {
-        Unit *unit = units[coordinator.a_u_id];
+        Unit *unit = units[co.parameters.spawnid];
         unit->sentry();
         unit->availablemoves = 0;
 
-        coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+        coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
     } else if (co.command == Command::BuildRoadOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasRoad())
             {
-                message(year, coordinator.a_f_id, "Cannot build a road here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a road here: already built.");
             }
             else
             {
@@ -1017,24 +1019,24 @@ void processCommandOrders()
                 worker->roading(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildIrrigationOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasIrrigation())
             {
-                message(year, coordinator.a_f_id, "Cannot build an irrigation here: already irrigated.");
+                message(year, co.parameters.factionid, "Cannot build an irrigation here: already irrigated.");
             }
             else if (!tileBiomaAllowsImprovement(improvementbiomarestrictions, IRRIGATION, map.set(worker->latitude,worker->longitude).bioma))
             {
-                message(year, coordinator.a_f_id, "Cannot build an irrigation here: unsuitable terrain.");
+                message(year, co.parameters.factionid, "Cannot build an irrigation here: unsuitable terrain.");
             }
             else if (!tileHasWaterOasisOrIrrigationNearby(worker->latitude, worker->longitude))
             {
-                message(year, coordinator.a_f_id, "Cannot build an irrigation here: no river, oasis, lake or irrigated tile nearby.");
+                message(year, co.parameters.factionid, "Cannot build an irrigation here: no river, oasis, lake or irrigated tile nearby.");
             }
             else
             {
@@ -1042,16 +1044,16 @@ void processCommandOrders()
                 worker->irrigating(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildMineOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasMine())
             {
-                message(year, coordinator.a_f_id, "Cannot build a mine here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a mine here: already built.");
             }
             else
             {
@@ -1059,16 +1061,16 @@ void processCommandOrders()
                 worker->mining(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildRailroadOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasRailroad())
             {
-                message(year, coordinator.a_f_id, "Cannot build a railroad here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a railroad here: already built.");
             }
             else
             {
@@ -1076,20 +1078,20 @@ void processCommandOrders()
                 worker->railroading(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildQuarryOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasQuarry())
             {
-                message(year, coordinator.a_f_id, "Cannot build a quarry here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a quarry here: already built.");
             }
             else if (!tileHasRequiredResource(improvementresources, QUARRY, map.set(worker->latitude,worker->longitude).resource))
             {
-                message(year, coordinator.a_f_id, "Cannot build a quarry here: no marble.");
+                message(year, co.parameters.factionid, "Cannot build a quarry here: no marble.");
             }
             else
             {
@@ -1097,20 +1099,20 @@ void processCommandOrders()
                 worker->quarrying(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildCampOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasCamp())
             {
-                message(year, coordinator.a_f_id, "Cannot build a camp here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a camp here: already built.");
             }
             else if (!tileHasRequiredResource(improvementresources, CAMP, map.set(worker->latitude,worker->longitude).resource))
             {
-                message(year, coordinator.a_f_id, "Cannot build a camp here: no doe, game or seal.");
+                message(year, co.parameters.factionid, "Cannot build a camp here: no doe, game or seal.");
             }
             else
             {
@@ -1118,20 +1120,20 @@ void processCommandOrders()
                 worker->camping(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildDerrickOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasDerrick())
             {
-                message(year, coordinator.a_f_id, "Cannot build a derrick here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a derrick here: already built.");
             }
             else if (!tileHasRequiredResource(improvementresources, DERRICK, map.set(worker->latitude,worker->longitude).resource))
             {
-                message(year, coordinator.a_f_id, "Cannot build a derrick here: no oil.");
+                message(year, co.parameters.factionid, "Cannot build a derrick here: no oil.");
             }
             else
             {
@@ -1139,20 +1141,20 @@ void processCommandOrders()
                 worker->derricking(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     } else if (co.command == Command::BuildPlantationOrder)
     {
-        if(Worker* worker = dynamic_cast<Worker*>(units[coordinator.a_u_id]))
+        if(Worker* worker = dynamic_cast<Worker*>(units[co.parameters.spawnid]))
         {
             if (map.set(worker->latitude,worker->longitude).hasPlantation())
             {
-                message(year, coordinator.a_f_id, "Cannot build a plantation here: already built.");
+                message(year, co.parameters.factionid, "Cannot build a plantation here: already built.");
             }
             else if (!tileHasRequiredResource(improvementresources, PLANTATION, map.set(worker->latitude,worker->longitude).resource))
             {
-                message(year, coordinator.a_f_id, "Cannot build a plantation here: no grapes, sugar, tobacco or cotton.");
+                message(year, co.parameters.factionid, "Cannot build a plantation here: no grapes, sugar, tobacco or cotton.");
             }
             else
             {
@@ -1160,7 +1162,7 @@ void processCommandOrders()
                 worker->planting(effort);
                 worker->availablemoves = 0;
 
-                coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
+                coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
             }
         }
     }
