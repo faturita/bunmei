@@ -19,6 +19,16 @@ int Settler::getSubType()
 {
     return UNIT_SETTLER;
 }
+
+int Settler::getId()
+{
+    return id;
+}
+
+const char* Settler::getName()
+{
+    return name;
+}
 bool Settler::canBuildCity()
 {
     return true;

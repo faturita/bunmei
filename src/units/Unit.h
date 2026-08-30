@@ -162,6 +162,9 @@ class Unit : public Buildable
     void destroy();
     void goBackOnCompletion();
 
+    int getId();
+    const char* getName();
+
 };
 
 #endif

@@ -18,6 +18,16 @@ int Horseman::getSubType()
 {
     return UNIT_HORSEMAN;
 }
+
+int Horseman::getId()
+{
+    return id;
+}
+
+const char* Horseman::getName()
+{
+    return name;
+}
 // ----------------------------
 
 Horseman* HorsemanFactory::create()

@@ -20,6 +20,16 @@ int Axeman::getSubType()
     return UNIT_AXEMAN;
 }
 
+int Axeman::getId()
+{
+    return id;
+}
+
+const char* Axeman::getName()
+{
+    return name;
+}
+
 
 Axeman* AxemanFactory::create()
 {

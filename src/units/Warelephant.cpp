@@ -18,6 +18,16 @@ int Warelephant::getSubType()
 {
     return UNIT_WARELEPHANT;
 }
+
+int Warelephant::getId()
+{
+    return id;
+}
+
+const char* Warelephant::getName()
+{
+    return name;
+}
 // ----------------------------
 
 Warelephant* WarelephantFactory::create()

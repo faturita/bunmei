@@ -11,6 +11,8 @@ class Swordman : public Unit, public Shippable
     public:
     Swordman();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class SwordmanFactory : public BuildableFactory

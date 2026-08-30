@@ -19,6 +19,16 @@ int Horsearcher::getSubType()
     return UNIT_HORSEARCHER;
 }
 
+int Horsearcher::getId()
+{
+    return id;
+}
+
+const char* Horsearcher::getName()
+{
+    return name;
+}
+
 // ----------------------------
 
 Horsearcher* HorsearcherFactory::create()

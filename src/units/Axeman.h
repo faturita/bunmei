@@ -11,6 +11,8 @@ class Axeman : public Unit, public Shippable
     public:
     Axeman();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class AxemanFactory : public BuildableFactory

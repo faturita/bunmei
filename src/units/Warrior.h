@@ -12,6 +12,8 @@ class Warrior : public Unit, public Shippable
     Warrior();
     int getSubType();
 
+    int getId() override;
+    const char* getName() override;
 };
 
 class WarriorFactory : public BuildableFactory

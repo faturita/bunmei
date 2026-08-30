@@ -11,6 +11,8 @@ class Chariot : public Unit, public Shippable
     public:
     Chariot();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class ChariotFactory : public BuildableFactory

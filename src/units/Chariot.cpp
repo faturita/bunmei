@@ -20,6 +20,16 @@ int Chariot::getSubType()
     return UNIT_CHARIOT;
 }
 
+int Chariot::getId()
+{
+    return id;
+}
+
+const char* Chariot::getName()
+{
+    return name;
+}
+
 Chariot* ChariotFactory::create()
 {
     return new Chariot();

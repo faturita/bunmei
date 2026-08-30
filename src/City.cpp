@@ -269,6 +269,10 @@ int City::getCommodityProductionRate(int commodity_id)
             if (cell.resource == 0)
                 continue;
 
+            // Gather resources for this city only if it is free land or if it belongs to this city.
+            if (!cell.isFreeLand() && (cell.c_id_owner != id || cell.f_id_owner != faction))
+                continue;
+
             auto it = commodityxresource.find(cell.resource);
             if (it == commodityxresource.end() || it->second != commodity_id)
                 continue;

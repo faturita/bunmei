@@ -19,6 +19,16 @@ int Scout::getSubType()
     return UNIT_SCOUT;
 }
 
+int Scout::getId()
+{
+    return id;
+}
+
+const char* Scout::getName()
+{
+    return name;
+}
+
 Scout* ScoutFactory::create()
 {
     return new Scout();

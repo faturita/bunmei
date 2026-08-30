@@ -652,7 +652,7 @@ bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
 {
     if (navalunit!=nullptr)
     {
-        if (navalunit->board(passenger))
+        if (navalunit->board((Shippable*)passenger))
         {
             map.set(passenger->latitude, passenger->longitude).releaseOwner();
 
@@ -690,19 +690,22 @@ bool land(Unit* navalunit, int lat, int lon)
 
             if (trireme->manifest()>0)
             {
-                Unit* passenger = trireme->unboard();
+                Shippable* cargo = trireme->unboard();
 
-                //map.set(passenger->latitude, passenger->longitude).releaseOwner();
+                if (Unit* passenger = dynamic_cast<Unit*>(cargo))
+                {
+                    map.set(passenger->latitude, passenger->longitude).releaseOwner();
 
-                passenger->wakeUp();
-                passenger->update(lat,lon);
+                    passenger->wakeUp();
+                    passenger->update(lat,lon);
 
-                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+                    map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
 
-                passenger->availablemoves=0;
+                    passenger->availablemoves=0;
 
-                printf("Units Landed condition\n");
-                return true;
+                    printf("Units Landed condition\n");
+                    return true;
+                }
             }
         }
     }
@@ -736,13 +739,16 @@ bool dockInCity(Unit* navalunit, int lat, int lon)
 
         while (trireme->manifest()>0)
         {
-            Unit* passenger = trireme->unboard();
+            Shippable* cargo = trireme->unboard();
 
-            passenger->wakeUp();
+            if (Unit* passenger = dynamic_cast<Unit*>(cargo))
+            {
+                passenger->wakeUp();
 
-            map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
 
-            passenger->availablemoves=0;
+                passenger->availablemoves=0;
+            }
         }
 
         printf("Dock in city condition\n");

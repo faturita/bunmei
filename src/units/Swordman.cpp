@@ -19,6 +19,16 @@ int Swordman::getSubType()
     return UNIT_SWORDMAN;
 }
 
+int Swordman::getId()
+{
+    return id;
+}
+
+const char* Swordman::getName()
+{
+    return name;
+}
+
 
 Swordman* SwordmanFactory::create()
 {

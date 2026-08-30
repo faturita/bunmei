@@ -19,6 +19,16 @@ int Archer::getSubType()
     return UNIT_ARCHER;
 }
 
+int Archer::getId()
+{
+    return id;
+}
+
+const char* Archer::getName()
+{
+    return name;
+}
+
 Archer* ArcherFactory::create()
 {
     return new Archer();

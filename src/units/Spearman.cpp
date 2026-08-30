@@ -19,6 +19,16 @@ int Spearman::getSubType()
     return UNIT_SPEARMAN;
 }
 
+int Spearman::getId()
+{
+    return id;
+}
+
+const char* Spearman::getName()
+{
+    return name;
+}
+
 Spearman* SpearmanFactory::create()
 {
     return new Spearman();

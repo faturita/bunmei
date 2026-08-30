@@ -11,6 +11,8 @@ class Spy : public Unit, public Shippable
     public:
     Spy();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class SpyFactory : public BuildableFactory

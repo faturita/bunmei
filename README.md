@@ -239,9 +239,9 @@ The resources and their commodities are:
 
 (some special resources do not produce any commodity)
 
-Commodities are gathered in the cities without working their respective tiles.  So, the city will gather each turn the commodity produced by all the tiles with special resources around.
+Commodities are gathered in the cities without working their respective tiles.  So, the city will gather each turn the commodity produced by all the tiles with special resources around, that are free, belong to the city or to the faction.
 
-Tiles owned by a faction by the presence of military forces are available to neaby cities by LoS.
+Tiles with special resources owned by a faction by the presence of military forces are available to neaby cities by LoS.
 
 ## Manufactured goods
 

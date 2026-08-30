@@ -19,6 +19,16 @@ int Worker::getSubType()
     return UNIT_WORKER;
 }
 
+int Worker::getId()
+{
+    return id;
+}
+
+const char* Worker::getName()
+{
+    return name;
+}
+
 bool Worker::canBuildCity()
 {
     return false;

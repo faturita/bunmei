@@ -17,6 +17,16 @@ int Warrior::getSubType()
     return UNIT_WARRIOR;
 }
 
+int Warrior::getId()
+{
+    return id;
+}
+
+const char* Warrior::getName()
+{
+    return name;
+}
+
 Warrior* WarriorFactory::create()
 {
     return new Warrior();

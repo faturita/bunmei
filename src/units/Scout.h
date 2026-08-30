@@ -11,6 +11,8 @@ class Scout : public Unit, public Shippable
     public:
     Scout();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class ScoutFactory : public BuildableFactory

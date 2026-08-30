@@ -741,13 +741,14 @@ static const FactionDefinition FACTION_DEFINITIONS[] = {
 
 // -civs N (bunmei.cpp numCivs): how many of the defined civilizations actually get loaded.
 #define MIN_CIVS 2
-#define MAX_CIVS 7
+#define MAX_CIVS NUMBER_OF_FACTION_DEFINITIONS
 
 void initFactions()
 {
     // numCivs<0 (unset, the default) means "no cap": load every defined civilization, same
     // as before -civs existed. An explicit value is clamped into [MIN_CIVS, MAX_CIVS] --
-    // MAX_CIVS is deliberately one less than NUMBER_OF_FACTION_DEFINITIONS.
+    // MAX_CIVS tracks NUMBER_OF_FACTION_DEFINITIONS so "-civs 8" and omitting -civs load the
+    // same full set.
     int civsToLoad = NUMBER_OF_FACTION_DEFINITIONS;
     if (numCivs >= 0)
     {

@@ -11,6 +11,8 @@ class Horseman : public Unit, public Shippable
     public:
     Horseman();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class HorsemanFactory : public BuildableFactory

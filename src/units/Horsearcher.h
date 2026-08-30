@@ -11,6 +11,8 @@ class Horsearcher : public Unit, public Shippable
     public:
     Horsearcher();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class HorsearcherFactory : public BuildableFactory

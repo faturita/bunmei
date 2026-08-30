@@ -11,6 +11,8 @@ class Archer : public Unit, public Shippable
     public:
     Archer();
     int getSubType() override;
+    int getId() override;
+    const char* getName() override;
 };
 
 class ArcherFactory : public BuildableFactory

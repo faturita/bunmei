@@ -19,6 +19,16 @@ int Spy::getSubType()
     return UNIT_SPY;
 }
 
+int Spy::getId()
+{
+    return id;
+}
+
+const char* Spy::getName()
+{
+    return name;
+}
+
 Spy* SpyFactory::create()
 {
     return new Spy();

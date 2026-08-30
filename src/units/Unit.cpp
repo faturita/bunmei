@@ -392,3 +392,13 @@ void Unit::veteran()
     utw += 1.0;
 }
 
+int Unit::getId()
+{
+    return id;
+}
+
+const char* Unit::getName()
+{
+    return name;
+}
+

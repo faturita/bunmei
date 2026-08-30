@@ -20,11 +20,11 @@ MOVEMENT_TYPE Wagon::getMovementType()
     return LANDTYPE;
 }
 
-bool Wagon::board(Unit* passenger)
+bool Wagon::board(Shippable* passenger)
 {
     if (cargo-passengers.size()>0)
     {
-        passengers[passenger->id] = passenger;
+        passengers[passenger->getId()] = passenger;
         return true;
     }
     else
@@ -33,12 +33,12 @@ bool Wagon::board(Unit* passenger)
     }
 }
 
-Unit* Wagon::unboard()
+Shippable* Wagon::unboard()
 {
     if (passengers.size()>0)
     {
         auto it = passengers.begin();
-        Unit* passenger = it->second;
+        Shippable* passenger = it->second;
         passengers.erase(it);
         return passenger;
     }
@@ -66,8 +66,13 @@ void Wagon::update(int newlat, int newlon)
 
     for(auto& [k, passenger]:passengers)
     {
-        printf("Moving what I am transporting %s\n",passenger->name);
-        passenger->update(newlat,newlon);
+        printf("Moving what I am transporting %s\n",passenger->getName());
+
+        if (Unit* u = dynamic_cast<Unit*>(passenger))
+        {
+            u->update(newlat,newlon);
+        }
+  
     }
 
 }

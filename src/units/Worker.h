@@ -12,6 +12,8 @@ class Worker : public Unit, public Shippable
     Worker();
     int getSubType();
     bool canBuildCity();
+    int getId() override;
+    const char* getName() override;
 };
 
 class WorkerFactory : public BuildableFactory

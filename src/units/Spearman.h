@@ -11,6 +11,8 @@ class Spearman : public Unit, public Shippable
     public:
     Spearman();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class SpearmanFactory : public BuildableFactory

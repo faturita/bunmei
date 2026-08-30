@@ -11,15 +11,15 @@ class Wagon : public Unit, Transport
     protected:
         const int cargo = 2;
 
-        std::unordered_map<int, Unit*> passengers;
+        std::unordered_map<int, Shippable*> passengers;
 
     public:
         Wagon();
         
         MOVEMENT_TYPE virtual getMovementType();
 
-        virtual bool board(Unit* passenger);
-        virtual Unit* unboard();
+        virtual bool board(Shippable* passenger);
+        virtual Shippable* unboard();
         virtual int manifest();
 
         virtual void update(int lat, int lon);

@@ -11,6 +11,8 @@ class Pretorian : public Unit, public Shippable
     public:
     Pretorian();
     int getSubType();
+    int getId() override;
+    const char* getName() override;
 };
 
 class PretorianFactory : public BuildableFactory

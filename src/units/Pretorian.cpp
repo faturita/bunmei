@@ -19,6 +19,16 @@ int Pretorian::getSubType()
     return UNIT_PRETORIAN;
 }
 
+int Pretorian::getId()
+{
+    return id;
+}
+
+const char* Pretorian::getName()
+{
+    return name;
+}
+
 
 Pretorian* PretorianFactory::create()
 {
