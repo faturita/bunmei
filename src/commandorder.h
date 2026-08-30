@@ -38,7 +38,17 @@ enum class Command {
     // City::buildable and rebuilds it via populateCityBuildables(). A city's buildable list
     // starts empty when the city is founded (BuildCityOrder) and is only filled the first
     // time the player opens the Change screen for it. parameters.cityid identifies the city.
-    PopulateBuildableOrder=23
+    PopulateBuildableOrder=23,
+    // Loads up to 100 units of one commodity/mfggood (parameters.resourceid) from a city
+    // (parameters.cityid) onto a Transport (parameters.spawnid, the active unit -- must be
+    // docked/stationed at that city). Stacks onto an already-boarded Shippable with the same
+    // resource id (up to the 100 cap) instead of taking a second cargo slot; only creates a
+    // new Commodity/MfgGood, and takes a slot, if none of that type is aboard yet.
+    LoadCargoOrder=24,
+    // Reverse of LoadCargoOrder: moves one boarded Shippable resource (parameters.resourceid,
+    // aboard the Transport in parameters.spawnid) back into the city's stockpile
+    // (parameters.cityid) and removes/deletes it from the Transport.
+    UnloadCargoOrder=25
 };
 
 struct commandparameters
@@ -67,6 +77,10 @@ struct commandparameters
     int latitude;
     int longitude;
     char buf[20];
+
+    // Commodity/MfgGood id (resources.h) -- for LoadCargoOrder/UnloadCargoOrder. Kept
+    // separate from latitude/longitude, which those two commands don't use.
+    int resourceid;
 };
 
 struct CommandOrder

@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <algorithm>
 #include "Faction.h"
 #include "gamekernel.h"
 #include "usercontrols.h"
@@ -55,6 +56,7 @@ extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
 extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern MovementCost movementcosts;
+extern Tiles tiles;
 
 extern DiplomacyTable diplomacy;
 
@@ -652,7 +654,14 @@ bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
 {
     if (navalunit!=nullptr)
     {
-        if (navalunit->board((Shippable*)passenger))
+        // A plain (Shippable*) cast here would be a C-style cast between unrelated types
+        // (Unit does not inherit Shippable) -- it compiles down to reinterpret_cast, which
+        // does NOT adjust for the passenger's actual Unit/Shippable subobject offsets and
+        // produces a corrupt pointer at runtime. dynamic_cast is the only safe cross-cast,
+        // and it can legitimately fail here (e.g. a Trireme/Galley/Wagon passenger, none of
+        // which implement Shippable) -- board() must not be called with a null passenger.
+        Shippable* shippablepassenger = dynamic_cast<Shippable*>(passenger);
+        if (shippablepassenger!=nullptr && navalunit->board(shippablepassenger))
         {
             map.set(passenger->latitude, passenger->longitude).releaseOwner();
 
@@ -688,24 +697,22 @@ bool land(Unit* navalunit, int lat, int lon)
             if (!map.set(lat,lon).isFreeLand())
                 return false;
 
-            if (trireme->manifest()>0)
+            // unboardUnit() (not unboard()) skips over any resource cargo (Commodity/MfgGood)
+            // aboard -- only an actual passenger Unit disembarks here; cargo stays aboard
+            // until explicitly unloaded through the city UI.
+            if (Unit* passenger = trireme->unboardUnit())
             {
-                Shippable* cargo = trireme->unboard();
+                map.set(passenger->latitude, passenger->longitude).releaseOwner();
 
-                if (Unit* passenger = dynamic_cast<Unit*>(cargo))
-                {
-                    map.set(passenger->latitude, passenger->longitude).releaseOwner();
+                passenger->wakeUp();
+                passenger->update(lat,lon);
 
-                    passenger->wakeUp();
-                    passenger->update(lat,lon);
+                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
 
-                    map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
+                passenger->availablemoves=0;
 
-                    passenger->availablemoves=0;
-
-                    printf("Units Landed condition\n");
-                    return true;
-                }
+                printf("Units Landed condition\n");
+                return true;
             }
         }
     }
@@ -737,18 +744,16 @@ bool dockInCity(Unit* navalunit, int lat, int lon)
 
         trireme->availablemoves--;
 
-        while (trireme->manifest()>0)
+        // unboardUnit() (not unboard()) only ever removes an actual passenger Unit -- any
+        // resource cargo (Commodity/MfgGood) stays aboard the docked ship until explicitly
+        // unloaded through the city UI, instead of being silently ejected and lost here.
+        while (Unit* passenger = trireme->unboardUnit())
         {
-            Shippable* cargo = trireme->unboard();
+            passenger->wakeUp();
 
-            if (Unit* passenger = dynamic_cast<Unit*>(cargo))
-            {
-                passenger->wakeUp();
+            map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
 
-                map.set(passenger->latitude, passenger->longitude).setOwnedBy(passenger->faction);
-
-                passenger->availablemoves=0;
-            }
+            passenger->availablemoves=0;
         }
 
         printf("Dock in city condition\n");
@@ -1169,6 +1174,72 @@ void processCommandOrders()
                 worker->availablemoves = 0;
 
                 coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
+            }
+        }
+    } else if (co.command == Command::LoadCargoOrder)
+    {
+        // Addresses the active unit (must be a Transport) AND a city (parameters.cityid,
+        // where the resource comes from) -- both must resolve, and the unit must actually be
+        // docked/stationed there, or this is a no-op.
+        Transport* transport = dynamic_cast<Transport*>(units[co.parameters.spawnid]);
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (transport != nullptr && cityIt != cities.end())
+        {
+            City* city = cityIt->second;
+            int resourceid = co.parameters.resourceid;
+            bool ismfggood = resourceid >= tools;   // MFGOODS start at 0x301, COMMODITIES at 0x201.
+            std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+
+            Shippable* existing = transport->findCargo(resourceid);
+            if (existing != nullptr)
+            {
+                // Same resource already aboard: top it up instead of taking a new slot.
+                Resource* r = dynamic_cast<Resource*>(existing);
+                int toload = std::min(100 - r->amount, stockpile[resourceid]);
+                if (toload > 0)
+                {
+                    r->amount += toload;
+                    stockpile[resourceid] -= toload;
+                }
+            }
+            else
+            {
+                int toload = std::min(100, stockpile[resourceid]);
+                if (toload > 0)
+                {
+                    Resource* cargoitem = ismfggood
+                        ? (Resource*) new MfgGood(resourceid, tiles[resourceid].c_str(), "MfgGood")
+                        : (Resource*) new Commodity(resourceid, tiles[resourceid].c_str(), "Commodity");
+                    cargoitem->amount = toload;
+
+                    if (transport->board(dynamic_cast<Shippable*>(cargoitem)))
+                    {
+                        stockpile[resourceid] -= toload;
+                    }
+                    else
+                    {
+                        delete cargoitem;
+                        message(year, co.parameters.factionid, "No room aboard to load more cargo.");
+                    }
+                }
+            }
+        }
+    } else if (co.command == Command::UnloadCargoOrder)
+    {
+        Transport* transport = dynamic_cast<Transport*>(units[co.parameters.spawnid]);
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (transport != nullptr && cityIt != cities.end())
+        {
+            City* city = cityIt->second;
+            Shippable* cargo = transport->findCargo(co.parameters.resourceid);
+            if (Resource* r = dynamic_cast<Resource*>(cargo))
+            {
+                bool ismfggood = co.parameters.resourceid >= tools;
+                std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+
+                stockpile[co.parameters.resourceid] += r->amount;
+                transport->removeCargo(co.parameters.resourceid);
+                delete r;
             }
         }
     }

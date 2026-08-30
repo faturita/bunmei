@@ -53,6 +53,43 @@ int Wagon::manifest()
     return passengers.size();
 }
 
+int Wagon::capacity()
+{
+    return cargo;
+}
+
+Shippable* Wagon::findCargo(int id)
+{
+    auto it = passengers.find(id);
+    return it!=passengers.end() ? it->second : nullptr;
+}
+
+std::vector<Shippable*> Wagon::getCargo()
+{
+    std::vector<Shippable*> list;
+    for (auto& [k, passenger] : passengers)
+        list.push_back(passenger);
+    return list;
+}
+
+Unit* Wagon::unboardUnit()
+{
+    for (auto it = passengers.begin(); it != passengers.end(); it++)
+    {
+        if (Unit* u = dynamic_cast<Unit*>(it->second))
+        {
+            passengers.erase(it);
+            return u;
+        }
+    }
+    return nullptr;
+}
+
+bool Wagon::removeCargo(int id)
+{
+    return passengers.erase(id) > 0;
+}
+
 void Wagon::update(int newlat, int newlon)
 {
     oldlatitude = latitude;

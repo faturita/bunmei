@@ -11,6 +11,7 @@
 #include "City.h"
 #include "Faction.h"
 #include "units/Unit.h"
+#include "units/Transport.h"
 #include "engine.h"
 #include "usercontrols.h"
 #include "tiles.h"
@@ -54,6 +55,18 @@ std::vector<Unit*> getUnitsAtCity(City* city)
             stationed.push_back(u);
     }
     return stationed;
+}
+
+// Same reasoning as getUnitsAtCity above: shared by drawCityScreen (to list the
+// "Commodities Storage" box) and clickOnCityScreen (to map a clicked row's "load" arrow
+// back to the same commodity id), so both always agree on row-to-commodity order.
+std::vector<int> getStockedCommodities(City* city)
+{
+    std::vector<int> stocked;
+    for (int commodity_id : ALL_COMMODITIES)
+        if (city->commodities[commodity_id] > 0)
+            stocked.push_back(commodity_id);
+    return stocked;
 }
 
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
@@ -189,6 +202,59 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         if (idx >= 0 && idx < (int)stationed.size())
         {
             activateUnit(stationed[idx]);
+
+            // Cargo slot icons (drawCityScreen's own comment on this box has the lon2
+            // derivation): slot 0 sits at lon2==-4, slot 1 at lon2==-3. Clicking a loaded
+            // slot unloads that resource back into this city; an empty slot is a no-op
+            // (the command handler finds nothing at that resource id and does nothing).
+            if (Transport* transport = dynamic_cast<Transport*>(stationed[idx]))
+            {
+                int slot = -1;
+                if (lon2==-4) slot = 0;
+                else if (lon2==-3) slot = 1;
+
+                if (slot>=0)
+                {
+                    std::vector<Shippable*> cargo = transport->getCargo();
+                    if (slot < (int)cargo.size())
+                    {
+                        CommandOrder co;
+                        co.command = Command::UnloadCargoOrder;
+                        co.parameters.spawnid = stationed[idx]->id;
+                        co.parameters.factionid = stationed[idx]->faction;
+                        co.parameters.cityid = controller.cityid;
+                        co.parameters.resourceid = cargo[slot]->getId();
+                        coordinator.push(co);
+                    }
+                }
+            }
+        }
+    }
+
+    // "Commodities Storage" box's per-row "load" arrow (cursor/right.png, column -5,
+    // drawCityScreen): loads up to 100 units of that row's commodity onto whichever unit is
+    // currently active/selected (coordinator.a_u_id) -- click a Transport in the Units box
+    // above first, same as any other unit-targeted action in this UI. No fine resolution
+    // needed here (unlike the cargo slots above): the arrow is the only thing at this
+    // column, so a plain coarse lon check is enough, same as the Units box row check above.
+    if (cityIt != cities.end() && lat>=5 && lat<=9 && lon==-5)
+    {
+        std::vector<int> stocked = getStockedCommodities(cityIt->second);
+        int loc = lat - 5;
+        int idx = loc - commoditiesStorageOffset;
+        if (idx >= 0 && idx < (int)stocked.size())
+        {
+            auto unitIt = units.find(coordinator.a_u_id);
+            if (unitIt != units.end() && dynamic_cast<Transport*>(unitIt->second) != nullptr)
+            {
+                CommandOrder co;
+                co.command = Command::LoadCargoOrder;
+                co.parameters.spawnid = unitIt->second->id;
+                co.parameters.factionid = unitIt->second->faction;
+                co.parameters.cityid = controller.cityid;
+                co.parameters.resourceid = stocked[idx];
+                coordinator.push(co);
+            }
         }
     }
 
@@ -277,6 +343,40 @@ void drawCityScreen(int cla, int clo, City *city)
             }
 
             placeWord(clo + (-1),cla + (5+loc),4,8,u->name);
+
+            // Cargo slots (task: "ship Resources"), just left of the name: one small
+            // box.png per cargo slot the Transport HOLDS IN TOTAL (capacity(), not how many
+            // are free), packed into the gap between the unit icon (column -3, 16px wide,
+            // raw pixels -48..-32) and the name (column -1, raw pixel -16) -- i.e. raw
+            // pixels -32..-16, 16px of room for two 7px icons. A loaded slot draws the
+            // resource's own icon first, then box.png on top of it (box.png's border is
+            // opaque, its middle transparent, so it reads as a little frame around the
+            // resource icon) -- an empty slot just draws the frame alone.
+            //
+            // Slot x sits at HALF-column offsets (-2.0, -1.5, ... i.e. x=slot*8-32) rather
+            // than an arbitrary raw-pixel pack, so each slot lands on its own value of the
+            // fine click grid (lon2 = column*2, see clickOnCityScreen's own comment on that
+            // derivation) -- slot 0 -> lon2=-4, slot 1 -> lon2=-3 -- letting the click handler
+            // tell slots apart via lon2 while still using the ROW's plain coarse lat (like
+            // every other click in this box) instead of juggling lat2 sub-row values too.
+            if (Transport* transport = dynamic_cast<Transport*>(u))
+            {
+                std::vector<Shippable*> cargo = transport->getCargo();
+                int y = (cla + (5+loc))*16;
+                for (int slot=0; slot<transport->capacity(); slot++)
+                {
+                    // clo*16 was missing here -- without it every cargo icon rendered at a
+                    // fixed spot on screen instead of tracking the city (drawCityScreen is
+                    // called with the city's actual screen position, not (0,0); a testcase
+                    // calling it with (0,0) directly couldn't have caught this).
+                    int x = clo*16 + slot*8-32;
+                    if (slot < (int)cargo.size())
+                    {
+                        place(x,y,7,7,tiles[cargo[slot]->getId()].c_str());
+                    }
+                    place(x,y,7,7,"assets/assets/city/box.png");
+                }
+            }
 
             i++;
             if (loc==UNITS_BOX_ROWS-1) break;
@@ -421,10 +521,7 @@ void drawCityScreen(int cla, int clo, City *city)
         placeWord(clo + (-10),cla + (4),4,8,"Commodities Storage");
         drawBoundingBox(clo,cla,-10,4,-4,9);
 
-        std::vector<int> stocked;
-        for (int commodity_id : ALL_COMMODITIES)
-            if (city->commodities[commodity_id] > 0)
-                stocked.push_back(commodity_id);
+        std::vector<int> stocked = getStockedCommodities(city);
 
         int i=0;
         for(auto it=stocked.begin();it!=stocked.end();it++)

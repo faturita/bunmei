@@ -6,7 +6,7 @@
 #include "Unit.h"
 
 
-class Wagon : public Unit, Transport
+class Wagon : public Unit, public Transport
 {
     protected:
         const int cargo = 2;
@@ -15,12 +15,17 @@ class Wagon : public Unit, Transport
 
     public:
         Wagon();
-        
+
         MOVEMENT_TYPE virtual getMovementType();
 
         virtual bool board(Shippable* passenger);
         virtual Shippable* unboard();
         virtual int manifest();
+        virtual int capacity();
+        virtual Shippable* findCargo(int id);
+        virtual std::vector<Shippable*> getCargo();
+        virtual Unit* unboardUnit();
+        virtual bool removeCargo(int id);
 
         virtual void update(int lat, int lon);
 
