@@ -332,7 +332,10 @@ void reSetCities()
         }
         c->deAssigntWorkingTile();
 
-        // @NOTE Collect taxes....
+        // @NOTE Collect taxes.  I am not removing the coins from the city, this is 
+        //    good because it allows enemies to steal good money from the city that in the 
+        //    end cannot be used really by the owner faction.
+        //    perhaps somewhere else the coins are set back to zero.
         factions[c->faction]->coins += c->coreresources[COINS];
 
         // @FIXME: Spread culture
@@ -1269,6 +1272,7 @@ static const struct { bool (Unit::*isKind)(); Command finalize; } workKinds[] = 
     { &Unit::isPlanting,    Command::BuildPlantation },
 };
 
+// Process the work of the active unit if it is working....
 void processWork()
 {
     if (units.find(coordinator.a_u_id) == units.end())

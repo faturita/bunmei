@@ -448,7 +448,29 @@ void adjustMovements()
     }
 }
 
+void switchFaction()
+{
+    controller.reset();
+    setUpFaction();  
 
+    // Autoplayer
+    if (factions[coordinator.a_f_id]->autoPlayer)
+    {
+        autoPlayerCities();
+    }
+
+    // @NOTE: Forcing the map centering only for the user player, not for the AI players.
+    if (!(factions[coordinator.a_f_id]->autoPlayer))
+        if (units.find(coordinator.a_u_id)!=units.end())
+        {
+            map.setCenter(factions[coordinator.a_f_id]->vmapoffset,factions[coordinator.a_f_id]->mapoffset);
+            coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
+            c = map.to_screen(c.lat,c.lon);
+            centermapinmap(c.lat, c.lon);
+            resetzoom();
+        }  
+       
+}
 
 
 
@@ -479,7 +501,6 @@ void update(int value)
 
     processCommandOrders();
 
-    // @NOTE: Remove me if you want to wait until the user press the space bar to move ahead the end of turn.
     if (autoEndOfTurn && noMoreMovementsLeft(coordinator.a_f_id))
     {
         coordinator.endofturn = true;
@@ -497,26 +518,9 @@ void update(int value)
             if (switchVisibleFaction)
                 coordinator.v_f_id = coordinator.a_f_id;
 
-            controller.reset();
-            setUpFaction();  
+            switchFaction();
 
-            // Autoplayer
-            if (factions[coordinator.a_f_id]->autoPlayer)
-            {
-                autoPlayerCities();
-            }
-            
-            // @NOTE: Forcing the map centering only for the user player, not for the AI players.
-            if (!(factions[coordinator.a_f_id]->autoPlayer))
-                if (units.find(coordinator.a_u_id)!=units.end())
-                {
-                    map.setCenter(factions[coordinator.a_f_id]->vmapoffset,factions[coordinator.a_f_id]->mapoffset);
-                    coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
-                    c = map.to_screen(c.lat,c.lon);
-                    centermapinmap(c.lat, c.lon);
-                    resetzoom();
-                }  
-            }
+        }
 
     }
 
@@ -526,25 +530,7 @@ void update(int value)
         endOfYear();
         coordinator.a_f_id = 0;     // Restart the turn from the first faction.
         
-        controller.reset();
-        setUpFaction();
-
-        // Autoplayer
-        if (factions[coordinator.a_f_id]->autoPlayer)
-        {
-            autoPlayerCities();
-        }
-
-        // @NOTE: Forcing the map centering only for the user player, not for the AI players.
-        if (!(factions[coordinator.a_f_id]->autoPlayer))
-            if (units.find(coordinator.a_u_id)!=units.end())
-            {
-                map.setCenter(factions[coordinator.a_f_id]->vmapoffset,factions[coordinator.a_f_id]->mapoffset);
-                coordinate c(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
-                c = map.to_screen(c.lat,c.lon);
-                centermapinmap(c.lat, c.lon);
-                resetzoom();
-            }  
+        switchFaction();
     }
 
     glutPostRedisplay();

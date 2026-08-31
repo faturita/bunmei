@@ -226,7 +226,7 @@ The resources and their commodities are:
 | Silk      | -                 | -    | Silk |
 | Grapes    | Feudalism.        | Plantation | Wine |
 | Spices    | -                 | -    | Spices |
-| Gunpowder | -                 | -    | Gunpowder |
+| Gunpowder | Gunpowder         | -    | Gunpowder |
 | Sugar     | -                 | Plantation | Sugar |
 | Tobacco   | -                 | Plantation | Tobacco |
 | Cotton    | -                 | Plantation | Cotton |
