@@ -407,7 +407,7 @@ inline void endOfYear()
     }
 }
 
-
+// Convert user movements into unit movement attempts.
 void adjustMovements()
 {
     if ( (coordinator.a_u_id != CONTROLLING_NONE) && units.find(coordinator.a_u_id) != units.end() && (controller.registers.pitch!=0 || controller.registers.roll !=0) )

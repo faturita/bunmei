@@ -11,7 +11,8 @@ Wagon::Wagon()
     strcpy(name,"Wagon");
     strcpy(assetname,"assets/assets/units/wagon.png");
     moves = 2;
-    aw = 2;
+    aw = 0;
+    dw = 0;
 }
 
 

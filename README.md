@@ -139,7 +139,8 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Temple         | Ceremonial Burial  | 0x06 | - |
 | University.    | Education.         | 0x07 | - |
 | Theatre        | Music              | 0x08 | - |
-| Stable         | Horseback Riding   | | |
+| Stable         | Horseback Riding   | 0x09 | - |
+| Warehouse      | Pottery.           | 0x0a | - |
 | Observatory    | Astronomy          | | |
 | Monument.      | Mysticism.         | | |
 | Lighthouse.    | Map Making.        | | |
@@ -148,6 +149,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Grocer         | Trade |||
 | Forge          |.       |||
 | Factory        |        |||
+| Depot          |        | 0x0b | 100 Tools |
 | CourtHouse     |        |||
 | Cathedral.     |.       |||
 | Castle.        |        |||
@@ -186,9 +188,8 @@ So,
 Land tiles belong to a faction and/or to a city.  When a unit moves into a tile, it owns the tile until it moves away from it.  However, units execute this land seizure when they are at war with other civilizations (it depends on the diplomacy between them).  Culture from cities generate ownership of tiles around them.  Culture spread ownership. And of course, armies can change that.  At the same time, armies need Line of Sight from their cities to keep fighting.  And this is determined by tile ownership rules.  Land ownership allows to access resources on the map, and it is also required in combat.
 
 ## Resources
-There are special resources around. 
 
-There are six basic resources: food, shields, trade, coins, science, and culture.  
+There are six basic core resources: food, shields, trade, coins, science, and culture.  
 
 | Resource | 
 |---|
@@ -205,7 +206,7 @@ Special resources can appear on the map.  They can change tile production but at
 
 The resources and their commodities are:
 
-| Resource |   |  |  |
+| Resource | Scientific Advancement  | Improvement on tile  |  Commodity |
 |---|---|---|---|
 | Gold      | -                 | Mine | - |
 | Copper    | Bronze Working    | Mine | Copper |
@@ -299,6 +300,16 @@ The discovery of a technology or other achievements enable unit productions or r
 | Writing           | 0x0d          | Alphabet | |
 | Map Making        | 0x0e          | Alphabet + Pottery | |
 
+## Government and Society
+
+This is a very tricky part that I still need to decide
+
+* How to avoid building a lot of cities, penalizing a high number of cities.
+* How to handle population growth, happiness, culture, population education
+** Schools and university can turn peasants into scientist or something like that
+* How to handle Religion and indentured servants.
+* How to handle poverty, wealth and government style.
+* This will allow to make sense to buy luxury products (I have defined many).
 
 ## Combat
 
@@ -312,8 +323,8 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * <strike>Allow GoTo with naval units.</strike>
 * <strike>Replace controllingid with activeid.</strike>
 * Iterate on improving the AI: focus more on production on cities and build defensive units.
-* Show units in cityscreen.
-* Add a way in which fortified units can be selected.
+* <strike>Show units in cityscreen.</strike>
+* <strike>Add a way in which fortified units can be selected.</strike>
 * Units can be stacked together and named.
 * Sentry is clearly used only for ships and I think that is Ok.
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
@@ -321,7 +332,6 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * The f_owner_id value can be used as temperature on a heat diffusion model.  The heat can be increased by culture.  When a unit visit a tile, it own the tile, but when the unit left, the sourrounding heat will be transferred by the gaussian smoothing operation.
 * Add the spheroid concept into map: by doing this we can make sense of the maps locations on the south and north (what if the offset procedure can be extended vertically as well?)
 * Add a world edit testcase to create customized maps.
-* Include diplomatic into Factions (and remove the war bool flag).
 * <strike>Improve the way we can center into cities: this will help to fix the issue with the city screen.</strike>
 * Handle what happens when a trireme lands into a occupied land, a city land, or a land with enemy units (amphibious attack?).
 * <strike>Show attack unit versus defending units.</strike>
@@ -329,14 +339,14 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 # Features
 
 * Spheroid: Arriving to the south and north pole (0,-24) (0,23).
-* Circumvent the world.
-* Ability to name landmarks, rivers, mountains, continents.
+* Allow to circumvent the world using the spheroid and the relative position of the center.
+* Ability to name landmarks, rivers, mountains and continents.
 * Buy and sell resources from ports (like in Colonization). 
 * Allow to form alliances with other factions and independence to arise from colonies.
 * Deal with the problem of founding cities everywhere on the map: when cities are very close to each other, the one that produces more culture absorbs the other city, and one of them is destroyed, or refounded in the middle.
 * Increase traderoutes: cities that create wagons or ships if they end up selling or buying something from other cities, automatically trade routes are established, that gives to the building (or supporting city) more trade resources.  This eliminates caravans.
 * Population now represent head count, humans, people.  
-* Each city has a exponential growth model that allows the **population** to increase based on current population and the availability of food.  * The **pop** value on each city is that value quantified.  Food existence allows population to growth. 
+* Each city has an exponential growth model that allows the **population** to increase based on current population and the availability of food.  * The **pop** value on each city is that value quantified.  Food existence allows population to growth. 
 * Units also have **soldiers**.  
 * Settlers are moving population, and the city that is built starts with the number of citizens.  
 * Same for workers, their strength is derived from the size of the group.

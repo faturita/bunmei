@@ -444,7 +444,7 @@ void cleanUnits()
 }
 
 
-bool attack(Unit* attacker, int lat, int lon)
+bool attack(Unit* attacker, int lat, int lon, bool &forceBreak)
 {
     std::vector<int> unitstodelete;
     bool confirmed = false;
@@ -457,6 +457,13 @@ bool attack(Unit* attacker, int lat, int lon)
 
     if (hostile)
     {
+        if (attacker->getAttack() == 0)
+        {
+            message(year, attacker->faction, "A %s cannot attack because it has no attack power.", attacker->name);
+            forceBreak = true; // Do not keep processing the move, stop here.
+            return false;
+        }
+
         // Find the enemy unit located there
         Unit *defender = nullptr;
 
@@ -542,7 +549,7 @@ bool attack(Unit* attacker, int lat, int lon)
 }
 
 
-bool captureCity(Unit* invader, int lat, int lon)
+bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
 {
     // Move into an empty city.
     if (map.set(lat,lon).belongsToCity())
@@ -560,6 +567,13 @@ bool captureCity(Unit* invader, int lat, int lon)
             // Check if the city is not defended.
             if (hostile && !city->isDefendedCity())
             {
+
+                if (invader->getAttack() == 0)
+                {
+                    message(year, invader->faction, "A %s cannot invade because it has no attack power.", invader->name);
+                    forceBreak = true; // Do not keep processing the move, stop here.
+                    return false;
+                }
 
                 map.set(invader->latitude, invader->longitude).releaseOwner();
 
@@ -608,7 +622,6 @@ bool moveForward(Unit* unit, int lat, int lon)
     {
         return false;
     }
- 
 
     LandEntry entry = evaluateLandEntry(unit->faction, map.set(lat,lon));
 
@@ -796,11 +809,16 @@ void moveUnit(Unit* unit, int lat, int lon)
             (map.set(lat,lon).code==OCEAN && unit->getMovementType()==OCEANTYPE) || 
             (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
         {
-
-            if (!land(unit,lat,lon) && !dockInCity(unit,lat,lon) && !moveOntoNavalUnit(unit, navalunit,lat,lon) && !captureCity(unit,lat,lon) && !attack(unit,lat,lon) && !moveForward(unit,lat,lon))
+            bool forceBreak = false;
+            if (!land(unit,lat,lon) && 
+                !dockInCity(unit,lat,lon) && 
+                !moveOntoNavalUnit(unit, navalunit,lat,lon) && 
+                !captureCity(unit,lat,lon, forceBreak) && !forceBreak &&
+                !attack(unit,lat,lon, forceBreak) && !forceBreak &&
+                !moveForward(unit,lat,lon))
             {
-                // moveForward already shows blocked() itself when diplomacy is what stopped
-                // it (see evaluateLandEntry); nothing further to do here.
+                // @NOTE: Here it means that for some reason the unit cannot move to the target tile.
+                printf("Unit %d cannot move to (%d,%d)\n", unit->id, lat, lon);
             }
 
         } else

@@ -57,8 +57,8 @@ bool dockInCity(Unit* navalunit, int lat, int lon);
 bool land(Unit* navalunit, int lat, int lon);
 bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon);
 bool moveForward(Unit* unit, int lat, int lon);
-bool captureCity(Unit* invader, int lat, int lon);
-bool attack(Unit* attacker, int lat, int lon);
+bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak);
+bool attack(Unit* attacker, int lat, int lon, bool &forceBreak);
 
 
 #endif // ENGINE_H
