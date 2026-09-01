@@ -250,6 +250,8 @@ Some buildings take commodities and convert them into manufactured goods.  These
 
 | Mfg Good (output) | Scientific Advancement | Building | Input materials |
 |---|---|---|---|
+| Cigars     | Something before factory | Rolling House | Tobacco |
+| Rum.       | Ship Building     | Processing Plant | Sugar |
 | Tools      | Ship Building     | Factory | Copper / Iron |
 | Guns       | Gunpowder         | Armory  | Tools + Gunpowder |
 | Textiles   | Industrialization | Textile Mill | Cotton / Furs |

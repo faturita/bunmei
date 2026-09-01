@@ -164,19 +164,20 @@ void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
         case 27: //Escape key
         {
-            if (controller.view == 2)
+            if (controller.view == 2 || controller.view == 3)
             {
                 controller.view = 1;
-            } 
+            }
         }
         break;
-        case 'Q': 
+        case 'Q':
             {
                 controller.interrupt();
             }
         break;
         case 'p':autoEndOfTurn = !autoEndOfTurn;break;
         case '!':controller.view = 1;break;
+        case '#':controller.view = (controller.view == 3) ? 1 : 3;break;
         case 'a':controller.registers.roll-=1.0f;break;
         case 'd':controller.registers.roll+=1.0f;break;
         case 'w':controller.registers.pitch-=1.0;break;

@@ -60,6 +60,7 @@
 #include "coordinator.h"
 #include "map.h"
 #include "hud.h"
+#include "infoui.h"
 #include "ai.h"
 #include "dee.h"
 
@@ -195,10 +196,13 @@ void drawScene()
         drawMap();
         drawHUD();
         break;
+    case 3:
+        drawInfoScreen();
+        break;
     case 5:
         drawIntro();
         break;
-    
+
     default:
         break;
     }

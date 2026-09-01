@@ -17,7 +17,10 @@ enum BUILDING_SUBTYPE
     BUILDING_TEMPLE = 5,
     BUILDING_LIBRARY = 6,
     BUILDING_WALLS = 7,
-    BUILDING_HARBOR = 8
+    BUILDING_HARBOR = 8,
+    BUILDING_WAREHOUSE = 9,
+    BUILDING_DEPOT = 10
+    
 };
 
 class Building : public Buildable
