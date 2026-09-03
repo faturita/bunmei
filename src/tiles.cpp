@@ -286,6 +286,19 @@ void initTiles(std::unordered_map<int, std::string> &tiles)
     tiles[litium]    = "assets/assets/city/litium.png";
     tiles[aluminium] = "assets/assets/city/aluminium.png";
     tiles[helium_3]  = "assets/assets/city/helium_3.png";
+
+    // Manufactured goods
+    tiles[rum]             = "assets/assets/city/rum.png";
+    tiles[cigars]          = "assets/assets/city/cigars.png";
+    tiles[tools]           = "assets/assets/city/tools.png";
+    tiles[guns]            = "assets/assets/city/guns.png";
+    tiles[textiles]        = "assets/assets/city/textiles.png";
+    tiles[steel]           = "assets/assets/city/steel.png";
+    tiles[automobiles]     = "assets/assets/city/automobiles.png";
+    tiles[plastics]        = "assets/assets/city/plastics.png";
+    tiles[pharmaceuticals] = "assets/assets/city/pharmaceuticals.png";
+    tiles[electronics]     = "assets/assets/city/electronics.png";
+    tiles[robotics]        = "assets/assets/city/robotics.png";
 }
 
 

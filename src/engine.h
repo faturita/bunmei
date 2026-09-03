@@ -27,6 +27,14 @@ Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 // list (e.g. Command::PopulateBuildableOrder) must clear() before calling.
 void populateCityBuildables(City* city);
 
+// Runs every Building in the city once for the year: a building that consumes commodities
+// (Building::getConsumptionRate > 0 over ALL_COMMODITIES) and produces mfg goods
+// (Building::getProductionRate > 0 over ALL_MFG_GOODS) -- e.g. a Factory turning iron into
+// tools -- deducts its inputs from city->commodities and adds its outputs to city->mfggoods,
+// but only if the city stocks enough of every input; a building short even one input
+// produces and consumes nothing that year.  Called from bunmei.cpp's endOfYear().
+void operateCityBuildings(City* c);
+
 int findNearbyEnemyFactionId(int unitId, int radius);
 
 // Makes u the active/selectable unit (coordinator.a_u_id) and wakes it out of whatever

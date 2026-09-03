@@ -20,6 +20,7 @@
 #include "buildings/Granary.h"
 #include "buildings/Collosseum.h"
 #include "buildings/Market.h"
+#include "buildings/Factory.h"
 
 #include "units/Unit.h"
 #include "units/Settler.h"
@@ -39,6 +40,10 @@
 #include "units/Pretorian.h"
 #include "units/Spy.h"
 #include "units/Wagon.h"
+#include "units/Galleon.h"
+
+
+
 #include "coordinator.h"
 #include "dee.h"
 #include "messages.h"
@@ -177,6 +182,8 @@ void populateCityBuildables(City* city)
         buildable.push_back(new TriremeFactory());
         buildable.push_back(new GalleyFactory());
         buildable.push_back(new HorsearcherFactory());
+        buildable.push_back(new FactoryFactory());
+        buildable.push_back(new GalleonFactory());
     }
 
 
@@ -203,6 +210,45 @@ void populateCityBuildables(City* city)
         city->buildable.push_back(buildableFactory);
     }
 
+}
+
+void operateCityBuildings(City* c)
+{
+    for (Building* building : c->buildings)
+    {
+        std::vector<int> consumedResources;
+        bool enoughResources = true;
+
+        for (int r_id : ALL_COMMODITIES)
+        {
+            int cr = building->getConsumptionRate(r_id);
+            if (cr > 0)
+            {
+                if (c->commodities[r_id] >= cr)
+                    consumedResources.push_back(r_id);
+                else
+                    enoughResources = false;
+            }
+        }
+
+        if (!enoughResources)
+        {
+            message(year, c->faction, "City %s does not have enough resources to operate %s.", c->name, building->name);
+            continue;
+        }
+
+        // Output is gated on the PRODUCTION rate (getConsumptionRate is 0 for a building's
+        // outputs -- a Factory consumes iron, produces tools).
+        for (int r_id : ALL_MFG_GOODS)
+        {
+            int pr = building->getProductionRate(r_id);
+            if (pr > 0)
+                c->mfggoods[r_id] += pr;
+        }
+
+        for (int r_id : consumedResources)
+            c->commodities[r_id] -= building->getConsumptionRate(r_id);
+    }
 }
 
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id)
@@ -1208,7 +1254,7 @@ void processCommandOrders()
         {
             City* city = cityIt->second;
             int resourceid = co.parameters.resourceid;
-            bool ismfggood = resourceid >= tools;   // MFGOODS start at 0x301, COMMODITIES at 0x201.
+            bool ismfggood = resourceid >= rum;   // MFGOODS start at 0x301 (rum), COMMODITIES at 0x201.
             std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
 
             Shippable* existing = transport->findCargo(resourceid);
@@ -1255,7 +1301,7 @@ void processCommandOrders()
             Shippable* cargo = transport->findCargo(co.parameters.resourceid);
             if (Resource* r = dynamic_cast<Resource*>(cargo))
             {
-                bool ismfggood = co.parameters.resourceid >= tools;
+                bool ismfggood = co.parameters.resourceid >= rum;
                 std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
 
                 stockpile[co.parameters.resourceid] += r->amount;

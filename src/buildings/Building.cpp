@@ -24,3 +24,13 @@ std::vector<int>& Building::getPerkCodes()
 {
     return perkCodes; // Base Building has no perk codes
 }
+
+int Building::getProductionRate(int r_id)
+{
+    return 0; // Base Building has no production rate
+}
+
+int Building::getConsumptionRate(int r_id)
+{
+    return 0; // Base Building has no consumption rate
+}

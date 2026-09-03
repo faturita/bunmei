@@ -43,15 +43,17 @@ enum COMMODITIES
 
 enum MFGOODS
 {
-    tools           = 0x301,
-    guns            = 0x302,
-    textiles        = 0x303,
-    steel           = 0x304,
-    automobiles     = 0x305,
-    plastics        = 0x306,
-    pharmaceuticals = 0x307,
-    electronics     = 0x308,
-    robotics        = 0x309
+    rum             = 0x301,
+    cigars          = 0x302,
+    tools           = 0x303,
+    guns            = 0x304,
+    textiles        = 0x305,
+    steel           = 0x306,
+    automobiles     = 0x307,
+    plastics        = 0x308,
+    pharmaceuticals = 0x309,
+    electronics     = 0x30a,
+    robotics        = 0x30b
 };
 
 class Resource
@@ -116,6 +118,6 @@ const int ALL_CORE_RESOURCES[] = {FOOD,SHIELDS,TRADE,COINS,SCIENCE,CULTURE};
 
 const int ALL_COMMODITIES[] = {copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk, wine, spices, gunpowder, sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3};
 
-const int ALL_MFG_GOODS[] = {tools, guns, textiles, steel, automobiles, plastics, pharmaceuticals, electronics, robotics};
+const int ALL_MFG_GOODS[] = {rum, cigars, tools, guns, textiles, steel, automobiles, plastics, pharmaceuticals, electronics, robotics};
 
 #endif // RESOURCES_H

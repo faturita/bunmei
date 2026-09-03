@@ -19,7 +19,8 @@ enum BUILDING_SUBTYPE
     BUILDING_WALLS = 7,
     BUILDING_HARBOR = 8,
     BUILDING_WAREHOUSE = 9,
-    BUILDING_DEPOT = 10
+    BUILDING_DEPOT = 10,
+    BUILDING_FACTORY = 11
     
 };
 
@@ -36,6 +37,9 @@ class Building : public Buildable
     BuildableType getType();
     int virtual getSubType();
     std::vector<int>& getPerkCodes();
+
+    int virtual getProductionRate(int r_id);
+    int virtual getConsumptionRate(int r_id);
 };
 
 #endif   //BUILDING_H

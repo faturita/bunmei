@@ -183,6 +183,16 @@ void Unit::update(int newlat, int newlon)
 
     completion = 0;
     fortified = false;
+
+    // A one-tile step across the map's vertical (longitude) edge lands with the new column
+    // on the far side of the map from the old one (the column index wraps 0 <-> width-1).
+    // Unit::draw() lerps oldlongitude -> longitude linearly with no wrap, so animating that
+    // hop would slide the sprite the "long way round", right across the whole screen. Snap
+    // straight to the destination for that hop instead -- only the start and end tiles show.
+    int mapwidth = map.maxlon - map.minlon;
+    int lonstep  = longitude - oldlongitude;
+    if (lonstep > mapwidth / 2 || lonstep < -mapwidth / 2)
+        completion = 1;
 }
 
 bool Unit::movementCompleted()

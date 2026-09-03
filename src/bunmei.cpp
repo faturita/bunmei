@@ -308,7 +308,11 @@ inline void endOfYear()
         c->coreresources[CULTURE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[2]);
 
         c->coreresources[TRADE]=0;
-        
+
+        // Factories &c. turn stocked commodities into mfg goods for the year.
+        operateCityBuildings(c);
+
+
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)

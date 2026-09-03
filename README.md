@@ -148,7 +148,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Harbor         |                    | | |
 | Grocer         | Trade |||
 | Forge          |.       |||
-| Factory        |        |||
+| Factory        | Industrialization       |||
 | Depot          |        | 0x0b | 100 Tools |
 | CourtHouse     |        |||
 | Cathedral.     |.       |||
@@ -301,6 +301,7 @@ The discovery of a technology or other achievements enable unit productions or r
 | Ceremonial Burial | 0x0c          | | |
 | Writing           | 0x0d          | Alphabet | |
 | Map Making        | 0x0e          | Alphabet + Pottery | |
+| Industrialization | 0x0f          | ... | |
 
 ## Government and Society
 

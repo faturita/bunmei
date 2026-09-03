@@ -20,6 +20,7 @@
 #define TECH_CEREMONIAL_BURIAL 0x0c
 #define TECH_WRITING           0x0d
 #define TECH_MAP_MAKING        0x0e
+#define TECH_INDUSTRIALIZATION 0x0f
 
 
 

@@ -158,14 +158,14 @@ int TestCase_042::check(int year)
     City* city = cities[cityid];
     Transport* transport = dynamic_cast<Transport*>(units[wagonid]);
 
-    std::vector<int> stocked = getStockedCommodities(city);
+    std::vector<int> stocked = getStockedResources(city);
     auto copperit = std::find(stocked.begin(), stocked.end(), (int)copper);
     auto ironit   = std::find(stocked.begin(), stocked.end(), (int)iron);
     auto silverit = std::find(stocked.begin(), stocked.end(), (int)silver);
     if (copperit==stocked.end() || ironit==stocked.end() || silverit==stocked.end())
     {
         isdone = true; haspassed = false;
-        message = std::string("Test setup broken: copper/iron/silver not all in getStockedCommodities().");
+        message = std::string("Test setup broken: copper/iron/silver not all in getStockedResources().");
         return 0;
     }
     int copperlat = 5 + (int)(copperit-stocked.begin());

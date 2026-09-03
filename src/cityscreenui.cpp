@@ -58,15 +58,28 @@ std::vector<Unit*> getUnitsAtCity(City* city)
 }
 
 // Same reasoning as getUnitsAtCity above: shared by drawCityScreen (to list the
-// "Commodities Storage" box) and clickOnCityScreen (to map a clicked row's "load" arrow
-// back to the same commodity id), so both always agree on row-to-commodity order.
-std::vector<int> getStockedCommodities(City* city)
+// "Resource Storage" box) and clickOnCityScreen (to map a clicked row's "load" arrow back
+// to the same resource id), so both always agree on row-to-resource order. Stocked
+// commodities come first (ALL_COMMODITIES order), then stocked mfg goods (ALL_MFG_GOODS
+// order) -- the two id ranges never overlap (COMMODITIES 0x2xx, MFGOODS 0x3xx), so a plain
+// `id >= rum` tells the two apart everywhere this list is consumed.
+std::vector<int> getStockedResources(City* city)
 {
     std::vector<int> stocked;
     for (int commodity_id : ALL_COMMODITIES)
         if (city->commodities[commodity_id] > 0)
             stocked.push_back(commodity_id);
+    for (int mfggood_id : ALL_MFG_GOODS)
+        if (city->mfggoods[mfggood_id] > 0)
+            stocked.push_back(mfggood_id);
     return stocked;
+}
+
+// How many units of a stocked resource id the city holds -- commodities and mfg goods live
+// in separate maps, split by the same `id >= rum` test getStockedResources documents.
+static int stockedResourceAmount(City* city, int id)
+{
+    return id >= rum ? city->mfggoods[id] : city->commodities[id];
 }
 
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
@@ -100,7 +113,7 @@ int selectionOffset = 0;
 int unitsOffset = 0;
 const int UNITS_BOX_ROWS = 5;
 
-// Scroll offset for the "Commodities Storage" box, same mechanism as unitsOffset above.
+// Scroll offset for the "Resource Storage" box, same mechanism as unitsOffset above.
 int commoditiesStorageOffset = 0;
 const int COMMODITIES_STORAGE_ROWS = 5;
 
@@ -175,7 +188,7 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         unitsOffset--;
     }
 
-    // "Commodities Storage" box, bottom-left (drawCityScreen): same up/down arrow mechanism
+    // "Resource Storage" box, bottom-left (drawCityScreen): same up/down arrow mechanism
     // as the Units box above, at that box's own column (endright=-4, on the LEFT of the map
     // this time) -- same formula, lon2 = endright*16/8 = -4*16/8 = -8 (negative since the
     // box sits left of center).
@@ -204,16 +217,14 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
             activateUnit(stationed[idx]);
 
             // Cargo slot icons (drawCityScreen's own comment on this box has the lon2
-            // derivation): slot 0 sits at lon2==-4, slot 1 at lon2==-3. Clicking a loaded
-            // slot unloads that resource back into this city; an empty slot is a no-op
-            // (the command handler finds nothing at that resource id and does nothing).
+            // derivation): slot s sits at lon2 == s-4, one per capacity() slot -- slot 0 at
+            // lon2==-4 up to slot 5 at lon2==1 for a Galleon. Clicking a loaded slot unloads
+            // that resource back into this city; an empty slot is a no-op (the command
+            // handler finds nothing at that resource id and does nothing).
             if (Transport* transport = dynamic_cast<Transport*>(stationed[idx]))
             {
-                int slot = -1;
-                if (lon2==-4) slot = 0;
-                else if (lon2==-3) slot = 1;
-
-                if (slot>=0)
+                int slot = lon2 + 4;
+                if (slot >= 0 && slot < transport->capacity())
                 {
                     std::vector<Shippable*> cargo = transport->getCargo();
                     if (slot < (int)cargo.size())
@@ -231,15 +242,16 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         }
     }
 
-    // "Commodities Storage" box's per-row "load" arrow (cursor/right.png, column -5,
-    // drawCityScreen): loads up to 100 units of that row's commodity onto whichever unit is
-    // currently active/selected (coordinator.a_u_id) -- click a Transport in the Units box
-    // above first, same as any other unit-targeted action in this UI. No fine resolution
-    // needed here (unlike the cargo slots above): the arrow is the only thing at this
-    // column, so a plain coarse lon check is enough, same as the Units box row check above.
+    // "Resource Storage" box's per-row "load" arrow (cursor/right.png, column -5,
+    // drawCityScreen): loads up to 100 units of that row's resource (commodity or mfg good)
+    // onto whichever unit is currently active/selected (coordinator.a_u_id) -- click a
+    // Transport in the Units box above first, same as any other unit-targeted action in this
+    // UI. No fine resolution needed here (unlike the cargo slots above): the arrow is the
+    // only thing at this column, so a plain coarse lon check is enough, same as the Units
+    // box row check above.
     if (cityIt != cities.end() && lat>=5 && lat<=9 && lon==-5)
     {
-        std::vector<int> stocked = getStockedCommodities(cityIt->second);
+        std::vector<int> stocked = getStockedResources(cityIt->second);
         int loc = lat - 5;
         int idx = loc - commoditiesStorageOffset;
         if (idx >= 0 && idx < (int)stocked.size())
@@ -330,6 +342,7 @@ void drawCityScreen(int cla, int clo, City *city)
 
             Unit* u = *it;
             Faction* f = factions[u->faction];
+            Transport* transport = dynamic_cast<Transport*>(u);
             // placeTile (not place): units are tinted to their faction's color, same as
             // placeThisUnit does on the map (Unit::draw()) -- plain place() draws the raw
             // asset untinted, which is what looked wrong here.
@@ -342,24 +355,28 @@ void drawCityScreen(int cla, int clo, City *city)
                 placeTile(cla + (5+loc), clo + (-3), 16, overlay, f->red, f->green, f->blue);
             }
 
-            placeWord(clo + (-1),cla + (5+loc),4,8,u->name);
+            // A big Transport (Galleon, capacity 6) needs more room for its cargo slots than
+            // the 2-slot Trireme/Wagon, so its name is pushed one column right (to just past
+            // the last slot) instead of sitting at column -1.
+            bool wideCargo = transport != nullptr && transport->capacity() > 2;
+            placeWord(clo + (wideCargo ? 1 : -1),cla + (5+loc),4,8,u->name);
 
             // Cargo slots (task: "ship Resources"), just left of the name: one small
             // box.png per cargo slot the Transport HOLDS IN TOTAL (capacity(), not how many
-            // are free), packed into the gap between the unit icon (column -3, 16px wide,
-            // raw pixels -48..-32) and the name (column -1, raw pixel -16) -- i.e. raw
-            // pixels -32..-16, 16px of room for two 7px icons. A loaded slot draws the
-            // resource's own icon first, then box.png on top of it (box.png's border is
-            // opaque, its middle transparent, so it reads as a little frame around the
-            // resource icon) -- an empty slot just draws the frame alone.
+            // are free), starting at raw pixel -32 (just right of the unit icon at column -3,
+            // raw -48..-32). A loaded slot draws the resource's own icon first, then box.png
+            // on top of it (box.png's border is opaque, its middle transparent, so it reads
+            // as a little frame around the resource icon) -- an empty slot just draws the
+            // frame alone.
             //
-            // Slot x sits at HALF-column offsets (-2.0, -1.5, ... i.e. x=slot*8-32) rather
-            // than an arbitrary raw-pixel pack, so each slot lands on its own value of the
-            // fine click grid (lon2 = column*2, see clickOnCityScreen's own comment on that
-            // derivation) -- slot 0 -> lon2=-4, slot 1 -> lon2=-3 -- letting the click handler
-            // tell slots apart via lon2 while still using the ROW's plain coarse lat (like
-            // every other click in this box) instead of juggling lat2 sub-row values too.
-            if (Transport* transport = dynamic_cast<Transport*>(u))
+            // Slot x sits at HALF-column offsets (x = slot*8 - 32), so each slot lands on its
+            // own value of the fine click grid (lon2 = column*2, see clickOnCityScreen's own
+            // comment on that derivation) -- slot 0 -> lon2=-4, slot 1 -> lon2=-3, ... slot 5
+            // -> lon2=1 -- letting the click handler tell all 6 apart via lon2 alone while
+            // still using the ROW's plain coarse lat like every other click in this box. Two
+            // slots reach raw -16 (the old name column), which is why a wide-cargo unit's
+            // name moves right (above).
+            if (transport != nullptr)
             {
                 std::vector<Shippable*> cargo = transport->getCargo();
                 int y = (cla + (5+loc))*16;
@@ -447,16 +464,23 @@ void drawCityScreen(int cla, int clo, City *city)
     }
 
     {
-        // Per-turn commodity gather rate (task #13), directly above the map box (same
-        // columns, -3..3). Same "pack together" row style as City Resources above, but one
-        // row per commodity actually being produced THIS TURN (rate<=0 is skipped) -- with
-        // up to 21 possible commodity types, a fixed row per type would never fit.
-        // Starts at row -8 (not -10), same as City Resources: rows -10..-9 stay clear across
-        // the WHOLE top of the screen for the population icons (placed at row -9, growing
-        // rightward from column -10 as pop increases) to have room, instead of running into
-        // this box's top border.
-        placeWord(clo + (-3),cla + (-8),4,8,"City Commodities");
+        // Per-turn production (task #13, extended for mfg goods), directly above the map box
+        // (columns -3..3). Two groups, "pack together" row style like City Resources above,
+        // one row each -- rows -10..-9 stay clear across the WHOLE top of the screen for the
+        // population icons (row -9, growing right from column -10), so this box starts at -8:
+        //   1. commodities the city GATHERS this turn from special resources in range
+        //      (getCommodityProductionRate > 0).
+        //   2. mfg goods MANUFACTURED this turn by the city's buildings: drawn as
+        //      "<consumed commodity icons> <slash icon> <produced mfg good icons>", where the
+        //      slash icon is slashok.png when the city stocks every input this turn and
+        //      slashnook.png when it is short one (nothing is produced then -- the same
+        //      `enough` test engine.cpp operateCityBuildings() gates production on).
+        placeWord(clo + (-3),cla + (-8),4,8,"City Production");
         drawBoundingBox(clo,cla,-3,-8,3,-4);
+
+        // Row icons start a half-tile inside the box's left border (was -4, which drew them
+        // on top of the border tile).
+        const int rowLeftPx = (clo + (-3))*16 + 8;
 
         int i=0;
         for (int commodity_id : ALL_COMMODITIES)
@@ -467,9 +491,44 @@ void drawCityScreen(int cla, int clo, City *city)
             int colsepar = clipInt( floor(7*(16.0/rate)),1,7);
             for(int j=0;j<rate;j++)
             {
-                place((clo + (-3))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,tiles[commodity_id].c_str());
+                place(rowLeftPx+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,tiles[commodity_id].c_str());
             }
             i++;
+        }
+
+        for (Building* b : city->buildings)
+        {
+            for (int mfg_id : ALL_MFG_GOODS)
+            {
+                int prate = b->getProductionRate(mfg_id);
+                if (prate<=0) continue;
+
+                int rowY = (cla + (-7))*16-4+7*(i);
+                int x = rowLeftPx;
+
+                // Consumed commodities, one icon per unit of consumption rate. `enough` is
+                // the same check operateCityBuildings() gates production on.
+                bool enough = true;
+                for (int cmd_id : ALL_COMMODITIES)
+                {
+                    int crate = b->getConsumptionRate(cmd_id);
+                    if (crate<=0) continue;
+                    if (city->commodities[cmd_id] < crate) enough = false;
+                    for (int j=0;j<crate;j++, x+=7)
+                        place(x  ,rowY  ,7,7,tiles[cmd_id].c_str());
+                }
+
+                // The "/" divider icon: slashok when every input is covered, slashnook on a
+                // shortage (the same `enough` test operateCityBuildings() gates production on).
+                place(x  ,rowY  ,7,7, enough ? "assets/assets/city/slashok.png"
+                                             : "assets/assets/city/slashnook.png");
+                x += 7;
+
+                for (int j=0;j<prate;j++, x+=7)
+                    place(x  ,rowY  ,7,7,tiles[mfg_id].c_str());
+
+                i++;
+            }
         }
     }
 
@@ -515,13 +574,26 @@ void drawCityScreen(int cla, int clo, City *city)
     }
 
     {
-        // Commodity stockpile (task #13): a scrollable list (same mechanism as the Units
-        // box), one row per commodity actually in storage. The trailing icon is a "load"
-        // placeholder for a later Wagon/Ship transfer feature -- not wired to a click yet.
-        placeWord(clo + (-10),cla + (4),4,8,"Commodities Storage");
+        // Resource stockpile (task #13, extended for mfg goods): a scrollable list (same
+        // mechanism as the Units box), one row per commodity/mfg good actually in storage.
+        // The trailing cursor/right.png arrow loads that row's resource onto the active
+        // Transport (clickOnCityScreen -> Command::LoadCargoOrder).
+        placeWord(clo + (-10),cla + (4),4,8,"Resource Storage");
         drawBoundingBox(clo,cla,-10,4,-4,9);
 
-        std::vector<int> stocked = getStockedCommodities(city);
+        std::vector<int> stocked = getStockedResources(city);
+
+        // Each row: an icon strip from the box's left edge, then the exact count right after
+        // the last icon, then the "load" arrow pinned at the box's right edge (col -5). The
+        // strip is one resource icon per 10 units (floor), up to 30 icons for the
+        // 300-unit-per-city ceiling; the 30 slots are spaced to span from the left edge
+        // (col -10) to a reserved gap for the count digits (16px shy of the arrow), so a
+        // full 300 fills that width exactly -- same "pack N icons across a fixed width"
+        // trick as getFoodStorageLayout / the City Resources box.
+        const int   RESOURCE_STRIP_SLOTS = 30;
+        const int   stripLeftPx  = (clo + (-10))*16;
+        const int   stripRightPx = (clo + (-5))*16 - 16;
+        const float resourceStripStep = (float)(stripRightPx - stripLeftPx - 7) / (float)(RESOURCE_STRIP_SLOTS - 1);
 
         int i=0;
         for(auto it=stocked.begin();it!=stocked.end();it++)
@@ -529,16 +601,26 @@ void drawCityScreen(int cla, int clo, City *city)
             int loc = i+commoditiesStorageOffset;
             if (loc<0) {i++;continue;}
 
-            int commodity_id = *it;
+            int resource_id = *it;
+            int amount = stockedResourceAmount(city, resource_id);
+            int rowY = (cla + (5+loc))*16;
+
+            int icons = amount/10;
+            if (icons > RESOURCE_STRIP_SLOTS) icons = RESOURCE_STRIP_SLOTS;
+            for (int j=0;j<icons;j++)
+                place(stripLeftPx + (int)round(resourceStripStep*j)  ,rowY  ,7,7,tiles[resource_id].c_str());
+
+            // Count digits immediately after the last drawn icon (or at the left edge when
+            // the amount is below one full icon). placeWord multiplies its x by 16, so a
+            // fractional column places it at an exact pixel.
+            int countPx = stripLeftPx + (icons>0 ? (int)round(resourceStripStep*(icons-1)) + 7 + 2 : 0);
+            char countstr[16];
+            sprintf(countstr,"%d",amount);
+            placeWord(countPx/16.0f,cla + (5+loc),4,8,countstr);
+
             // placeTile(x,y,...) here is the UNTINTED overload: x is the COLUMN (lon), y is
             // the ROW (lat) -- opposite argument order from the tinted placeTile(lat,lon,...)
             // the Units box above uses.
-            placeTile(clo + (-10), cla + (5+loc), 7, tiles[commodity_id].c_str());
-
-            char countstr[16];
-            sprintf(countstr,"%d",city->commodities[commodity_id]);
-            placeWord(clo + (-9),cla + (5+loc),4,8,countstr);
-
             placeTile(clo + (-5), cla + (5+loc), 7, "assets/assets/cursor/right.png");
 
             i++;
