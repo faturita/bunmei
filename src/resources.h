@@ -78,14 +78,13 @@ class CoreResource : public Resource {
     }
 };
 
-
-class Commodity : public Resource, public Shippable {
+class ShippableResource : public Resource, public Shippable {
     public:
     int id;
     char assetname[256];
     char name[256];
 
-    Commodity(int idnew, const char* assetnamenew, const char* namenew)
+    ShippableResource(int idnew, const char* assetnamenew, const char* namenew)
     {
         id = idnew;
         strcpy(assetname,assetnamenew);
@@ -96,21 +95,14 @@ class Commodity : public Resource, public Shippable {
     const char* getName() override { return name; }
 };
 
-class MfgGood : public Resource, public Shippable {
+class Commodity :  public ShippableResource {
     public:
-    int id;
-    char assetname[256];
-    char name[256];
+    Commodity(int idnew, const char* assetnamenew, const char* namenew) : ShippableResource(idnew, assetnamenew, namenew) {}
+};
 
-    MfgGood(int idnew, const char* assetnamenew, const char* namenew)
-    {
-        id = idnew;
-        strcpy(assetname,assetnamenew);
-        strcpy(name,namenew);
-    }
-
-    int getId() override { return id; }
-    const char* getName() override { return name; }
+class MfgGood : public ShippableResource {
+    public:
+    MfgGood(int idnew, const char* assetnamenew, const char* namenew) : ShippableResource(idnew, assetnamenew, namenew) {}
 };
 
 // @FIXME: Hardcode the list of resources, commodiies and manufactured goods.  This should be loaded from a file.

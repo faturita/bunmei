@@ -125,6 +125,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Trireme         | Map Making      | - | - |
 | Galley          | Map Making + Horseback Riding  | -    | - |
 | Horse Archer    | Animal Husbandry + Horseback Riding | -    | - |
+| Galleon         | Map Making | - | - |
 
 
 ## Cities
