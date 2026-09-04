@@ -61,6 +61,7 @@
 #include "map.h"
 #include "hud.h"
 #include "infoui.h"
+#include "marketui.h"
 #include "ai.h"
 #include "dee.h"
 
@@ -201,6 +202,9 @@ void drawScene()
         break;
     case 5:
         drawIntro();
+        break;
+    case 7:
+        drawMarketScreen();
         break;
 
     default:
