@@ -275,6 +275,8 @@ All the commodities and manufactured goods can be directly traded, by loading th
 
 Some buildings and unit require special resources to be produced.
 
+Resources are accumulated in each city, including coins.
+
 
 ## Population
 

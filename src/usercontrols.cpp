@@ -9,6 +9,7 @@
 #include "City.h"
 #include "units/Unit.h"
 #include "cityscreenui.h"
+#include "commerceui.h"
 #include "engine.h"
 #include "coordinator.h"
 #include "usercontrols.h"
@@ -164,7 +165,7 @@ void handleKeypress(unsigned char key, int x, int y) {
     switch (key) {
         case 27: //Escape key
         {
-            if (controller.view == 2 || controller.view == 3)
+            if (controller.view == 2 || controller.view == 3 || controller.view == 4)
             {
                 controller.view = 1;
             }
@@ -513,6 +514,16 @@ void processMouse(int button, int state, int x, int y)
                     printf("Location on the World Map (Lat,Lon)= (%d,%d)\n",c.lat,c.lon);
                     coordinate c2 = convertToMap(x,y,16);
                     clickOnCityScreen(c.lat,c.lon, c2.lat, c2.lon);
+                }
+            }
+            break;
+            case 4:
+            {
+                if (button == GLUT_LEFT_BUTTON)
+                {
+                    coordinate c = convertToMap(x,y,32);
+                    coordinate c2 = convertToMap(x,y,16);
+                    clickOnCommerceScreen(c.lat,c.lon, c2.lat, c2.lon);
                 }
             }
             break;

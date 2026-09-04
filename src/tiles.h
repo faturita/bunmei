@@ -114,4 +114,7 @@ bool tileBiomaAllowsImprovement(ImprovementBiomaRestrictions &restrictions, int 
 int getRequiredImprovement(ImprovementResources &improvementresources, int resource);
 void initCommodities(std::unordered_map<int, int> &commodityxresource);
 
+// Seeds `prices` (tiles.cpp) with a unit price of 1 for every commodity and mfg good.
+void initPrices(std::unordered_map<int, int> &prices);
+
 #endif // TILES_H

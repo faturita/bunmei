@@ -20,6 +20,10 @@ int nextUnitId(int faction);
 int nextMovableUnitId(int f_id);
 
 City* findCityAt(int lat, int lon);
+
+// The city a faction's trade coins come from / go to (its capital, else its first city,
+// else nullptr) -- the engine has no persistent per-faction coin pot.
+City* factionTreasury(int faction_id);
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 
 // Fills city->buildable with everything the city can currently build (based on the faction
@@ -67,6 +71,10 @@ bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon);
 bool moveForward(Unit* unit, int lat, int lon);
 bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak);
 bool attack(Unit* attacker, int lat, int lon, bool &forceBreak);
+
+// A human Transport stepping onto a foreign city's tile at PEACE or better opens the
+// commerce screen (controller.view = 4) instead of moving; returns true when it handled it.
+bool engageTrade(Unit* unit, int lat, int lon);
 
 
 #endif // ENGINE_H

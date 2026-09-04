@@ -11,6 +11,7 @@
 #include "units/Unit.h"
 #include "City.h"
 #include "cityscreenui.h"
+#include "commerceui.h"
 #include "Faction.h"
 #include "resources.h"
 #include "coordinator.h"
@@ -558,7 +559,8 @@ void drawMap()
 
         drawUnitsAndCities();
 
-        openCityScreen();   
+        openCityScreen();
+        openCommerceScreen();
 
 
     } glPopMatrix();

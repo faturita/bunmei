@@ -48,7 +48,17 @@ enum class Command {
     // Reverse of LoadCargoOrder: moves one boarded Shippable resource (parameters.resourceid,
     // aboard the Transport in parameters.spawnid) back into the city's stockpile
     // (parameters.cityid) and removes/deletes it from the Transport.
-    UnloadCargoOrder=25
+    UnloadCargoOrder=25,
+    // Commerce screen "buy" arrow: like LoadCargoOrder (moves up to 100 of parameters.resourceid
+    // from the city stockpile onto the Transport in parameters.spawnid), but also pays for it --
+    // quantity is additionally capped by what the buying faction can afford at prices[resourceid],
+    // faction->coins goes down and city->coreresources[COINS] goes up by quantity*price.
+    BuyResourceOrder=26,
+    // Commerce screen "sell" arrow: like UnloadCargoOrder (moves the boarded resource stack
+    // back into the city stockpile), but also pays out -- city->coreresources[COINS] goes down
+    // and faction->coins goes up by quantity*prices[resourceid] (quantity capped by what the
+    // city can afford).
+    SellResourceOrder=27
 };
 
 struct commandparameters

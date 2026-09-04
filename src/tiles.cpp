@@ -11,6 +11,12 @@ ImprovementResources improvementresources;
 ImprovementBiomaRestrictions improvementbiomarestrictions;
 std::unordered_map<int, int> commodityxresource;
 
+// Unit price of every tradeable resource (commodity or mfg good), used by the commerce
+// screen (commerceui.cpp / engine.cpp Buy/SellResourceOrder). initPrices() seeds every id
+// at 1; nothing varies them yet. Lives here (an SCS file) so the testcase build links it,
+// same pattern as commodityxresource above.
+std::unordered_map<int, int> prices;
+
 // const std::vector<int> ALL_COMMODITIES = {
 //     copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk,
 //     wine, spices, gunpowder,sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3
@@ -454,6 +460,12 @@ void initCommodities(std::unordered_map<int, int> &commodityxresource)
     commodityxresource[LITIUM]    = litium;
     commodityxresource[ALUMINIUM] = aluminium;
     commodityxresource[HELIUM_3]  = helium_3;
+}
+
+void initPrices(std::unordered_map<int, int> &prices)
+{
+    for (int id : ALL_COMMODITIES) prices[id] = 1;
+    for (int id : ALL_MFG_GOODS)   prices[id] = 1;
 }
 
 #define CITY_NAMES_PER_CIVILIZATION 100

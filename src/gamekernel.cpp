@@ -37,6 +37,7 @@ extern ImprovementEffort improvementeffort;
 extern ImprovementResources improvementresources;
 extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern std::unordered_map<int, int> commodityxresource;
+extern std::unordered_map<int, int> prices;
 
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
@@ -267,6 +268,7 @@ void initMap()
     initImprovementBiomaRestrictions(improvementbiomarestrictions);
 
     initCommodities(commodityxresource);
+    initPrices(prices);
 
     initImprovements(improvements);
 

@@ -15,6 +15,11 @@ public:
 
     int cityid = -1;
 
+    // The Transport whose faction opened the current commerce screen (view == 4), set by
+    // engine.cpp:engageTrade(). Buy/sell act on this unit, not coordinator.a_u_id (which
+    // moves on once the transport has spent its move opening the market).
+    int tradeunitid = -1;
+
     // Index to Observable interfaces.
     int camera;
 

@@ -64,6 +64,8 @@ extern MovementCost movementcosts;
 extern Tiles tiles;
 
 extern DiplomacyTable diplomacy;
+extern Controller controller;
+extern std::unordered_map<int, int> prices;
 
 extern int year;
 
@@ -153,6 +155,23 @@ City* findCityAt(int lat, int lon)
         }
     }
     return city;
+}
+
+// The city that acts as a faction's coin treasury for trade (commerce screen buy/sell):
+// its capital, or -- if none is flagged -- the first city of that faction found. nullptr if
+// the faction has no cities. The engine keeps no persistent per-faction coin pot
+// (Faction::coins is recomputed from city COINS every frame in reSetCities), so trade has
+// to move coins through a real city.
+City* factionTreasury(int faction_id)
+{
+    City* firstCity = nullptr;
+    for (auto& [k, c] : cities)
+    {
+        if (c->faction != faction_id) continue;
+        if (c->isCapitalCity()) return c;
+        if (firstCity == nullptr) firstCity = c;
+    }
+    return firstCity;
 }
 
 // Go through all the things a city can build and check all the dependencies.
@@ -378,10 +397,7 @@ void reSetCities()
         }
         c->deAssigntWorkingTile();
 
-        // @NOTE Collect taxes.  I am not removing the coins from the city, this is 
-        //    good because it allows enemies to steal good money from the city that in the 
-        //    end cannot be used really by the owner faction.
-        //    perhaps somewhere else the coins are set back to zero.
+        // @NOTE: Faction->coins are DELETED every time so effective coins remain in cities.
         factions[c->faction]->coins += c->coreresources[COINS];
 
         // @FIXME: Spread culture
@@ -594,6 +610,40 @@ bool attack(Unit* attacker, int lat, int lon, bool &forceBreak)
     return confirmed;
 }
 
+
+// A Transport (Wagon/Trireme/Galleon) of the human faction moving onto another faction's
+// city tile, with that faction at PEACE or better (DiplomaticStatus >= PEACE): opens the
+// commerce screen instead of moving/docking/capturing. Same shape as captureCity()/attack()
+// in the moveUnit() chain -- returns true when it handled the move. The transport stays
+// where it is (a foreign city tile is not ours to stand on) and just spends its move.
+bool engageTrade(Unit* unit, int lat, int lon)
+{
+    if (dynamic_cast<Transport*>(unit) == nullptr)
+        return false;
+    if (!map.set(lat,lon).belongsToCity())
+        return false;
+
+    City* city = findCityAt(lat,lon);
+    if (city == nullptr || city->faction == unit->faction)
+        return false;
+
+    // AI transports don't pop a UI; leave their move to fail the normal way (a peaceful
+    // foreign border is closed unless openBorders, so moveForward just blocks).
+    if (factions[unit->faction]->autoPlayer)
+        return false;
+
+    if (diplomacy[unit->faction][city->faction].status < PEACE)
+        return false;
+
+    unit->availablemoves = 0;
+
+    controller.view = 4;                 // commerce screen (drawScene / processMouse)
+    controller.cityid = city->id;
+    controller.tradeunitid = unit->id;
+
+    message(year, unit->faction, "A %s opens trade with %s.", unit->name, city->name);
+    return true;
+}
 
 bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
 {
@@ -856,9 +906,10 @@ void moveUnit(Unit* unit, int lat, int lon)
             (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
         {
             bool forceBreak = false;
-            if (!land(unit,lat,lon) && 
-                !dockInCity(unit,lat,lon) && 
-                !moveOntoNavalUnit(unit, navalunit,lat,lon) && 
+            if (!land(unit,lat,lon) &&
+                !dockInCity(unit,lat,lon) &&
+                !moveOntoNavalUnit(unit, navalunit,lat,lon) &&
+                !engageTrade(unit,lat,lon) &&
                 !captureCity(unit,lat,lon, forceBreak) && !forceBreak &&
                 !attack(unit,lat,lon, forceBreak) && !forceBreak &&
                 !moveForward(unit,lat,lon))
@@ -1307,6 +1358,94 @@ void processCommandOrders()
                 stockpile[co.parameters.resourceid] += r->amount;
                 transport->removeCargo(co.parameters.resourceid);
                 delete r;
+            }
+        }
+    } else if (co.command == Command::BuyResourceOrder)
+    {
+        // Commerce screen "buy": like LoadCargoOrder, plus the coin transfer. Quantity is
+        // one stack (<=100), capped by the city's stock, room aboard, and what the buying
+        // faction's treasury can afford at prices[resourceid]. There is no persistent
+        // per-faction coin pot (Faction::coins is rebuilt every frame from city COINS in
+        // reSetCities), so "the faction pays" == its capital city's coreresources[COINS] pays.
+        Transport* transport = dynamic_cast<Transport*>(units[co.parameters.spawnid]);
+        auto cityIt = cities.find(co.parameters.cityid);
+        City* treasury = factionTreasury(co.parameters.factionid);
+        if (transport != nullptr && cityIt != cities.end() && treasury != nullptr)
+        {
+            City* city = cityIt->second;
+            int resourceid = co.parameters.resourceid;
+            int price = prices.count(resourceid) ? prices[resourceid] : 1;
+            bool ismfggood = resourceid >= rum;
+            std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+
+            Shippable* existing = transport->findCargo(resourceid);
+            int roomAboard = existing ? (100 - dynamic_cast<Resource*>(existing)->amount) : 100;
+
+            int qty = std::min(std::min(100, stockpile[resourceid]), roomAboard);
+            if (price > 0) qty = std::min(qty, treasury->coreresources[COINS] / price);
+
+            if (qty > 0)
+            {
+                bool loaded = true;
+                if (existing != nullptr)
+                {
+                    dynamic_cast<Resource*>(existing)->amount += qty;
+                }
+                else
+                {
+                    Resource* cargoitem = ismfggood
+                        ? (Resource*) new MfgGood(resourceid, tiles[resourceid].c_str(), "MfgGood")
+                        : (Resource*) new Commodity(resourceid, tiles[resourceid].c_str(), "Commodity");
+                    cargoitem->amount = qty;
+                    loaded = transport->board(dynamic_cast<Shippable*>(cargoitem));
+                    if (!loaded) { delete cargoitem; message(year, co.parameters.factionid, "No room aboard to buy more cargo."); }
+                }
+
+                if (loaded)
+                {
+                    int cost = qty * price;
+                    stockpile[resourceid]          -= qty;
+                    treasury->coreresources[COINS] -= cost;
+                    city->coreresources[COINS]     += cost;
+                }
+            }
+        }
+    } else if (co.command == Command::SellResourceOrder)
+    {
+        // Commerce screen "sell": like UnloadCargoOrder, plus the coin transfer. Sells the
+        // whole boarded stack, capped by what the city can pay at prices[resourceid]; the
+        // proceeds go to the seller faction's capital-city treasury (see BuyResourceOrder).
+        Transport* transport = dynamic_cast<Transport*>(units[co.parameters.spawnid]);
+        auto cityIt = cities.find(co.parameters.cityid);
+        City* treasury = factionTreasury(co.parameters.factionid);
+        if (transport != nullptr && cityIt != cities.end() && treasury != nullptr)
+        {
+            City* city = cityIt->second;
+            int resourceid = co.parameters.resourceid;
+            int price = prices.count(resourceid) ? prices[resourceid] : 1;
+
+            if (Resource* r = dynamic_cast<Resource*>(transport->findCargo(resourceid)))
+            {
+                int qty = r->amount;
+                if (price > 0) qty = std::min(qty, city->coreresources[COINS] / price);
+
+                if (qty > 0)
+                {
+                    int proceeds = qty * price;
+                    bool ismfggood = resourceid >= rum;
+                    std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+
+                    stockpile[resourceid]          += qty;
+                    city->coreresources[COINS]     -= proceeds;
+                    treasury->coreresources[COINS] += proceeds;
+
+                    r->amount -= qty;
+                    if (r->amount <= 0)
+                    {
+                        transport->removeCargo(resourceid);
+                        delete r;
+                    }
+                }
             }
         }
     }

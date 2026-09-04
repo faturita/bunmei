@@ -35,6 +35,7 @@
 #include "engine.h"
 #include "messages.h"
 #include "commandline.h"
+#include "usercontrols.h"
 
 typedef std::unordered_map<int, City*> Cities;
 typedef std::unordered_map<int, Unit*> Units;
@@ -50,6 +51,9 @@ Cities cities;
 // but their SYMBOLS still have to resolve at link time.
 Map map;
 Coordinator coordinator;
+// engine.cpp:engageTrade() references `controller` to open the commerce screen -- dead code
+// in this headless build (no Transport ever trades here), but the symbol must resolve.
+Controller controller;
 DependencyEvaluationEngine dee;
 DiplomacyTable diplomacy;
 std::unordered_map<int, Improvement*> improvements;
@@ -61,6 +65,7 @@ extern ImprovementResources improvementresources;
 extern ImprovementBiomaRestrictions improvementbiomarestrictions;
 extern MovementCost movementcosts;
 extern std::unordered_map<int, int> commodityxresource;
+extern std::unordered_map<int, int> prices;
 
 int year;
 
@@ -595,6 +600,7 @@ int main(int argc, char *argv[]) {
 
     initTiles(tiles);
     initCommodities(commodityxresource);
+    initPrices(prices);
     initMovementCosts(movementcosts);
     initImprovementEffort(improvementeffort);
     initImprovementResources(improvementresources);
