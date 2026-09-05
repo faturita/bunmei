@@ -12,6 +12,8 @@
 
 #include "Faction.h"
 #include "units/Unit.h"
+#include "units/Ship.h"
+
 #include "units/Warrior.h"
 #include "units/Settler.h"
 #include "buildings/Building.h"
@@ -762,7 +764,7 @@ bool moveForward(Unit* unit, int lat, int lon)
 
 }
 
-bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon)
+bool moveOntoNavalUnit(Unit* passenger, Ship* navalunit, int lat, int lon)
 {
     if (navalunit!=nullptr)
     {
@@ -803,7 +805,7 @@ bool land(Unit* navalunit, int lat, int lon)
     // Chek if navalunit is actually a boat, and that we are moving towards a place where is land.
     if (map.set(lat,lon).code == LAND)
     {
-        if(Trireme* trireme = dynamic_cast<Trireme*>(units[coordinator.a_u_id]))
+        if(Ship* trireme = dynamic_cast<Ship*>(units[coordinator.a_u_id]))
         {
             // @FIXME: Check that there are no enemy units and that there are cities and there are no places controlled by cities.
             if (!map.set(lat,lon).isFreeLand())
@@ -831,7 +833,7 @@ bool land(Unit* navalunit, int lat, int lon)
 
     return false;
 
-}
+} 
 
 // A naval unit entering a city of its OWN faction: the ship docks on the city tile and
 // everything it is shipping is unboarded and awakened (enemy cities go through captureCity).
@@ -845,7 +847,7 @@ bool dockInCity(Unit* navalunit, int lat, int lon)
     if (city==nullptr || city->faction != navalunit->faction)
         return false;
 
-    if (Trireme* trireme = dynamic_cast<Trireme*>(navalunit))
+    if (Ship* trireme = dynamic_cast<Ship*>(navalunit))
     {
         map.set(trireme->latitude, trireme->longitude).releaseOwner();
 
@@ -875,14 +877,14 @@ bool dockInCity(Unit* navalunit, int lat, int lon)
     return false;
 }
 
-Trireme* findNavalUnit(int lat, int lon)
+Ship* findNavalUnit(int lat, int lon)
 {
-    Trireme* navalunit = nullptr;
+    Ship* navalunit = nullptr;
     for(auto& [k,u]:units)
     {
         if (u->getMovementType()==OCEANTYPE && u->latitude == lat && u->longitude == lon)
         {
-            navalunit = dynamic_cast<Trireme*>(u);
+            navalunit = dynamic_cast<Ship*>(u);
         }
     }   
     return navalunit; 
@@ -896,7 +898,7 @@ void moveUnit(Unit* unit, int lat, int lon)
     {
 
         // Find a naval unit in the target tile.
-        Trireme* navalunit = findNavalUnit(lat,lon);
+        Ship* navalunit = findNavalUnit(lat,lon);
 
 
         // @NOTE: moving into a ship
@@ -968,6 +970,24 @@ bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon)
     }
 
     return false;
+}
+
+// A boarded Resource stack of `resourceid` aboard `transport` that still has room (< 100
+// units) to top up -- or nullptr if every stack of that type already aboard is full (or
+// there is none yet), meaning the caller needs a NEW cargo slot instead. Transport::findCargo
+// only ever returns ONE (the first) matching stack, which isn't enough once a Transport can
+// carry several separate stacks of the same resource (each capped at 100) -- see
+// LoadCargoOrder/BuyResourceOrder below.
+static Resource* findToppableCargo(Transport* transport, int resourceid)
+{
+    for (Shippable* s : transport->getCargo())
+    {
+        if (s->getId() != resourceid) continue;
+        if (Resource* r = dynamic_cast<Resource*>(s))
+            if (r->amount < 100)
+                return r;
+    }
+    return nullptr;
 }
 
 void processCommandOrders()
@@ -1308,15 +1328,17 @@ void processCommandOrders()
             bool ismfggood = resourceid >= rum;   // MFGOODS start at 0x301 (rum), COMMODITIES at 0x201.
             std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
 
-            Shippable* existing = transport->findCargo(resourceid);
+            // A stack of this resource that's not yet at the 100 cap tops up; only when
+            // every boarded stack of it is full (or there is none) does this take a new
+            // cargo slot -- so a second, third, ... stack of the SAME resource is possible
+            // once earlier ones fill up, instead of silently refusing once any exists.
+            Resource* existing = findToppableCargo(transport, resourceid);
             if (existing != nullptr)
             {
-                // Same resource already aboard: top it up instead of taking a new slot.
-                Resource* r = dynamic_cast<Resource*>(existing);
-                int toload = std::min(100 - r->amount, stockpile[resourceid]);
+                int toload = std::min(100 - existing->amount, stockpile[resourceid]);
                 if (toload > 0)
                 {
-                    r->amount += toload;
+                    existing->amount += toload;
                     stockpile[resourceid] -= toload;
                 }
             }
@@ -1378,8 +1400,16 @@ void processCommandOrders()
             bool ismfggood = resourceid >= rum;
             std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
 
-            Shippable* existing = transport->findCargo(resourceid);
-            int roomAboard = existing ? (100 - dynamic_cast<Resource*>(existing)->amount) : 100;
+            // Same "top up a non-full stack, else take a new slot" rule as LoadCargoOrder:
+            // a Transport with 2+ free slots can buy several separate 100-stacks of the same
+            // resource (e.g. 230 elephants in the city -> 100 into slot 1, then 100 more into
+            // slot 2), instead of being capped at 100 total the moment any stack exists.
+            Resource* existing = findToppableCargo(transport, resourceid);
+            int roomAboard;
+            if (existing != nullptr)
+                roomAboard = 100 - existing->amount;
+            else
+                roomAboard = (transport->manifest() < transport->capacity()) ? 100 : 0;
 
             int qty = std::min(std::min(100, stockpile[resourceid]), roomAboard);
             if (price > 0) qty = std::min(qty, treasury->coreresources[COINS] / price);
@@ -1389,7 +1419,7 @@ void processCommandOrders()
                 bool loaded = true;
                 if (existing != nullptr)
                 {
-                    dynamic_cast<Resource*>(existing)->amount += qty;
+                    existing->amount += qty;
                 }
                 else
                 {

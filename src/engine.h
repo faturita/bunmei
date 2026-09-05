@@ -63,11 +63,10 @@ void processWork();
 
 void switchUnitIfNoMovesLeft();
 void moveUnit(Unit* unit, int lat, int lon);
-Trireme* findNavalUnit(int lat, int lon);
-Trireme* findNavalUnit(int lat, int lon);
+Ship* findNavalUnit(int lat, int lon);
 bool dockInCity(Unit* navalunit, int lat, int lon);
 bool land(Unit* navalunit, int lat, int lon);
-bool moveOntoNavalUnit(Unit* passenger, Trireme* navalunit, int lat, int lon);
+bool moveOntoNavalUnit(Unit* passenger, Ship* navalunit, int lat, int lon);
 bool moveForward(Unit* unit, int lat, int lon);
 bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak);
 bool attack(Unit* attacker, int lat, int lon, bool &forceBreak);

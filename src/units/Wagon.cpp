@@ -23,9 +23,9 @@ MOVEMENT_TYPE Wagon::getMovementType()
 
 bool Wagon::board(Shippable* passenger)
 {
-    if (cargo-passengers.size()>0)
+    if ((int)passengers.size() < cargo)
     {
-        passengers[passenger->getId()] = passenger;
+        passengers.push_back(passenger);
         return true;
     }
     else
@@ -38,9 +38,8 @@ Shippable* Wagon::unboard()
 {
     if (passengers.size()>0)
     {
-        auto it = passengers.begin();
-        Shippable* passenger = it->second;
-        passengers.erase(it);
+        Shippable* passenger = passengers.front();
+        passengers.erase(passengers.begin());
         return passenger;
     }
     else
@@ -61,23 +60,22 @@ int Wagon::capacity()
 
 Shippable* Wagon::findCargo(int id)
 {
-    auto it = passengers.find(id);
-    return it!=passengers.end() ? it->second : nullptr;
+    for (Shippable* passenger : passengers)
+        if (passenger->getId() == id)
+            return passenger;
+    return nullptr;
 }
 
 std::vector<Shippable*> Wagon::getCargo()
 {
-    std::vector<Shippable*> list;
-    for (auto& [k, passenger] : passengers)
-        list.push_back(passenger);
-    return list;
+    return passengers;
 }
 
 Unit* Wagon::unboardUnit()
 {
     for (auto it = passengers.begin(); it != passengers.end(); it++)
     {
-        if (Unit* u = dynamic_cast<Unit*>(it->second))
+        if (Unit* u = dynamic_cast<Unit*>(*it))
         {
             passengers.erase(it);
             return u;
@@ -88,7 +86,15 @@ Unit* Wagon::unboardUnit()
 
 bool Wagon::removeCargo(int id)
 {
-    return passengers.erase(id) > 0;
+    for (auto it = passengers.begin(); it != passengers.end(); it++)
+    {
+        if ((*it)->getId() == id)
+        {
+            passengers.erase(it);
+            return true;
+        }
+    }
+    return false;
 }
 
 void Wagon::update(int newlat, int newlon)
@@ -102,7 +108,7 @@ void Wagon::update(int newlat, int newlon)
     completion = 0;
     fortified = false;
 
-    for(auto& [k, passenger]:passengers)
+    for (Shippable* passenger : passengers)
     {
         printf("Moving what I am transporting %s\n",passenger->getName());
 
@@ -110,7 +116,7 @@ void Wagon::update(int newlat, int newlon)
         {
             u->update(newlat,newlon);
         }
-  
+
     }
 
 }

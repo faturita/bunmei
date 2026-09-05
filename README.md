@@ -80,7 +80,7 @@ make
  # Running
 
 ```bash
-./bunmei [-nointro] [-seed seed] [-mapsize size] [-nofog]
+./bunmei [-nointro] [-seed seed] [-mapsize size] [-nofog] [-civs N] [-faction n]
 ```
 
 That's all folks.
@@ -91,6 +91,7 @@ That's all folks.
 
 * Every aspect of the game can be automated
 * The game can be fully simulated (without graphics).
+* The game mechanics are mediated through an intermediate language (command model)
 
 ## Map
 The standard map size is 72x48. 
@@ -132,32 +133,42 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 
 | Buildings |  Dep Tech |  City Context Perks |  |
 |---|---|---|---|
-| Palace         | -                 | 0x01 | - |
-| Barracks       | Warrior Code    | 0x02 |  |
-| Granary        | Pottery         |  0x03| - |
-| Market         | Currency            | 0x04 | - |
-| Collosseum     | Writing            | 0x05 | - |
-| Temple         | Ceremonial Burial  | 0x06 | - |
-| University.    | Education.         | 0x07 | - |
-| Theatre        | Music              | 0x08 | - |
-| Stable         | Horseback Riding   | 0x09 | - |
-| Warehouse      | Pottery.           | 0x0a | - |
-| Observatory    | Astronomy          | | |
-| Monument.      | Mysticism.         | | |
-| Lighthouse.    | Map Making.        | | |
-| Library.       | Writing.           | | |
-| Harbor         |                    | | |
-| Grocer         | Trade |||
-| Forge          |.       |||
-| Factory        | Industrialization       |||
-| Depot          |        | 0x0b | 100 Tools |
-| CourtHouse     |        |||
-| Cathedral.     |.       |||
-| Castle.        |        |||
-| Fort           |.       | | |
-| Fortress.      |.       | | |
-| Bank           | |||
-| Aqueduct       | |||
+| Palace           | -                 | 0x01 | - |
+| Barracks         | Warrior Code    | 0x02 |  |
+| Granary          | Pottery         |  0x03| - |
+| Market           | Currency            | 0x04 | - |
+| Collosseum       | Writing            | 0x05 | - |
+| Temple           | Ceremonial Burial  | 0x06 | - |
+| University.      | Education.         | 0x07 | - |
+| Theatre          | Music              | 0x08 | - |
+| Stable           | Horseback Riding   | 0x09 | - |
+| Warehouse        | Pottery.           | 0x0a | - |
+| Observatory      | Astronomy          | | |
+| Monument.        | Mysticism.         | | |
+| Lighthouse.      | Map Making.        | | |
+| Library.         | Writing.           | | |
+| Harbor           |                    | | |
+| Grocer           | Trade |||
+| Forge            |.       |||
+| Factory          | Industrialization       |||
+| Depot            |        | 0x0b | 100 Tools |
+| CourtHouse       |        |||
+| Cathedral.       |.       |||
+| Castle.          |        |||
+| Fort             |.       | | |
+| Fortress.        |.       | | |
+| Bank             | |||
+| Aqueduct         | |||
+| Rolling House    | |||
+| Processing Plant | |||
+| Armory           | Gunpowder | | |
+| Textile Mill.    | Industrialization | | |
+| Steelworks.      | Steel.    | | |
+| Assembly Plant   | Automobiles | | |
+| Oil Refinery.    | Plastics | | |
+| Pharma.          | Medicine | | |
+| Semiconductor Fab| Electronics | | |
+| Gigafactory.     | Robotics | | | 
 
 
 
@@ -201,7 +212,7 @@ There are six basic core resources: food, shields, trade, coins, science, and cu
 | Science    | 
 | Culture    | 
 
-Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science and Culture by the fundamental tax rate.  Coins are accumulated by the government, Science goes for research funding and culture promotes borders and happiness.
+Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science and Culture by the fundamental tax rate.  Coins are accumulated by the government on each city, Science goes for research funding and culture promotes borders and happiness.
 
 Special resources can appear on the map.  They can change tile production but at the same time they allow the production of commodities which can be accumulated in the city.  Cities can access special resources inside city tiles, without having to work on them,  and also can access other nearby special resources as long as the LoS is established and the faction owns the special resource tile.
 
@@ -263,7 +274,7 @@ Some buildings take commodities and convert them into manufactured goods.  These
 | Electronics | Electronics.     | Semiconductor Fab | Aluminium / Litium / Silver|
 | Robots |  Robotics.          | Gigafactory  | Electronics + Steel |
 
-Perhaps I can add Laudanum, Rum and Cigars.
+Perhaps I can add Laudanum ??? 
 
 So the idea is that those who succeed are able to create the complex supply chains that in the end allow to create better armies.
 
@@ -271,7 +282,7 @@ This will probably lead to the next level which is services.
 
 ## Trade
 
-All the commodities and manufactured goods can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.
+All the commodities and manufactured goods can be directly traded, by loading them into boats or wagons and shipping them to foreign cities in exchange for money or other commodities.  'Wagons' appear early in the game (with Trading and Wheel) and allow to trade resources between land cities.  Selling or Buying stuff produces extra trade flow in the city. 
 
 Some buildings and unit require special resources to be produced.
 
@@ -316,6 +327,20 @@ This is a very tricky part that I still need to decide
 * How to handle Religion and indentured servants.
 * How to handle poverty, wealth and government style.
 * This will allow to make sense to buy luxury products (I have defined many).
+
+| Government | Historical archetype |
+|---|---|
+| **Tribalism** | Kinship societies, clans, and tribal confederations |
+| **Despotism** | Ancient autocracies and absolute personal rule |
+| **Monarchy** | Hereditary kingdoms and dynastic states |
+| **Republic** | Citizen or aristocratic republics, such as Rome and Venice |
+| **Democracy** | Popular government and broad civic participation |
+| **Theocracy** | Political authority legitimized and controlled by religion |
+| **Communism** | Soviet-style one-party state and centrally planned economy |
+| **Liberal** | Modern Western liberal democracies and capitalist market economies |
+| **Fascism** | Nationalist, authoritarian, militarized state |
+| **Renminism** | Chinese-style one-party state combined with a market economy and strong state direction |
+| **Technofeudalism** | Future society dominated by technology platforms, AI, and concentrated economic power |
 
 ## Combat
 

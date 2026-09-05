@@ -22,9 +22,9 @@ MOVEMENT_TYPE Galleon::getMovementType()
 
 bool Galleon::board(Shippable* passenger)
 {
-    if (cargo-passengers.size()>0)
+    if ((int)passengers.size() < cargo)
     {
-        passengers[passenger->getId()] = passenger;
+        passengers.push_back(passenger);
         return true;
     }
     else
@@ -37,9 +37,8 @@ Shippable* Galleon::unboard()
 {
     if (passengers.size()>0)
     {
-        auto it = passengers.begin();
-        Shippable* passenger = it->second;
-        passengers.erase(it);
+        Shippable* passenger = passengers.front();
+        passengers.erase(passengers.begin());
         return passenger;
     }
     else
@@ -60,23 +59,22 @@ int Galleon::capacity()
 
 Shippable* Galleon::findCargo(int id)
 {
-    auto it = passengers.find(id);
-    return it!=passengers.end() ? it->second : nullptr;
+    for (Shippable* passenger : passengers)
+        if (passenger->getId() == id)
+            return passenger;
+    return nullptr;
 }
 
 std::vector<Shippable*> Galleon::getCargo()
 {
-    std::vector<Shippable*> list;
-    for (auto& [k, passenger] : passengers)
-        list.push_back(passenger);
-    return list;
+    return passengers;
 }
 
 Unit* Galleon::unboardUnit()
 {
     for (auto it = passengers.begin(); it != passengers.end(); it++)
     {
-        if (Unit* u = dynamic_cast<Unit*>(it->second))
+        if (Unit* u = dynamic_cast<Unit*>(*it))
         {
             passengers.erase(it);
             return u;
@@ -87,7 +85,15 @@ Unit* Galleon::unboardUnit()
 
 bool Galleon::removeCargo(int id)
 {
-    return passengers.erase(id) > 0;
+    for (auto it = passengers.begin(); it != passengers.end(); it++)
+    {
+        if ((*it)->getId() == id)
+        {
+            passengers.erase(it);
+            return true;
+        }
+    }
+    return false;
 }
 
 void Galleon::update(int newlat, int newlon)
@@ -101,7 +107,7 @@ void Galleon::update(int newlat, int newlon)
     completion = 0;
     fortified = false;
 
-    for(auto& [k, passenger]:passengers)
+    for (Shippable* passenger : passengers)
     {
         printf("Moving what I am transporting %s\n",passenger->getName());
 
@@ -109,7 +115,7 @@ void Galleon::update(int newlat, int newlon)
         {
             u->update(newlat,newlon);
         }
-  
+
     }
 
 }
