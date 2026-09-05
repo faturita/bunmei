@@ -4,7 +4,7 @@
 #include "Faction.h"
 #include "City.h"
 #include "units/Unit.h"
-#include "units/Trireme.h"
+#include "units/Ship.h"
 
 // Whether a unit of faction f_id may step onto cell, and whether doing so seizes it.  Free
 // land and the mover's own land are always ENTER_AND_CLAIM (claiming your own land again just

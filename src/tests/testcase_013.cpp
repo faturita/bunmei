@@ -22,6 +22,7 @@
 #include "../resources.h"
 #include "../map.h"
 #include "../coordinator.h"
+#include "../units/Ship.h"
 #include "../units/Trireme.h"
 #include "../units/Warrior.h"
 #include "../engine.h"
@@ -172,7 +173,9 @@ int TestCase_013::check(int year)
         return 0;
     }
 
-    Trireme* t = dynamic_cast<Trireme*>(units[triremeid]);
+    // Access the ship through the Ship interface (not Trireme) so the same check covers a
+    // Galleon or any future ship type.
+    Ship* t = dynamic_cast<Ship*>(units[triremeid]);
     Unit* w1 = units.find(warrior1id) != units.end() ? units[warrior1id] : nullptr;
     Unit* w2 = units.find(warrior2id) != units.end() ? units[warrior2id] : nullptr;
 

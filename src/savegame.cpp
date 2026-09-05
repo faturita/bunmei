@@ -19,6 +19,7 @@
 #include "units/Horseman.h"
 #include "units/Chariot.h"
 #include "units/Trireme.h"
+#include "units/Galleon.h"
 #include "units/Galley.h"
 #include "units/Worker.h"
 #include "units/Swordman.h"
@@ -367,7 +368,10 @@ void loadUnits(std::ifstream& in)
             u = new Worker(); // Replace with Worker class if available
             break;
             case UNIT_TRIREME:
-            u = new Trireme(); // Replace with Trireme class if available
+            u = new Trireme();
+            break;
+            case UNIT_GALLEON:
+            u = new Galleon();
             break;
             case UNIT_GALLEY:
             u = new Galley(); // Replace with Galley class if available
