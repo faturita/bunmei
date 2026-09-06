@@ -483,8 +483,12 @@ bool isGoodCitySpot(int lat, int lon)
     return freeland >= MIN_FREE_LAND;
 }
 
-// Find the closest good spot for a new city on the same landmass (BFS over land from the starting coordinate).
-coordinate findCitySpot(coordinate from, bool &found)
+// Find the closest good spot for a new city on the same landmass, reachable overland by a
+// settler of `faction`: BFS over LAND from the starting coordinate, but NOT expanding
+// through tiles that belong to ANOTHER faction's city -- a settler cannot walk through
+// enemy cultural borders, so a spot only reachable that way is not a real candidate (and
+// picking it is what leaves the AI settler stuck at the border re-issuing the same move).
+coordinate findCitySpot(coordinate from, int faction, bool &found)
 {
     std::set<std::pair<int,int>> visited;
     std::queue<coordinate> q;
@@ -510,8 +514,11 @@ coordinate findCitySpot(coordinate from, bool &found)
                     continue;
 
                 coordinate s = map.adjust(c.lat,c.lon,i,j);
+                mapcell &scell = map.peek(s.lat,s.lon);
 
-                if (map.peek(s.lat,s.lon).code == LAND && visited.count({s.lat,s.lon})==0)
+                bool foreignCityTile = scell.belongsToCity() && scell.getOwnedBy() != faction;
+
+                if (scell.code == LAND && !foreignCityTile && visited.count({s.lat,s.lon})==0)
                 {
                     visited.insert({s.lat,s.lon});
                     q.push(s);
@@ -539,7 +546,7 @@ void autoPlayerCities()
                     // Populate the world first: as long as there is room for a new city
                     // on this city's landmass, keep building settlers.
                     bool found = false;
-                    findCitySpot(c->getCoordinate(), found);
+                    findCitySpot(c->getCoordinate(), c->faction, found);
 
                     if (found && getNumberOfCities(c->faction)<50)
                     {
@@ -599,7 +606,7 @@ void autoPlayerMoveUnits()
                 else
                 {
                     bool found = false;
-                    coordinate spot = findCitySpot(s->getCoordinate(), found);
+                    coordinate spot = findCitySpot(s->getCoordinate(), s->faction, found);
 
                     if (found)
                     {

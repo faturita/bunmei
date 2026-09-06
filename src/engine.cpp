@@ -660,6 +660,13 @@ bool engageTrade(Unit* unit, int lat, int lon)
 
 bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
 {
+    // A naval unit cannot occupy or capture a land city -- it has no way to hold ground.
+    // (Ship now shares the Unit/Transport interface, so without this guard an armed
+    // Trireme/Galleon moving onto an undefended enemy city tile would "capture" it.)
+    // A defended enemy city is still left to attack() below, so ships can bombard.
+    if (invader->getMovementType() == OCEANTYPE)
+        return false;
+
     // Move into an empty city.
     if (map.set(lat,lon).belongsToCity())
     {
@@ -919,16 +926,31 @@ void moveUnit(Unit* unit, int lat, int lon)
             (map.set(lat,lon).code==LAND && unit->getMovementType()==OCEANTYPE)) // Allow ocean units to land
         {
             bool forceBreak = false;
-            if (!land(unit,lat,lon) &&
-                !dockInCity(unit,lat,lon) &&
-                !moveOntoNavalUnit(unit, navalunit,lat,lon) &&
-                !engageTrade(unit,lat,lon) &&
-                !captureCity(unit,lat,lon, forceBreak) && !forceBreak &&
-                !attack(unit,lat,lon, forceBreak) && !forceBreak &&
-                !moveForward(unit,lat,lon))
+            bool handled =
+                land(unit,lat,lon) ||
+                dockInCity(unit,lat,lon) ||
+                moveOntoNavalUnit(unit, navalunit,lat,lon) ||
+                engageTrade(unit,lat,lon) ||
+                captureCity(unit,lat,lon, forceBreak) ||
+                (!forceBreak && attack(unit,lat,lon, forceBreak)) ||
+                (!forceBreak && moveForward(unit,lat,lon));
+
+            if (!handled)
             {
                 // @NOTE: Here it means that for some reason the unit cannot move to the target tile.
                 printf("Unit %d cannot move to (%d,%d)\n", unit->id, lat, lon);
+
+                // An AUTOMATED unit whose move is impossible -- blocked by an enemy city or
+                // unit it cannot fight through (Settlers never attack), diplomacy, etc. --
+                // must not keep re-issuing the exact same blocked step every tick (the game
+                // then looks frozen). Drop its moves and clear any GoTo so switchUnitIfNoMovesLeft()
+                // advances to the next unit and the AI re-plans from scratch next turn.
+                if (unit->faction >= 0 && unit->faction < (int)factions.size() &&
+                    factions[unit->faction]->autoPlayer)
+                {
+                    unit->resetGoTo();
+                    unit->availablemoves = 0;
+                }
             }
 
         } else
