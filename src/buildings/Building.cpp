@@ -1,3 +1,4 @@
+#include "../resources.h"
 #include "Building.h"
 
 Building::Building()
@@ -32,5 +33,8 @@ int Building::getProductionRate(int r_id)
 
 int Building::getConsumptionRate(int r_id)
 {
-    return 0; // Base Building has no consumption rate
+    if (r_id == COINS)
+        return 1; // Base building (generic for every building) has a cost of 1 coin
+        
+    return 0; // Base Building has no consumption rate for other resources
 }

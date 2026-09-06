@@ -237,6 +237,17 @@ void operateCityBuildings(City* c)
 {
     for (Building* building : c->buildings)
     {
+
+        for (int r_id : ALL_CORE_RESOURCES)
+        {
+            int cr = building->getConsumptionRate(r_id);
+            if (cr > 0)
+            {
+                c->coreresources[r_id] -= cr;   // Cost deduction
+            }
+        }
+
+
         std::vector<int> consumedResources;
         bool enoughResources = true;
 

@@ -151,24 +151,15 @@ void initFactions()
 
 void initUnits()
 {
+    // Mirrors gamekernel.cpp:initUnits() -- one distinct random LAND tile per faction, no
+    // two civilizations on the same tile (ai.cpp:pickFactionStartTiles).
+    std::vector<coordinate> starts = pickFactionStartTiles((int)factions.size());
+
+    int fi = 0;
     for (auto& f: factions)
     {
-        std::vector<coordinate> list;
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
-            {
-                if (map.set(lat,lon).code==LAND)
-                {
-                    list.push_back(coordinate(lat,lon));
-                }
-            }
-
-        coordinate c(0,0);
-        if (list.size()>0)
-        {
-            int r = getRandomInteger(0,list.size());
-            c = list[r];
-        }
+        coordinate c = fi < (int)starts.size() ? starts[fi] : coordinate(0,0);
+        fi++;
 
         Settler *settler = new Settler();
         settler->longitude = c.lon;

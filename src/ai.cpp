@@ -816,3 +816,26 @@ void processGoTo()
 
     }
 }
+
+// `count` DISTINCT random LAND tiles, one per faction start, so two civilizations never
+// begin on the same tile.  Returns fewer than `count` only when the map has fewer land
+// tiles than that (degenerate: far more civs than land).  Shared by gamekernel.cpp and
+// simulate.cpp's initUnits() (they hand-duplicate the init sequence).
+std::vector<coordinate> pickFactionStartTiles(int count)
+{
+    std::vector<coordinate> land;
+    for (int lat = map.minlat; lat < map.maxlat; lat++)
+        for (int lon = map.minlon; lon < map.maxlon; lon++)
+            if (map.set(lat, lon).code == LAND)
+                land.push_back(coordinate(lat, lon));
+
+    std::vector<coordinate> starts;
+    while ((int)starts.size() < count && !land.empty())
+    {
+        int r = getRandomInteger(0, (int)land.size() - 1);
+        starts.push_back(land[r]);
+        land[r] = land.back();     // swap-remove: keeps picks distinct, O(1) per pick
+        land.pop_back();
+    }
+    return starts;
+}

@@ -35,6 +35,15 @@ void egyptians();
 void babylonians();
 void english();
 void mongols();
+void zulus();
+void germans();
+void french();
+void aztec();
+void americans();
+void indians();
+void incan();
+void japanese();
+void spanish();
 
 void peace();
 void war();

@@ -234,6 +234,51 @@ void mongols()
     playthissound(Vec3f(0,0,0), "sounds/mongols.wav");
 }
 
+void zulus()
+{
+    playthissound(Vec3f(0,0,0), "sounds/zulus.wav");
+}
+
+void germans()
+{
+    playthissound(Vec3f(0,0,0), "sounds/germans.wav");
+}
+
+void french()
+{
+    playthissound(Vec3f(0,0,0), "sounds/french.wav");
+}
+
+void aztec()
+{
+    playthissound(Vec3f(0,0,0), "sounds/aztec.wav");
+}
+
+void americans()
+{
+    playthissound(Vec3f(0,0,0), "sounds/americans.wav");
+}
+
+void indians()
+{
+    playthissound(Vec3f(0,0,0), "sounds/indians.wav");
+}
+
+void incan()
+{
+    playthissound(Vec3f(0,0,0), "sounds/incan.wav");
+}
+
+void japanese()
+{
+    playthissound(Vec3f(0,0,0), "sounds/japanese.wav");
+}
+
+void spanish()
+{
+    playthissound(Vec3f(0,0,0), "sounds/spanish.wav");
+}
+
 void peace()
 {
     playthissound(Vec3f(0,0,0), "sounds/peacesound.wav");

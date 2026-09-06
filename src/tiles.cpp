@@ -537,6 +537,76 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
         "Mandalgovi","Uliastai"
     };
 
+    std::vector<std::string> russians = {
+        "Moscow","Novgorod","Kiev","Vladimir","Suzdal","Ryazan",
+        "Smolensk","Pskov","Tver","Rostov","Yaroslavl","Nizhny Novgorod",
+        "Kazan","Voronezh","Tula","Bryansk","Kursk","Belgorod",
+        "Murom","Chernigov"
+    };
+
+    std::vector<std::string> zulus = {
+        "Ulundi","Nodwengu","KwaBulawayo","eMakhosini","Nobamba","Mgungundlovu",
+        "KwaDukuza","Eshowe","Nongoma","Melmoth","Empangeni","Vryheid",
+        "Ngwavuma","Mahlabathini","Babanango","Nkandla","Kranskop","Greytown",
+        "Mtunzini","Hluhluwe"
+    };
+
+    std::vector<std::string> germans = {
+        "Aachen","Cologne","Mainz","Worms","Trier","Speyer",
+        "Regensburg","Frankfurt","Nuremberg","Augsburg","Magdeburg","Bremen",
+        "Hamburg","Lubeck","Munich","Berlin","Dresden","Leipzig",
+        "Ulm","Goslar"
+    };
+
+    std::vector<std::string> french = {
+        "Paris","Orleans","Reims","Rouen","Tours","Lyon",
+        "Marseille","Bordeaux","Toulouse","Nantes","Poitiers","Dijon",
+        "Amiens","Chartres","Avignon","Aix","Metz","Strasbourg",
+        "Angers","Bourges"
+    };
+
+    std::vector<std::string> aztec = {
+        "Tenochtitlan","Texcoco","Tlacopan","Tlatelolco","Xochimilco","Chalco",
+        "Culhuacan","Azcapotzalco","Coyoacan","Iztapalapa","Cuauhtitlan","Tepexpan",
+        "Tlahuac","Mixquic","Tepeyacac","Tula","Cholula","Teotihuacan",
+        "Malinalco","Tenayuca"
+    };
+
+    std::vector<std::string> americans = {
+        "Washington","Philadelphia","Boston","New York","Baltimore","Charleston",
+        "Richmond","Savannah","Providence","New Haven","Hartford","Albany",
+        "Trenton","Annapolis","Williamsburg","Jamestown","Plymouth","Salem",
+        "Concord","Lexington"
+    };
+
+    std::vector<std::string> indians = {
+        "Delhi","Pataliputra","Varanasi","Ujjain","Taxila","Mathura",
+        "Kannauj","Madurai","Thanjavur","Vijayanagara","Amaravati","Nalanda",
+        "Indraprastha","Hastinapura","Kausambi","Vaishali","Rajagriha","Sravasti",
+        "Kanchipuram","Dwaraka"
+    };
+
+    std::vector<std::string> incan = {
+        "Cusco","Machu Picchu","Ollantaytambo","Pisac","Sacsayhuaman","Vilcabamba",
+        "Tambo Colorado","Huanuco Pampa","Pumpu","Cajamarca","Vitcos","Choquequirao",
+        "Tipon","Raqchi","Pikillaqta","Tumipampa","Quito","Pachacamac",
+        "Chan Chan","Nazca"
+    };
+
+    std::vector<std::string> japanese = {
+        "Kyoto","Nara","Edo","Osaka","Kamakura","Nagoya",
+        "Sakai","Hakata","Kanazawa","Sendai","Hiroshima","Nagasaki",
+        "Kagoshima","Kobe","Yokohama","Fujiwara","Heijo","Dazaifu",
+        "Hirado","Odawara"
+    };
+
+    std::vector<std::string> spanish = {
+        "Madrid","Toledo","Seville","Cordoba","Granada","Valencia",
+        "Barcelona","Zaragoza","Salamanca","Burgos","Leon","Segovia",
+        "Avila","Cadiz","Malaga","Valladolid","Santiago","Pamplona",
+        "Merida","Cartagena"
+    };
+
     citynames[0] = std::queue<std::string>();       // Vikings
     citynames[1] = std::queue<std::string>();       // Romans
     citynames[2] = std::queue<std::string>();       // Greeks
@@ -545,6 +615,16 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
     citynames[5] = std::queue<std::string>();       // Babylonians
     citynames[6] = std::queue<std::string>();       // English
     citynames[7] = std::queue<std::string>();       // Mongols
+    citynames[8] = std::queue<std::string>();       // Russians
+    citynames[9] = std::queue<std::string>();       // Zulus
+    citynames[10] = std::queue<std::string>();      // Germans
+    citynames[11] = std::queue<std::string>();      // French
+    citynames[12] = std::queue<std::string>();      // Aztec
+    citynames[13] = std::queue<std::string>();      // Americans
+    citynames[14] = std::queue<std::string>();      // Indians
+    citynames[15] = std::queue<std::string>();      // Incan
+    citynames[16] = std::queue<std::string>();      // Japanese
+    citynames[17] = std::queue<std::string>();      // Spanish
 
     for(int i=0;i<CITY_NAMES_PER_CIVILIZATION;i++)
     {
@@ -556,6 +636,16 @@ void initNaming(std::unordered_map<int,std::queue<std::string>> &citynames)
         citynames[5].push(babylonians[i % babylonians.size()]);
         citynames[6].push(english[i % english.size()]);
         citynames[7].push(mongols[i % mongols.size()]);
+        citynames[8].push(russians[i % russians.size()]);
+        citynames[9].push(zulus[i % zulus.size()]);
+        citynames[10].push(germans[i % germans.size()]);
+        citynames[11].push(french[i % french.size()]);
+        citynames[12].push(aztec[i % aztec.size()]);
+        citynames[13].push(americans[i % americans.size()]);
+        citynames[14].push(indians[i % indians.size()]);
+        citynames[15].push(incan[i % incan.size()]);
+        citynames[16].push(japanese[i % japanese.size()]);
+        citynames[17].push(spanish[i % spanish.size()]);
     }
 }
 

@@ -729,14 +729,24 @@ struct FactionDefinition
 };
 
 static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0, "Vikings",     255, 0,   0,   {1, 0, 0, 0}, true, vikings     },
-    { 1, "Romans",      255, 255, 255, {1, 0, 0, 0}, true, romans      },
-    { 2, "Greeks",      0,   0,   255, {1, 0, 0, 0}, true, greeks      },
-    { 3, "Chinese",     0,   255, 255, {1, 0, 0, 0}, true, chinese     },
-    { 4, "Egyptians",   255, 255, 0,   {1, 0, 0, 0}, true, egyptians   },
-    { 5, "Babylonians", 0,   255, 0,   {1, 0, 0, 0}, true, babylonians },
-    { 6, "English",     255, 105, 180, {1, 0, 0, 0}, true, english     },
-    { 7, "Mongols",     128, 128, 128, {1, 0, 0, 0}, true, mongols     },
+    { 0,  "Vikings",     255, 0,   0,   {1, 0, 0, 0}, true, vikings     },
+    { 1,  "Romans",      255, 255, 255, {1, 0, 0, 0}, true, romans      },
+    { 2,  "Greeks",      0,   0,   255, {1, 0, 0, 0}, true, greeks      },
+    { 3,  "Chinese",     0,   255, 255, {1, 0, 0, 0}, true, chinese     },
+    { 4,  "Egyptians",   255, 255, 0,   {1, 0, 0, 0}, true, egyptians   },
+    { 5,  "Babylonians", 0,   255, 0,   {1, 0, 0, 0}, true, babylonians },
+    { 6,  "English",     100, 33,  100, {1, 0, 0, 0}, true, english     },
+    { 7,  "Mongols",     128, 128, 128, {1, 0, 0, 0}, true, mongols     },
+    { 8,  "Russians",    160, 20,  40,  {1, 0, 0, 0}, true, russians    },
+    { 9,  "Zulus",       20,  130, 40,  {1, 0, 0, 0}, true, zulus       },
+    { 10, "Germans",     40,  70,  130, {1, 0, 0, 0}, true, germans     },
+    { 11, "French",      90,  140, 230, {1, 0, 0, 0}, true, french      },
+    { 12, "Aztec",       235, 175, 30,  {1, 0, 0, 0}, true, aztec       },
+    { 13, "Americans",   40,  170, 160, {1, 0, 0, 0}, true, americans   },
+    { 14, "Indians",     190, 190, 190, {1, 0, 0, 0}, true, indians     },
+    { 15, "Incan",       200, 130, 20,  {1, 0, 0, 0}, true, incan       },
+    { 16, "Japanese",    245, 225, 230, {1, 0, 0, 0}, true, japanese    },
+    { 17, "Spanish",     200, 50,  20,  {1, 0, 0, 0}, true, spanish     },
 };
 
 #define NUMBER_OF_FACTION_DEFINITIONS ((int)(sizeof(FACTION_DEFINITIONS)/sizeof(FACTION_DEFINITIONS[0])))
@@ -802,24 +812,15 @@ void worldStep(int value)
 
 void initUnits()
 {
+    // One distinct random LAND tile per faction -- no two civilizations start on the same
+    // tile (see ai.cpp:pickFactionStartTiles). simulate.cpp's initUnits() mirrors this.
+    std::vector<coordinate> starts = pickFactionStartTiles((int)factions.size());
+
+    int fi = 0;
     for (auto& f: factions)
     {
-        std::vector<coordinate> list;
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
-            {
-                if (map.set(lat,lon).code==LAND)
-                {
-                    list.push_back(coordinate(lat,lon));
-                }
-            }
-
-        coordinate c(0,0);
-        if (list.size()>0)
-        {
-            int r = getRandomInteger(0,list.size());
-            c = list[r];
-        }
+        coordinate c = fi < (int)starts.size() ? starts[fi] : coordinate(0,0);
+        fi++;
 
         Settler *settler = new Settler();
         settler->longitude = c.lon;

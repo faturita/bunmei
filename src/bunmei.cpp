@@ -136,9 +136,10 @@ bool switchVisibleFaction;
 bool nofog;
 int  selectedFaction;
 
-// -civs N: how many of the defined civilizations to load, clamped to [2,7] in
-// initFactions() (gamekernel.cpp). -1 (unset) means "no cap, load every defined civ" --
-// same sentinel convention as selectedFaction above.
+// -civs N: how many of the defined civilizations to load, clamped to
+// [MIN_CIVS, NUMBER_OF_FACTION_DEFINITIONS] in initFactions() (gamekernel.cpp) -- the upper
+// bound tracks the FACTION_DEFINITIONS table automatically. -1 (unset) means "no cap, load
+// every defined civ" -- same sentinel convention as selectedFaction above.
 int  numCivs;
 
 
@@ -313,10 +314,10 @@ inline void endOfYear()
 
         c->coreresources[TRADE]=0;
 
-        // Factories &c. turn stocked commodities into mfg goods for the year.
+        // Production from building and costs deductions.
         operateCityBuildings(c);
 
-
+        // @NOTE: c->coresources[COINS] can be negative.
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)
