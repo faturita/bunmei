@@ -14,6 +14,7 @@ class Settler : public Unit, public Shippable
     bool canBuildCity();
     int getId() override;
     const char* getName() override;
+    virtual int getConsumptionRate(int r_id) override;
 };
 
 class SettlerFactory : public BuildableFactory

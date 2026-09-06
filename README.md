@@ -286,7 +286,7 @@ All the commodities and manufactured goods can be directly traded, by loading th
 
 Some buildings and unit require special resources to be produced.
 
-Resources are accumulated in each city, including coins.
+Resources are accumulated in each city, including coins.  Coins are used to maintain buildings and units.  Coins from the government are accumulated in the capital city and then resources are shared across all the cities.
 
 
 ## Population

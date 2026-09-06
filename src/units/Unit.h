@@ -162,6 +162,7 @@ class Unit : public Buildable
     void markForDeletion();
     void destroy();
     void goBackOnCompletion();
+    virtual int getConsumptionRate(int r_id);
 
     int getId();
     const char* getName();

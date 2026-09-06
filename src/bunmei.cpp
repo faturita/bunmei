@@ -262,6 +262,8 @@ void checkUnitMeetings(Unit* u)
 inline void endOfYear()
 {
     year++;
+
+    std::unordered_map<int, int> salaries;
     for (auto& [k, u] : units)
     {
         // Units in movement debt (negative moves) recover one year of moves at a time
@@ -276,6 +278,9 @@ inline void endOfYear()
             completePendingMove(u);
 
         checkUnitMeetings(u);
+
+        // @NOTE: Calculate all the salaries....
+        salaries[u->faction] += u->getConsumptionRate(COINS);
 
     }
 
@@ -318,6 +323,13 @@ inline void endOfYear()
         operateCityBuildings(c);
 
         // @NOTE: c->coresources[COINS] can be negative.
+
+        // @NOTE: Pay salaries to units
+        if (c->isCapitalCity())
+        {
+            c->coreresources[COINS] -= salaries[c->faction];
+            printf("City %s has paid %d in salaries (Net in city %d).\n",c->name,salaries[c->faction],c->coreresources[COINS]);
+        }
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)

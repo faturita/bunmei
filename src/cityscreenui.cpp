@@ -489,30 +489,35 @@ void drawCityScreen(int cla, int clo, City *city)
     
     
     {
-        /// Show the production rate for all the resources from the tiles of the city (@FIXME add the resources produced by buildings and units)
+        // Per-turn balance of every core resource, one row per resource: the icons that are
+        // CONSUMED this turn (city pop/tile upkeep + everything the built Buildings consume,
+        // e.g. 1 coin per generic building via Building::getConsumptionRate(COINS)) packed
+        // from the left, then a one-slot gap, then the NET that is actually added this turn
+        // (tile production minus that total consumption). Same "consumed / gap / remainder"
+        // layout the Food Storage box uses.
         placeWord(clo + (-10),cla + (-8),4,8,"City Resources");
         drawBoundingBox(clo,cla,-10,-8,-4,-4);
 
-        // In the box 16 resources fit with a colsepar of 7.
         for (int i=0;i<sizeof(ALL_CORE_RESOURCES)/sizeof(int);i++)
         {
             int r = ALL_CORE_RESOURCES[i];
-            int consumptionrate = city->getConsumptionRate(r);
-            int productionrate = city->getProductionRate(r)-consumptionrate;
+            int consumptionrate = city->getConsumptionRate(r) + city->getBuildingConsumptionRate(r);
+            int netproduction   = city->getProductionRate(r) - consumptionrate;
+            if (netproduction < 0) netproduction = 0;   // a shortfall shows no "added" icons
 
-            // @FIXME: This works but it is not very good.
             // @TODO: Pick an icon to highlight the situation where resources are not enough to cover the consumption rate.  This is a very important situation and should be highlighted.
             // @TODO: Allow clicking on the resources to see the number of resources (when there are a lot is going to be hard to count)
-            int colsepar = clipInt( floor(7*(16.0/((consumptionrate+productionrate)))),1,7);
+            int total = consumptionrate + netproduction;
+            if (total < 1) total = 1;
+            int colsepar = clipInt( floor(7*(16.0/total)),1,7);
             int j;
-
 
             for(j=0;j<consumptionrate;j++)
             {
                 place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,coreresources[r].c_str());
             }
 
-            for(;j<consumptionrate+productionrate;j++)
+            for(;j<consumptionrate+netproduction;j++)
             {
                 place((clo + (-10))*16-4+colsepar*(j+1)  ,(cla + (-7))*16-4+7*(i)  ,7,7,coreresources[r].c_str());
             }
@@ -642,8 +647,24 @@ void drawCityScreen(int cla, int clo, City *city)
 
     for(int i=0;i<city->buildings.size();i++)
     {
-        placeWord(clo + (4),cla + (-10),4,8,city->buildings[i]->name, i*8);
-        place((clo + (7))*16  ,(cla + (-10))*16+8*i  ,24,8,city->buildings[i]->assetname);
+        Building* b = city->buildings[i];
+        int rowY = (cla + (-10))*16 + 8*i;
+
+        placeWord(clo + (4),cla + (-10),4,8,b->name, i*8);
+        place((clo + (7))*16  ,rowY  ,24,8,b->assetname);
+
+        // Right of the building icon (clear of the 24px thumbnail): one small icon per
+        // resource this building consumes every turn -- core resources (coins etc., via
+        // coreresources[]) then commodities then mfg goods (both via tiles[]).
+        // Building::getConsumptionRate is the single source, same as operateCityBuildings()
+        // / the "City Resources" box use.
+        int iconX = (clo + (7))*16 + 23;
+        for (int r : ALL_CORE_RESOURCES)
+            if (b->getConsumptionRate(r) > 0) { place(iconX,rowY,6,6,coreresources[r].c_str()); iconX += 6; }
+        for (int r : ALL_COMMODITIES)
+            if (b->getConsumptionRate(r) > 0) { place(iconX,rowY,6,6,tiles[r].c_str());         iconX += 6; }
+        for (int r : ALL_MFG_GOODS)
+            if (b->getConsumptionRate(r) > 0) { place(iconX,rowY,6,6,tiles[r].c_str());         iconX += 6; }
     }
     drawBoundingBox(clo,cla,4,-10,9,-1);
 

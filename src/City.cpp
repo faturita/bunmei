@@ -296,12 +296,20 @@ int City::getConsumptionRate(int r_id)
     case 0: // Food
         consumption_rate = pop*2;
         break;
-    
+
     default:
         break;
     }
 
     return consumption_rate;
+}
+
+int City::getBuildingConsumptionRate(int r_id)
+{
+    int rate = 0;
+    for (Building* b : buildings)
+        rate += b->getConsumptionRate(r_id);
+    return rate;
 }
 
 void City::setDefense()

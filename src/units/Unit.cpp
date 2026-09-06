@@ -412,3 +412,10 @@ const char* Unit::getName()
     return name;
 }
 
+int Unit::getConsumptionRate(int r_id)
+{
+    if (r_id == COINS)
+        return 1;
+    return 0; // Base Unit has no consumption rate for other resources
+}
+

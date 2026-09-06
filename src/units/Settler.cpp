@@ -34,6 +34,13 @@ bool Settler::canBuildCity()
     return true;
 }
 
+int Settler::getConsumptionRate(int r_id)
+{
+    if (r_id == COINS)
+        return 0;
+    return 0; // Settlers are people fleeing so we do not need to pay them salaries.
+}
+
 Settler* SettlerFactory::create()
 {
     return new Settler();

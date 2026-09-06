@@ -57,6 +57,11 @@ public:
     void setCapitalCity();
     int getProductionRate(int r_id);
     int getConsumptionRate(int r_id);
+    // Total upkeep of resource r_id across every Building already built in this city
+    // (sum of Building::getConsumptionRate). Kept SEPARATE from getConsumptionRate() (which
+    // is pop/tile upkeep) because endOfYear deducts building upkeep via operateCityBuildings()
+    // instead -- folding it into getConsumptionRate() would double-charge it.
+    int getBuildingConsumptionRate(int r_id);
     int getCommodityProductionRate(int commodity_id);
     int numberOfWorkingTiles();
     bool occupied(int lat, int lon);
