@@ -38,6 +38,18 @@ void drawUnitsBoxRow(int cla, int clo, class Unit* u, int loc);
 // them to reach exactly the box's right edge, using its full width too.
 void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar);
 
+// Same idea as getFoodStorageLayout but for the bottom-right "Change" box where produced
+// shields accumulate: size the grid to the amount of SHIELDS the queued buildable NEEDS
+// (requiredShields, from factoryRequirement()), spreading that many icons across every row
+// the box has so a full grid == ready to build. colsepar is a float, applied per-icon with
+// round() at the call site.
+void getProductionStorageLayout(int requiredShields, int &itemsPerRow, float &colsepar);
+
+// How much of `resourceId` a buildable's recipe consumes, independent of what the city has
+// in stock: hands fullfillment() an abundance of every id getRequiredResources() lists and
+// reads the deduction back. 0 if the recipe never consumes that id.
+int factoryRequirement(class BuildableFactory* bf, int resourceId);
+
 // Units currently standing on city's tile, in a stable order shared by drawCityScreen (to
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
 std::vector<Unit*> getUnitsAtCity(City* city);

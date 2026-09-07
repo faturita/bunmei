@@ -8,6 +8,7 @@
 #include "font/DrawFonts.h"
 #include "map.h"
 #include "resources.h"
+#include "buildable.h"
 #include "City.h"
 #include "Faction.h"
 #include "units/Unit.h"
@@ -295,6 +296,41 @@ void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar)
         colsepar = 7.0f;
     else
         colsepar = (float)(foodStorageWidth-7)/(float)(itemsPerRow-1);
+}
+
+int factoryRequirement(BuildableFactory* bf, int resourceId)
+{
+    std::unordered_map<int, Resource*> available;
+    for (int id : bf->getRequiredResources())
+        available[id] = new Resource{id, 1<<30};        // pretend the city has plenty of everything
+
+    std::vector<Resource*> consumed = bf->fullfillment(available);
+
+    int amount = 0;
+    for (Resource* r : consumed) { if (r->id == resourceId) amount = r->amount; delete r; }
+    for (auto& kv : available) delete kv.second;
+    return amount;
+}
+
+void getProductionStorageLayout(int requiredShields, int &itemsPerRow, float &colsepar)
+{
+    // The shields grid lives in the bottom-right "Change" box (cols 4..9). Rows run from the
+    // one below the "Change"/buildable-name row down to the bottom border -- plus 7 px of
+    // slack above that first row this box has spare. Same maths as getFoodStorageLayout:
+    // itemsPerRow is the tightest fit that still uses every row, colsepar (a float, applied
+    // per-icon with round()) then spaces the row to reach the box's right edge.
+    const int prodStorageWidth = ((9)-(4))*16;             // 80 px
+    const int prodStorageRows  = (((9)-(5))*16 + 7)/7;     // rows 5..9, plus the 7 px of slack
+
+    if (requiredShields < 1) requiredShields = 1;
+
+    itemsPerRow = (int)ceil((float)requiredShields/(float)prodStorageRows);
+    if (itemsPerRow < 1) itemsPerRow = 1;
+
+    if (itemsPerRow <= 1)
+        colsepar = 7.0f;
+    else
+        colsepar = (float)(prodStorageWidth-7)/(float)(itemsPerRow-1);
 }
 
 // One "Units" box row: faction-tinted unit icon, status overlays, name, and (for a
@@ -668,6 +704,20 @@ void drawCityScreen(int cla, int clo, City *city)
     {
         BuildableFactory *bf = city->productionQueue.front();
         placeWord(clo + (7),cla + (4),4,8,bf->name);
+
+        // Right of the "Change" label / left of the queued buildable's name: one small icon
+        // per resource its recipe needs (BuildableFactory::getRequiredResources() -- e.g. a
+        // Swordman shows shields + iron + copper). Right-aligned so it butts up against the
+        // name; core-resource ids (< 0x100) use coreresources[], the rest tiles[].
+        std::vector<int> req = bf->getRequiredResources();
+        int rx = (clo + (7))*16 - 2;
+        for (int k=(int)req.size()-1; k>=0; k--)
+        {
+            rx -= 7;
+            int id = req[k];
+            if (id < 0x100) place(rx,(cla + (4))*16 + 1,6,6,coreresources[id].c_str());
+            else            place(rx,(cla + (4))*16 + 1,6,6,tiles[id].c_str());
+        }
     }
     else
     {
@@ -715,9 +765,22 @@ void drawCityScreen(int cla, int clo, City *city)
     }
     else
     {
+        // Accumulated shields, laid out like the Food Storage box: the grid is sized to how
+        // many shields the QUEUED buildable needs (factoryRequirement), spread across every
+        // row the box has so it fills the box's width AND height -- a full grid == ready to
+        // build. The row starts 7 px above the old fixed y (spare vertical room in this box).
+        int requiredShields = 0;
+        if (city->productionQueue.size()>0)
+            requiredShields = factoryRequirement(city->productionQueue.front(), SHIELDS);
+
+        int prodItemsPerRow; float prodColsepar;
+        getProductionStorageLayout(requiredShields, prodItemsPerRow, prodColsepar);
+
         for(int i=0;i<city->resources[SHIELDS];i++)
         {
-            place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
+            place((clo+(4))*16 + (int)round(prodColsepar*(i%prodItemsPerRow))  ,
+                  (cla+(5))*16 - 7 + 7*(i/prodItemsPerRow)  ,
+                  7,7,"assets/assets/city/production.png");
         }
     }
 
