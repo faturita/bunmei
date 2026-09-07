@@ -43,6 +43,12 @@ SwordmanFactory::SwordmanFactory()
 
 int SwordmanFactory::cost(int r_id)
 {
-    return 40;
+    // Mmmmm i need a regexp an FDA to map differnt type of requirements for each element.  For instance this requires 40 shields & 20 coins and (20 iron or 10 copper)
+    if (r_id == SHIELDS)
+        return 40;
+    else if (r_id == iron)
+        return 25;
+
+    return 0; // Default cost for other resources
 }
 

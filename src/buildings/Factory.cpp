@@ -24,11 +24,15 @@ int Factory::getProductionRate(int r_id)
 
 int Factory::getConsumptionRate(int r_id)
 {
-    if (r_id == iron)
+    switch (r_id)
     {
-        return 1;
+        case COINS:
+            return 1;
+        case iron:
+            return 1;
+        default:
+            return 0; // Default consumption rate for other resources
     }
-    return 0; // Default consumption rate for other resources
 }
 
 // --------------------------------------------------------

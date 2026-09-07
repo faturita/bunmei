@@ -31,7 +31,7 @@
 #include "dee.h"
 #include "improvements.h"
 #include "diplomacy.h"
-#include "ai.h"
+#include "automation.h"
 #include "engine.h"
 #include "messages.h"
 #include "commandline.h"

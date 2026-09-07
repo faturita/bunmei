@@ -9,7 +9,7 @@
 #include "City.h"
 #include "resources.h"
 #include "coordinator.h"
-#include "ai.h"
+#include "automation.h"
 
 #include "units/Unit.h"
 #include "units/Warrior.h"

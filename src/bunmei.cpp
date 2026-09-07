@@ -62,7 +62,7 @@
 #include "hud.h"
 #include "infoui.h"
 #include "marketui.h"
-#include "ai.h"
+#include "automation.h"
 #include "dee.h"
 
 #include "buildable.h"

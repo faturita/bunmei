@@ -1,5 +1,5 @@
-#ifndef AI_H
-#define AI_H
+#ifndef AUTOMATION_H
+#define AUTOMATION_H
 
 #include <vector>
 
@@ -22,4 +22,4 @@ void autoPlayerCities();
 
 void processGoTo();
 
-#endif // AI_H
+#endif // AUTOMATION_H

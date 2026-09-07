@@ -127,6 +127,11 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Galley          | Map Making + Horseback Riding  | -    | - |
 | Horse Archer    | Animal Husbandry + Horseback Riding | -    | - |
 | Galleon         | Map Making | - | - |
+| Musketman       | Gunpowder | Guns | - |
+| Granadier       | Chemestry | Guns + Spices | - |
+| Cavalry         | Military Tradition | Horses + Guns | - |
+| Cannon          | Metallurgy | Iron |
+
 
 
 ## Cities
@@ -341,6 +346,16 @@ This is a very tricky part that I still need to decide
 | **Fascism** | Nationalist, authoritarian, militarized state |
 | **Renminism** | Chinese-style one-party state combined with a market economy and strong state direction |
 | **Technofeudalism** | Future society dominated by technology platforms, AI, and concentrated economic power |
+
+Each unhappy citizen reduces a percentage of the shields.  Effectively if all of them are unhappy there’s no production in the city. 
+
+Luxuries items present in the city increase happiness. 
+
+So citizens are unhappy if they are poor.  
+
+Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
+
+The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
 
 ## Combat
 
