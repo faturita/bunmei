@@ -39,9 +39,21 @@ SpyFactory::SpyFactory()
     strncpy(this->name,"Spy",256);  
 }
 
-int SpyFactory::cost(int r_id)
+std::vector<int> SpyFactory::getRequiredResources()
 {
-    return 80;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> SpyFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 80)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 80});
+    }
+    return consumedResources;
 }
 
 

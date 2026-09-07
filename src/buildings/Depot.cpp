@@ -27,18 +27,24 @@ Buildable* DepotFactory::create()
     return b;
 }
 
-int DepotFactory::cost(int r_id)
+std::vector<int> DepotFactory::getRequiredResources()
 {
-    if (r_id == SHIELDS)
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(tools);
+    return requiredResources;
+}
+
+std::vector<Resource*> DepotFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    // Depot requires 100 shields AND 100 tools.
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 100 &&
+        availableResources[tools]   && availableResources[tools]->amount   >= 100)
     {
-        return 100;
+        consumedResources.push_back(new Resource{SHIELDS, 100});
+        consumedResources.push_back(new Resource{tools, 100});
     }
-    else if (r_id == tools)
-    {
-        return 100;
-    }
-    else {
-        return 0;
-    }
+    return consumedResources;
 }
 

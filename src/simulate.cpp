@@ -398,9 +398,20 @@ inline void endOfYear()
         if (c->productionQueue.size()>0)
         {
             BuildableFactory *bf = c->productionQueue.front();
-            if (c->resources[SHIELDS]>=bf->cost(SHIELDS))
+
+            // Ask the factory which resource ids it might need, hand it what the city has,
+            // and let its fullfillment() rule return the exact (id, amount) list to deduct
+            // (empty == cannot afford it yet). Mirrors bunmei.cpp:endOfYear().
+            std::vector<int> requiredResources = bf->getRequiredResources();
+            std::unordered_map<int, Resource*> availableResources;
+            for (int r_id : requiredResources)
+                availableResources[r_id] = new Resource{r_id, c->resources[r_id]};
+
+            std::vector<Resource*> consumedResources = bf->fullfillment(availableResources);
+            if (consumedResources.size() > 0)
             {
-                c->resources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
+                for (Resource* r : consumedResources)
+                    c->resources[r->id] -= r->amount;
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();

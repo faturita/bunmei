@@ -27,8 +27,20 @@ Buildable* BarracksFactory::create()
     return b;
 }
 
-int BarracksFactory::cost(int r_id)
+std::vector<int> BarracksFactory::getRequiredResources()
 {
-    return 50;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> BarracksFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 50)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 50});
+    }
+    return consumedResources;
 }
 

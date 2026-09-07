@@ -23,8 +23,20 @@ PalaceFactory::PalaceFactory()
     strncpy(this->name,"Palace",256);
 }
 
-int PalaceFactory::cost(int r_id)
+std::vector<int> PalaceFactory::getRequiredResources()
 {
-    return 10000;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> PalaceFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 10000)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 10000});
+    }
+    return consumedResources;
 }
 

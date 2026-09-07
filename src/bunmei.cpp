@@ -345,13 +345,21 @@ inline void endOfYear()
 
             // If true, the list of pairs (resource, amount) will be used to deduct the resources from the city.
 
+            std::vector<int> requiredResources = bf->getRequiredResources();
 
-
-
-
-            if (c->resources[SHIELDS]>=bf->cost(SHIELDS))
+            std::unordered_map<int, Resource*> availableResources;
+            for (int r_id : requiredResources)
             {
-                c->resources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
+                availableResources[r_id] = new Resource{r_id, c->resources[r_id]};
+            }
+
+            std::vector<Resource*> consumedResources = bf->fullfillment(availableResources);
+            if ( consumedResources.size() > 0)
+            {
+                for (Resource* r : consumedResources)
+                {
+                    c->resources[r->id] -= r->amount;          // Consume the resources and confirm the creation.
+                }
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();

@@ -26,8 +26,20 @@ Buildable* CollosseumFactory::create()
     return b;
 }
 
-int CollosseumFactory::cost(int r_id)
+std::vector<int> CollosseumFactory::getRequiredResources()
 {
-    return 50;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> CollosseumFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 50)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 50});
+    }
+    return consumedResources;
 }
 

@@ -39,9 +39,21 @@ ScoutFactory::ScoutFactory()
     strncpy(this->name,"Scout",256);  
 }
 
-int ScoutFactory::cost(int r_id)
+std::vector<int> ScoutFactory::getRequiredResources()
 {
-    return 40;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> ScoutFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 40});
+    }
+    return consumedResources;
 }
 
 

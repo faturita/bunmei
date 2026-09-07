@@ -26,8 +26,20 @@ Buildable* WarehouseFactory::create()
     return b;
 }
 
-int WarehouseFactory::cost(int r_id)
+std::vector<int> WarehouseFactory::getRequiredResources()
 {
-    return 100;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> WarehouseFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 100)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 100});
+    }
+    return consumedResources;
 }
 

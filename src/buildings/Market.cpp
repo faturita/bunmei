@@ -25,8 +25,20 @@ Buildable* MarketFactory::create()
     return b;
 }
 
-int MarketFactory::cost(int r_id)
+std::vector<int> MarketFactory::getRequiredResources()
 {
-    return 80;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> MarketFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 80)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 80});
+    }
+    return consumedResources;
 }
 

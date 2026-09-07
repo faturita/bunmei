@@ -1,6 +1,11 @@
 #ifndef BUILDABLE_H
 #define BUILDABLE_H
 
+#include <vector>
+#include <unordered_map>
+
+#include "resources.h"
+
 enum BuildableType {
     UNIT = 0,
     BUILDING = 1
@@ -14,7 +19,8 @@ class Buildable {
 class BuildableFactory {
 public:
     char name[256];
-    virtual int cost(int r_id) = 0;
+    virtual std::vector<int> getRequiredResources() = 0;
+    virtual std::vector<Resource*> fullfillment(std::unordered_map<int, Resource*> availableResources) = 0;
     virtual Buildable* create() = 0;
     virtual std::vector<int> getDependencyCodes() {
         return dependencyCodes;

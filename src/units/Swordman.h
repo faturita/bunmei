@@ -20,7 +20,8 @@ class SwordmanFactory : public BuildableFactory
     public:
     SwordmanFactory();
     Swordman* create();
-    virtual int cost(int r_id);
+    virtual std::vector<int> getRequiredResources();
+    virtual std::vector<Resource*> fullfillment(std::unordered_map<int, Resource*> availableResources);
 };
 
 #endif   // SWORDMAN_H

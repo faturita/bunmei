@@ -51,9 +51,28 @@ SettlerFactory::SettlerFactory()
     strncpy(this->name,"Settler",256);  
 }
 
-int SettlerFactory::cost(int r_id)
+std::vector<int> SettlerFactory::getRequiredResources()
 {
-    // @FIXME: Add also the cost in terms of food (and modify the loop to include all the required resources)
-    return 100;
+    std::vector<int> requiredResources;
+
+    requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(FOOD);
+
+    return requiredResources;
+}
+
+std::vector<Resource*> SettlerFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> fulfilledResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40)
+    {
+        if (availableResources[FOOD] && availableResources[FOOD]->amount >= 25)
+        {
+            fulfilledResources.push_back(new Resource{SHIELDS, 40});
+            fulfilledResources.push_back(new Resource{FOOD, 25});
+        }
+    }
+
+    return fulfilledResources;
 }
 

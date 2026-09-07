@@ -15,7 +15,8 @@ class PalaceFactory : public BuildableFactory
     public:
     PalaceFactory();
     virtual Buildable* create();
-    virtual int cost(int r_id);
+    virtual std::vector<int> getRequiredResources();
+    virtual std::vector<Resource*> fullfillment(std::unordered_map<int, Resource*> availableResources);
 };
 
 #endif   //PALACE_H

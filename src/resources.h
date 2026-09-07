@@ -60,13 +60,21 @@ class Resource
 { 
 public:
     virtual ~Resource() {}
+    Resource() {}
+    Resource(int idnew, int amountnew) 
+    {
+        id = idnew;
+        amount = amountnew;
+    }
+
     int amount;
+    public:
+    int id;
 };
 
 
 class CoreResource : public Resource {
     public:
-    int id;
     char assetname[256];
     char name[256];
 
@@ -80,7 +88,6 @@ class CoreResource : public Resource {
 
 class ShippableResource : public Resource, public Shippable {
     public:
-    int id;
     char assetname[256];
     char name[256];
 

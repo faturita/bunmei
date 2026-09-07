@@ -41,16 +41,36 @@ SwordmanFactory::SwordmanFactory()
     addDependencyCode(TECH_IRON_WORKING);
 }
 
-int SwordmanFactory::cost(int r_id)
-{ 
-    // Swordman requires 40 shields, 25 iron OR 25 copper.
+// Swordman requires 40 shields, plus 25 iron OR 25 copper.
+std::vector<int> SwordmanFactory::getRequiredResources()
+{
+    std::vector<int> requiredResources;
 
+    requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(iron);
+    requiredResources.push_back(copper);
 
-    if (r_id == SHIELDS)
-        return 40;
-    else if (r_id == iron)
-        return 25;
+    return requiredResources;
+}
 
-    return 0; // Default cost for other resources
+std::vector<Resource*> SwordmanFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> fulfilledResources;
+
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40)
+    {
+        if (availableResources[iron] && availableResources[iron]->amount >= 25)
+        {
+            fulfilledResources.push_back(new Resource{SHIELDS, 40});
+            fulfilledResources.push_back(new Resource{iron, 25});
+        }
+        else if (availableResources[copper] && availableResources[copper]->amount >= 25)
+        {
+            fulfilledResources.push_back(new Resource{SHIELDS, 40});
+            fulfilledResources.push_back(new Resource{copper, 25});
+        }
+    }
+
+    return fulfilledResources;
 }
 

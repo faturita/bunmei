@@ -41,8 +41,20 @@ WarelephantFactory::WarelephantFactory()
     addDependencyCode(TECH_ANIMAL_HUSBANDRY);
 }
 
-int WarelephantFactory::cost(int r_id)
+std::vector<int> WarelephantFactory::getRequiredResources()
 {
-    return 200;
+    std::vector<int> requiredResources;
+    requiredResources.push_back(SHIELDS);
+    return requiredResources;
+}
+
+std::vector<Resource*> WarelephantFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
+{
+    std::vector<Resource*> consumedResources;
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 200)
+    {
+        consumedResources.push_back(new Resource{SHIELDS, 200});
+    }
+    return consumedResources;
 }
 
