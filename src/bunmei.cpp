@@ -290,34 +290,34 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
-        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->coreresources[FOOD]);
+        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[FOOD]);
         // Go through all the map locations and gather all the resources.
         for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->coreresources[r_id] += c->getProductionRate(r_id);
+            c->resources[r_id] += c->getProductionRate(r_id);
         }
 
         // Commodities: gathered from every special resource within range regardless of
         // whether the tile is worked (see City::getCommodityProductionRate).
         for(int commodity_id : ALL_COMMODITIES)
         {
-            c->commodities[commodity_id] += c->getCommodityProductionRate(commodity_id);
+            c->resources[commodity_id] += c->getCommodityProductionRate(commodity_id);
         }
 
         // Reduce the number of resources according to what is required now.
         for(int r_id : ALL_CORE_RESOURCES)
         {
-            c->coreresources[r_id] -= c->getConsumptionRate(r_id);
+            c->resources[r_id] -= c->getConsumptionRate(r_id);
         }
 
         // Convert trade accordingly.  Trade is not accummulated
 
-        c->coreresources[COINS] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0]);
-        c->coreresources[SCIENCE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[1]);
-        //c->coreresources[LUXURY] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[0])
-        c->coreresources[CULTURE] += (int)((float)c->coreresources[TRADE] * factions[c->faction]->rates[2]);
+        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
+        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
+        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
+        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
 
-        c->coreresources[TRADE]=0;
+        c->resources[TRADE]=0;
 
         // Production from building and costs deductions.
         operateCityBuildings(c);
@@ -327,17 +327,31 @@ inline void endOfYear()
         // @NOTE: Pay salaries to units
         if (c->isCapitalCity())
         {
-            c->coreresources[COINS] -= salaries[c->faction];
-            printf("City %s has paid %d in salaries (Net in city %d).\n",c->name,salaries[c->faction],c->coreresources[COINS]);
+            c->resources[COINS] -= salaries[c->faction];
+            printf("City %s has paid %d in salaries (Net in city %d).\n",c->name,salaries[c->faction],c->resources[COINS]);
         }
 
         // Peek the production queue.
         if (c->productionQueue.size()>0)
         {
             BuildableFactory *bf = c->productionQueue.front();
-            if (c->coreresources[SHIELDS]>=bf->cost(SHIELDS))
+
+            // @FIXME: Allow to get all the required resources in a table and call the check with the list of the amount of
+            //.  required resources so each factory can check its own rule.
+
+            // Access bf and get the list of needed resources (just the ids)
+            // load the number of resources available into a list
+            // and check calling fullfilment(list) which will return the list of deductions.
+
+            // If true, the list of pairs (resource, amount) will be used to deduct the resources from the city.
+
+
+
+
+
+            if (c->resources[SHIELDS]>=bf->cost(SHIELDS))
             {
-                c->coreresources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
+                c->resources[SHIELDS] -= bf->cost(SHIELDS);          // @FIXME This can be extended to more resources.
 
                 // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
                 c->productionQueue.pop();
@@ -373,8 +387,8 @@ inline void endOfYear()
 
             }
         } else { // Reset resources if there is nothing to build.
-            c->coreresources[SHIELDS] = 0;
-            message(year, c->faction, "City %s has nothing to build.",c->name);
+            c->resources[SHIELDS] = 0;
+            //message(year, c->faction, "City %s has nothing to build.",c->name);
         }
         
         // Balance city population according to available resources.
@@ -383,17 +397,17 @@ inline void endOfYear()
         {
             popFactor = 0.5f;
         }
-        if (c->coreresources[FOOD]>= getPopulationThresshold(c->pop))
+        if (c->resources[FOOD]>= getPopulationThresshold(c->pop))
         {
             c->pop++;
 
-            c->coreresources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
+            c->resources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
 
             c->assignWorkingTile();
         } else
-        if (c->coreresources[FOOD]<0)  // Out of food, reduce population accordingly.
+        if (c->resources[FOOD]<0)  // Out of food, reduce population accordingly.
         {
-            c->coreresources[FOOD] = 0;
+            c->resources[FOOD] = 0;
             if (c->pop>1)
             {
                 c->pop--;

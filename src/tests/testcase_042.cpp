@@ -114,9 +114,9 @@ void TestCase_042::init()
     City *city = new City(&map, 0, getNextCityId(), 3, 3);
     city->setName("Kattegate");
     city->foundedyear = -4000;
-    city->commodities[copper] = 250;
-    city->commodities[iron] = 250;
-    city->commodities[silver] = 250;
+    city->resources[copper] = 250;
+    city->resources[iron] = 250;
+    city->resources[silver] = 250;
     cities[city->id] = city;
     cityid = city->id;
 
@@ -177,7 +177,7 @@ int TestCase_042::check(int year)
         clickOnCityScreen(copperlat, -5, 0, 0);
         processCommandOrders();
 
-        if (city->commodities[copper] != 150)
+        if (city->resources[copper] != 150)
         {
             isdone = true; haspassed = false;
             message = std::string("Loading copper did not deduct 100 from the city's stock.");
@@ -195,7 +195,7 @@ int TestCase_042::check(int year)
         clickOnCityScreen(ironlat, -5, 0, 0);
         processCommandOrders();
 
-        if (city->commodities[iron] != 150)
+        if (city->resources[iron] != 150)
         {
             isdone = true; haspassed = false;
             message = std::string("Loading iron did not deduct 100 from the city's stock.");
@@ -222,7 +222,7 @@ int TestCase_042::check(int year)
     clickOnCityScreen(copperlat, -5, 0, 0);
     processCommandOrders();
 
-    if (city->commodities[copper] != 150)
+    if (city->resources[copper] != 150)
     {
         isdone = true; haspassed = false;
         message = std::string("Re-loading an already-capped commodity changed the city's stock.");
@@ -240,7 +240,7 @@ int TestCase_042::check(int year)
     clickOnCityScreen(silverlat, -5, 0, 0);
     processCommandOrders();
 
-    if (city->commodities[silver] != 250)
+    if (city->resources[silver] != 250)
     {
         isdone = true; haspassed = false;
         message = std::string("Loading onto a full Transport still deducted from the city's stock.");
@@ -270,7 +270,7 @@ int TestCase_042::check(int year)
     clickOnCityScreen(5, 0, 0, copperslot==0 ? -4 : -3);
     processCommandOrders();
 
-    if (city->commodities[copper] != 250)
+    if (city->resources[copper] != 250)
     {
         isdone = true; haspassed = false;
         message = std::string("Unloading copper did not restore the city's stock.");
@@ -299,7 +299,7 @@ int TestCase_042::check(int year)
     processCommandOrders();
 
     isdone = true;
-    haspassed = (city->commodities[iron]==250 && transport->findCargo(iron)==nullptr && transport->manifest()==0);
+    haspassed = (city->resources[iron]==250 && transport->findCargo(iron)==nullptr && transport->manifest()==0);
     if (!haspassed)
         message = std::string("Unloading iron did not restore the city's stock / empty the Wagon.");
 

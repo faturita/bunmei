@@ -60,26 +60,21 @@ std::vector<Unit*> getUnitsAtCity(City* city)
 // Same reasoning as getUnitsAtCity above: shared by drawCityScreen (to list the
 // "Resource Storage" box) and clickOnCityScreen (to map a clicked row's "load" arrow back
 // to the same resource id), so both always agree on row-to-resource order. Stocked
-// commodities come first (ALL_COMMODITIES order), then stocked mfg goods (ALL_MFG_GOODS
-// order) -- the two id ranges never overlap (COMMODITIES 0x2xx, MFGOODS 0x3xx), so a plain
-// `id >= rum` tells the two apart everywhere this list is consumed.
+// commodities come first, then stocked mfg goods -- the fixed ALL_COMMODITIES_AND_MFGGOODS
+// order.
 std::vector<int> getStockedResources(City* city)
 {
     std::vector<int> stocked;
-    for (int commodity_id : ALL_COMMODITIES)
-        if (city->commodities[commodity_id] > 0)
-            stocked.push_back(commodity_id);
-    for (int mfggood_id : ALL_MFG_GOODS)
-        if (city->mfggoods[mfggood_id] > 0)
-            stocked.push_back(mfggood_id);
+    for (int id : ALL_COMMODITIES_AND_MFGGOODS)
+        if (city->resources[id] > 0)
+            stocked.push_back(id);
     return stocked;
 }
 
-// How many units of a stocked resource id the city holds -- commodities and mfg goods live
-// in separate maps, split by the same `id >= rum` test getStockedResources documents.
+// How many units of a stocked resource id the city holds.
 static int stockedResourceAmount(City* city, int id)
 {
-    return id >= rum ? city->mfggoods[id] : city->commodities[id];
+    return city->resources[id];
 }
 
 void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright, int endbottom)
@@ -576,7 +571,7 @@ void drawCityScreen(int cla, int clo, City *city)
                 {
                     int crate = b->getConsumptionRate(cmd_id);
                     if (crate<=0) continue;
-                    if (city->commodities[cmd_id] < crate) enough = false;
+                    if (city->resources[cmd_id] < crate) enough = false;
                     for (int j=0;j<crate;j++, x+=7)
                         place(x  ,rowY  ,7,7,tiles[cmd_id].c_str());
                 }
@@ -609,7 +604,7 @@ void drawCityScreen(int cla, int clo, City *city)
     int foodItemsPerRow; float foodColsepar;
     getFoodStorageLayout(city->pop, foodItemsPerRow, foodColsepar);
 
-    for(int i=0;i<city->coreresources[FOOD];i++)
+    for(int i=0;i<city->resources[FOOD];i++)
         place((clo+(-10))*16-4+(int)round(foodColsepar*(i%foodItemsPerRow))  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
 
     // Blue line marking the Granary's reserve (task #26): once HALF_POPULATION_CODE is
@@ -720,7 +715,7 @@ void drawCityScreen(int cla, int clo, City *city)
     }
     else
     {
-        for(int i=0;i<city->coreresources[SHIELDS];i++)
+        for(int i=0;i<city->resources[SHIELDS];i++)
         {
             place((clo+(4))*16+7*(i%10)  ,(cla+(5))*16+7*(i/10)  ,7,7,"assets/assets/city/production.png");
         }

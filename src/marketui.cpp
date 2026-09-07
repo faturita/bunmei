@@ -44,8 +44,7 @@ static void drawMarketBorder(int startcol, int startrow, int endcol, int endrow)
 std::unordered_map<int,int> getShippableStockForFaction(int faction_id)
 {
     std::unordered_map<int,int> total;
-    for (int id : ALL_COMMODITIES) total[id] = 0;
-    for (int id : ALL_MFG_GOODS)   total[id] = 0;
+    for (int id : ALL_COMMODITIES_AND_MFGGOODS) total[id] = 0;
 
     for (auto& [k, city] : cities)
     {
@@ -55,8 +54,7 @@ std::unordered_map<int,int> getShippableStockForFaction(int faction_id)
         if (!map(co.lat, co.lon).isVisible(faction_id))
             continue;
 
-        for (int id : ALL_COMMODITIES) total[id] += city->commodities[id];
-        for (int id : ALL_MFG_GOODS)   total[id] += city->mfggoods[id];
+        for (int id : ALL_COMMODITIES_AND_MFGGOODS) total[id] += city->resources[id];
     }
     return total;
 }
@@ -92,9 +90,7 @@ void drawMarketScreen()
     std::unordered_map<int,int> stock = getShippableStockForFaction(coordinator.v_f_id);
 
     // Build the full list: commodities first, then mfg goods (same order as everywhere else).
-    std::vector<int> all;
-    for (int id : ALL_COMMODITIES) all.push_back(id);
-    for (int id : ALL_MFG_GOODS)   all.push_back(id);
+    std::vector<int> all(std::begin(ALL_COMMODITIES_AND_MFGGOODS), std::end(ALL_COMMODITIES_AND_MFGGOODS));
 
     // Two columns of rows so all ~34 fit vertically. Per column: icon, "Price", "Stock".
     const int ROWS_PER_COL = 17;

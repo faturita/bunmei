@@ -84,24 +84,24 @@ void TestCase_049::init()
     // cityA: Viking, VISIBLE to faction 0.
     City *cityA = new City(&map, 0, getNextCityId(), 2, 2);
     cityA->setName("Kattegate");
-    cityA->commodities[copper] = 50;
-    cityA->commodities[iron]   = 30;
-    cityA->mfggoods[tools]     = 10;
+    cityA->resources[copper] = 50;
+    cityA->resources[iron]   = 30;
+    cityA->resources[tools]     = 10;
     cities[cityA->id] = cityA;
     cityAid = cityA->id;
 
     // cityB: Viking, NOT visible to faction 0 -> its stock must be excluded.
     City *cityB = new City(&map, 0, getNextCityId(), -4, -4);
     cityB->setName("Uppsala");
-    cityB->commodities[copper] = 100;
+    cityB->resources[copper] = 100;
     cities[cityB->id] = cityB;
     cityBid = cityB->id;
 
     // cityC: Mongol (foreign), VISIBLE to faction 0 -> its stock IS included.
     City *cityC = new City(&map, 1, getNextCityId(), 6, 6);
     cityC->setName("Karakorum");
-    cityC->commodities[copper] = 7;
-    cityC->mfggoods[rum]       = 5;
+    cityC->resources[copper] = 7;
+    cityC->resources[rum]       = 5;
     cities[cityC->id] = cityC;
     cityCid = cityC->id;
 

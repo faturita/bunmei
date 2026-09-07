@@ -65,7 +65,7 @@ void drawCommerceScreen(int cla, int clo, City *city)
     int youcoins = (u != nullptr && u->faction >= 0 && u->faction < (int)factions.size())
                    ? factions[u->faction]->coins : 0;
     snprintf(buf, sizeof(buf), "COMMERCE   you %d coins   %s %d coins",
-             youcoins, city->name, city->coreresources[COINS]);
+             youcoins, city->name, city->resources[COINS]);
     placeWord(clo + (-10), cla + (-9), 4, 8, buf);
 
     // Left: the city's stocked resources, drawn exactly like the city screen's

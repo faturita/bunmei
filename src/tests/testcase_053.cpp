@@ -84,8 +84,8 @@ void TestCase_053::init()
     City *city = new City(&map, 0, getNextCityId(), 3, 3);
     city->setName("Kattegate");
     city->foundedyear = -4000;
-    city->coreresources[COINS] = 50;
-    city->commodities[iron] = 5;
+    city->resources[COINS] = 50;
+    city->resources[iron] = 5;
 
     // Palace + Granary: generic Buildings -> 1 coin each. Factory: overrides -> 1 iron, 0 coin.
     city->buildings.push_back(new Palace());

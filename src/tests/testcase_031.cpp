@@ -141,7 +141,7 @@ void TestCase_031::init()
     // fixed-10-items-per-row (and later the items-per-row-clamped-to-the-box) layout would
     // need far more than the box's ~13 rows.
     city->pop = 25;
-    city->coreresources[0] = getPopulationThresshold(city->pop); // right at the growth threshold
+    city->resources[0] = getPopulationThresshold(city->pop); // right at the growth threshold
 
     citynames[0] = std::queue<std::string>();
 

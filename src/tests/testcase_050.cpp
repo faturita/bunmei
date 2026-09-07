@@ -102,7 +102,7 @@ void TestCase_050::init()
     home->setName("Kaupang");
     home->foundedyear = -4000;
     home->setCapitalCity();
-    home->coreresources[COINS] = 1000;
+    home->resources[COINS] = 1000;
     cities[home->id] = home;
     homeid = home->id;
 
@@ -110,8 +110,8 @@ void TestCase_050::init()
     City *city = new City(&map, 1, getNextCityId(), 5, 5);
     city->setName("Roma");
     city->foundedyear = -4000;
-    city->commodities[elephants] = 230;
-    city->coreresources[COINS] = 0;
+    city->resources[elephants] = 230;
+    city->resources[COINS] = 0;
     cities[city->id] = city;
     cityid = city->id;
 
@@ -179,11 +179,11 @@ int TestCase_050::check(int year)
             return 0;
         }
     }
-    if (city->commodities[elephants] != 130 || home->coreresources[COINS] != 900 || city->coreresources[COINS] != 100)
+    if (city->resources[elephants] != 130 || home->resources[COINS] != 900 || city->resources[COINS] != 100)
     {
         char buf[200];
         snprintf(buf,sizeof(buf),"After 1st buy bad totals (Roma elephants %d exp 130, Kaupang COINS %d exp 900, Roma COINS %d exp 100).",
-                 city->commodities[elephants], home->coreresources[COINS], city->coreresources[COINS]);
+                 city->resources[elephants], home->resources[COINS], city->resources[COINS]);
         fail(buf); return 0;
     }
 
@@ -196,11 +196,11 @@ int TestCase_050::check(int year)
         snprintf(buf,sizeof(buf),"After 2nd buy manifest()=%d, expected 2 (a second elephants stack should now be aboard).", trireme->manifest());
         fail(buf); return 0;
     }
-    if (city->commodities[elephants] != 30 || home->coreresources[COINS] != 800 || city->coreresources[COINS] != 200)
+    if (city->resources[elephants] != 30 || home->resources[COINS] != 800 || city->resources[COINS] != 200)
     {
         char buf[200];
         snprintf(buf,sizeof(buf),"After 2nd buy bad totals (Roma elephants %d exp 30, Kaupang COINS %d exp 800, Roma COINS %d exp 200).",
-                 city->commodities[elephants], home->coreresources[COINS], city->coreresources[COINS]);
+                 city->resources[elephants], home->resources[COINS], city->resources[COINS]);
         fail(buf); return 0;
     }
     // Both slots hold their own independent 100-unit stack.
@@ -215,8 +215,8 @@ int TestCase_050::check(int year)
     // 3) Third buy: Trireme is full (2/2 slots, both stacks at the 100 cap) -> a genuine
     //    no-op, must not silently create a third stack or touch any totals.
     buy();
-    if (trireme->manifest() != 2 || city->commodities[elephants] != 30
-        || home->coreresources[COINS] != 800 || city->coreresources[COINS] != 200)
+    if (trireme->manifest() != 2 || city->resources[elephants] != 30
+        || home->resources[COINS] != 800 || city->resources[COINS] != 200)
     {
         fail("Third buy changed state -- a full Transport must reject the purchase entirely.");
         return 0;
@@ -232,7 +232,7 @@ int TestCase_050::check(int year)
         snprintf(buf,sizeof(buf),"After selling one slot manifest()=%d, expected 1 (the other stack must remain).", trireme->manifest());
         fail(buf); return 0;
     }
-    if (city->commodities[elephants] != 130 || home->coreresources[COINS] != 900 || city->coreresources[COINS] != 100)
+    if (city->resources[elephants] != 130 || home->resources[COINS] != 900 || city->resources[COINS] != 100)
     {
         fail("Selling one elephants stack did not restore the expected totals.");
         return 0;

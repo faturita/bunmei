@@ -22,7 +22,7 @@
 #include "../resources.h"
 #include "../coordinator.h"
 #include "../engine.h"
-#include "../ai.h"
+#include "../automation.h"
 #include "../tiles.h"
 #include "../diplomacy.h"
 #include "../usercontrols.h"

@@ -22,23 +22,21 @@ City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
 
     map = mn;
 
-    coreresources.clear();      // Workable and basic resources produced by working on tiles
-    commodities.clear();        // Tradable resources produced by tiles around the city.
-    mfggoods.clear();           // Tradable resources produced by buildings in the city.
+    resources.clear();          // Core resources, commodities and manufactured goods -- one stockpile.
 
     for (int i=0;i<6;i++)
     {
-        coreresources[ALL_CORE_RESOURCES[i]] = 0;
+        resources[ALL_CORE_RESOURCES[i]] = 0;
     }
 
    for (int i=0;i<sizeof(ALL_COMMODITIES)/sizeof(int);i++)
     {
-        commodities[ALL_COMMODITIES[i]] = 0;
+        resources[ALL_COMMODITIES[i]] = 0;
     }
 
     for (int i=0;i<sizeof(ALL_MFG_GOODS)/sizeof(int);i++)
     {
-        mfggoods[ALL_MFG_GOODS[i]] = 0;
+        resources[ALL_MFG_GOODS[i]] = 0;
     }
 
     isCapital = false;

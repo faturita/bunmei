@@ -243,7 +243,7 @@ void operateCityBuildings(City* c)
             int cr = building->getConsumptionRate(r_id);
             if (cr > 0)
             {
-                c->coreresources[r_id] -= cr;   // Cost deduction
+                c->resources[r_id] -= cr;   // Cost deduction
             }
         }
 
@@ -256,7 +256,7 @@ void operateCityBuildings(City* c)
             int cr = building->getConsumptionRate(r_id);
             if (cr > 0)
             {
-                if (c->commodities[r_id] >= cr)
+                if (c->resources[r_id] >= cr)
                     consumedResources.push_back(r_id);
                 else
                     enoughResources = false;
@@ -275,11 +275,11 @@ void operateCityBuildings(City* c)
         {
             int pr = building->getProductionRate(r_id);
             if (pr > 0)
-                c->mfggoods[r_id] += pr;
+                c->resources[r_id] += pr;
         }
 
         for (int r_id : consumedResources)
-            c->commodities[r_id] -= building->getConsumptionRate(r_id);
+            c->resources[r_id] -= building->getConsumptionRate(r_id);
     }
 }
 
@@ -411,7 +411,7 @@ void reSetCities()
         c->deAssigntWorkingTile();
 
         // @NOTE: Faction->coins are DELETED every time so effective coins remain in cities.
-        factions[c->faction]->coins += c->coreresources[COINS];
+        factions[c->faction]->coins += c->resources[COINS];
 
         // @FIXME: Spread culture
 
@@ -717,7 +717,7 @@ bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
                 }
 
                 march();
-                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->coreresources[COINS]);  
+                message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
 
                 // @FIXME: We may loose some coins here.  I am just capturing everything.
                 printf("Capture City Condition\n");
@@ -1359,7 +1359,7 @@ void processCommandOrders()
             City* city = cityIt->second;
             int resourceid = co.parameters.resourceid;
             bool ismfggood = resourceid >= rum;   // MFGOODS start at 0x301 (rum), COMMODITIES at 0x201.
-            std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+            std::unordered_map<int,int>& stockpile = city->resources;
 
             // A stack of this resource that's not yet at the 100 cap tops up; only when
             // every boarded stack of it is full (or there is none) does this take a new
@@ -1408,7 +1408,7 @@ void processCommandOrders()
             if (Resource* r = dynamic_cast<Resource*>(cargo))
             {
                 bool ismfggood = co.parameters.resourceid >= rum;
-                std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+                std::unordered_map<int,int>& stockpile = city->resources;
 
                 stockpile[co.parameters.resourceid] += r->amount;
                 transport->removeCargo(co.parameters.resourceid);
@@ -1421,7 +1421,7 @@ void processCommandOrders()
         // one stack (<=100), capped by the city's stock, room aboard, and what the buying
         // faction's treasury can afford at prices[resourceid]. There is no persistent
         // per-faction coin pot (Faction::coins is rebuilt every frame from city COINS in
-        // reSetCities), so "the faction pays" == its capital city's coreresources[COINS] pays.
+        // reSetCities), so "the faction pays" == its capital city's resources[COINS] pays.
         Transport* transport = dynamic_cast<Transport*>(units[co.parameters.spawnid]);
         auto cityIt = cities.find(co.parameters.cityid);
         City* treasury = factionTreasury(co.parameters.factionid);
@@ -1431,7 +1431,7 @@ void processCommandOrders()
             int resourceid = co.parameters.resourceid;
             int price = prices.count(resourceid) ? prices[resourceid] : 1;
             bool ismfggood = resourceid >= rum;
-            std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+            std::unordered_map<int,int>& stockpile = city->resources;
 
             // Same "top up a non-full stack, else take a new slot" rule as LoadCargoOrder:
             // a Transport with 2+ free slots can buy several separate 100-stacks of the same
@@ -1445,7 +1445,7 @@ void processCommandOrders()
                 roomAboard = (transport->manifest() < transport->capacity()) ? 100 : 0;
 
             int qty = std::min(std::min(100, stockpile[resourceid]), roomAboard);
-            if (price > 0) qty = std::min(qty, treasury->coreresources[COINS] / price);
+            if (price > 0) qty = std::min(qty, treasury->resources[COINS] / price);
 
             if (qty > 0)
             {
@@ -1468,8 +1468,8 @@ void processCommandOrders()
                 {
                     int cost = qty * price;
                     stockpile[resourceid]          -= qty;
-                    treasury->coreresources[COINS] -= cost;
-                    city->coreresources[COINS]     += cost;
+                    treasury->resources[COINS] -= cost;
+                    city->resources[COINS]     += cost;
                 }
             }
         }
@@ -1490,17 +1490,17 @@ void processCommandOrders()
             if (Resource* r = dynamic_cast<Resource*>(transport->findCargo(resourceid)))
             {
                 int qty = r->amount;
-                if (price > 0) qty = std::min(qty, city->coreresources[COINS] / price);
+                if (price > 0) qty = std::min(qty, city->resources[COINS] / price);
 
                 if (qty > 0)
                 {
                     int proceeds = qty * price;
                     bool ismfggood = resourceid >= rum;
-                    std::unordered_map<int,int>& stockpile = ismfggood ? city->mfggoods : city->commodities;
+                    std::unordered_map<int,int>& stockpile = city->resources;
 
                     stockpile[resourceid]          += qty;
-                    city->coreresources[COINS]     -= proceeds;
-                    treasury->coreresources[COINS] += proceeds;
+                    city->resources[COINS]     -= proceeds;
+                    treasury->resources[COINS] += proceeds;
 
                     r->amount -= qty;
                     if (r->amount <= 0)

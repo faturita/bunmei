@@ -103,8 +103,8 @@ void TestCase_046::init()
     City *city = new City(&map, 0, getNextCityId(), 3, 3);
     city->setName("Kattegate");
     city->foundedyear = -4000;
-    for (int c_id : LOADED) city->commodities[c_id] = 250;
-    city->commodities[SEVENTH] = 250;
+    for (int c_id : LOADED) city->resources[c_id] = 250;
+    city->resources[SEVENTH] = 250;
     cities[city->id] = city;
     cityid = city->id;
 
@@ -179,12 +179,12 @@ int TestCase_046::check(int year)
         clickOnCityScreen(lat, -5, 0, 0);   // "load" arrow, column -5
         processCommandOrders();
 
-        if (city->commodities[r_id] != 150)
+        if (city->resources[r_id] != 150)
         {
             isdone = true; haspassed = false;
             char buf[160];
             snprintf(buf,sizeof(buf),"Loading commodity #%d (id %d) did not deduct 100 (stock=%d).",
-                     k, r_id, city->commodities[r_id]);
+                     k, r_id, city->resources[r_id]);
             message = std::string(buf);
             return 0;
         }
@@ -213,12 +213,12 @@ int TestCase_046::check(int year)
     clickOnCityScreen(rowFor(6), -5, 0, 0);
     processCommandOrders();
 
-    if (city->commodities[SEVENTH] != 250 || transport->findCargo(SEVENTH) != nullptr || transport->manifest() != 6)
+    if (city->resources[SEVENTH] != 250 || transport->findCargo(SEVENTH) != nullptr || transport->manifest() != 6)
     {
         isdone = true; haspassed = false;
         char buf[160];
         snprintf(buf,sizeof(buf),"Loading a 7th commodity onto a full Galleon was not rejected cleanly (stock=%d, manifest=%d).",
-                 city->commodities[SEVENTH], transport->manifest());
+                 city->resources[SEVENTH], transport->manifest());
         message = std::string(buf);
         return 0;
     }
@@ -238,12 +238,12 @@ int TestCase_046::check(int year)
         clickOnCityScreen(5, 0, 0, slot - 4);   // Galleon is the only unit here -> row lat==5
         processCommandOrders();
 
-        if (city->commodities[r_id] != 250 || transport->findCargo(r_id) != nullptr || transport->manifest() != before-1)
+        if (city->resources[r_id] != 250 || transport->findCargo(r_id) != nullptr || transport->manifest() != before-1)
         {
             isdone = true; haspassed = false;
             char buf[160];
             snprintf(buf,sizeof(buf),"Unloading slot %d (lon2=%d, id %d) failed: stock=%d, manifest=%d (expected %d).",
-                     slot, slot-4, r_id, city->commodities[r_id], transport->manifest(), before-1);
+                     slot, slot-4, r_id, city->resources[r_id], transport->manifest(), before-1);
             message = std::string(buf);
             return 0;
         }

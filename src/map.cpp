@@ -27,7 +27,6 @@ extern Coordinator coordinator;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
-extern std::vector<Resource*> resources;
 
 std::unordered_map<int, Improvement*> improvements;
 

@@ -112,4 +112,14 @@ const int ALL_COMMODITIES[] = {copper, iron, silver, marble, furs, traan, gems, 
 
 const int ALL_MFG_GOODS[] = {rum, cigars, tools, guns, textiles, steel, automobiles, plastics, pharmaceuticals, electronics, robotics};
 
+// Every shippable/tradable resource -- commodities first (ALL_COMMODITIES order), then mfg
+// goods (ALL_MFG_GOODS order). Iterate this wherever both are handled the same way (city
+// stockpile now keeps all three resource classes in one City::resources map; the id ranges
+// never overlap so a plain `id >= rum` still tells a mfg good from a commodity).
+const int ALL_COMMODITIES_AND_MFGGOODS[] = {
+    copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk, wine,
+    spices, gunpowder, sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3,
+    rum, cigars, tools, guns, textiles, steel, automobiles, plastics, pharmaceuticals, electronics, robotics
+};
+
 #endif // RESOURCES_H

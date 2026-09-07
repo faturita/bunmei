@@ -149,14 +149,14 @@ void TestCase_029::init()
     // A big food stockpile (more than the old flat 10-per-row would have fit in the new,
     // shorter box) and NUMCOMMODITIES (7) stocked commodities -- more than
     // COMMODITIES_STORAGE_ROWS (5), so the Commodities Storage box must scroll.
-    city->coreresources[0] = 47;
-    city->commodities[copper]    = 4;
-    city->commodities[iron]      = 8;
-    city->commodities[marble]    = 2;
-    city->commodities[traan]     = 9;
-    city->commodities[horses]    = 1;
-    city->commodities[silk]      = 6;
-    city->commodities[wine]      = 23;
+    city->resources[0] = 47;
+    city->resources[copper]    = 4;
+    city->resources[iron]      = 8;
+    city->resources[marble]    = 2;
+    city->resources[traan]     = 9;
+    city->resources[horses]    = 1;
+    city->resources[silk]      = 6;
+    city->resources[wine]      = 23;
 
     citynames[0] = std::queue<std::string>();
 

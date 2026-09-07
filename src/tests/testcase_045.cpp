@@ -108,7 +108,7 @@ void TestCase_045::init()
     City *city = new City(&map, 0, getNextCityId(), 3, 3);
     city->setName("Kattegate");
     city->foundedyear = -4000;
-    city->commodities[iron] = 3;                 // exactly 3 production cycles' worth
+    city->resources[iron] = 3;                 // exactly 3 production cycles' worth
     city->buildings.push_back(new Factory());    // consumes iron, produces tools
     cities[city->id] = city;
     cityid = city->id;
@@ -142,22 +142,22 @@ int TestCase_045::check(int year)
     {
         operateCityBuildings(city);
 
-        if (city->mfggoods[tools] != cycle)
+        if (city->resources[tools] != cycle)
         {
             isdone = true; haspassed = false;
             char buf[256];
             snprintf(buf,sizeof(buf),
                 "After %d cycle(s) mfggoods[tools]=%d, expected %d (production gate bug: output must key on getProductionRate, not getConsumptionRate).",
-                cycle, city->mfggoods[tools], cycle);
+                cycle, city->resources[tools], cycle);
             message = std::string(buf);
             return 0;
         }
-        if (city->commodities[iron] != 3 - cycle)
+        if (city->resources[iron] != 3 - cycle)
         {
             isdone = true; haspassed = false;
             char buf[256];
             snprintf(buf,sizeof(buf),"After %d cycle(s) commodities[iron]=%d, expected %d.",
-                     cycle, city->commodities[iron], 3 - cycle);
+                     cycle, city->resources[iron], 3 - cycle);
             message = std::string(buf);
             return 0;
         }
@@ -169,7 +169,7 @@ int TestCase_045::check(int year)
     if (std::find(stocked.begin(), stocked.end(), (int)tools) == stocked.end())
     {
         isdone = true; haspassed = false;
-        message = std::string("getStockedResources() does not list `tools` even though city->mfggoods[tools] > 0.");
+        message = std::string("getStockedResources() does not list `tools` even though city->resources[tools] > 0.");
         return 0;
     }
     // iron ran out on the 3rd cycle (0 left) -> must NOT be listed anymore.
@@ -185,29 +185,29 @@ int TestCase_045::check(int year)
     drawCityScreen(c.lat, c.lon, city);
 
     // --- 3) Out of iron: a cycle now produces and consumes nothing (all-or-nothing). ---
-    int toolsBefore = city->mfggoods[tools];
+    int toolsBefore = city->resources[tools];
     operateCityBuildings(city);
-    if (city->mfggoods[tools] != toolsBefore || city->commodities[iron] != 0)
+    if (city->resources[tools] != toolsBefore || city->resources[iron] != 0)
     {
         isdone = true; haspassed = false;
         char buf[256];
         snprintf(buf,sizeof(buf),
             "Factory ran with no iron: mfggoods[tools]=%d (expected %d), commodities[iron]=%d (expected 0).",
-            city->mfggoods[tools], toolsBefore, city->commodities[iron]);
+            city->resources[tools], toolsBefore, city->resources[iron]);
         message = std::string(buf);
         return 0;
     }
 
     // --- Restock iron: production resumes. ---
-    city->commodities[iron] = 5;
+    city->resources[iron] = 5;
     operateCityBuildings(city);
-    if (city->mfggoods[tools] != toolsBefore + 1 || city->commodities[iron] != 4)
+    if (city->resources[tools] != toolsBefore + 1 || city->resources[iron] != 4)
     {
         isdone = true; haspassed = false;
         char buf[256];
         snprintf(buf,sizeof(buf),
             "Factory did not resume after restock: mfggoods[tools]=%d (expected %d), commodities[iron]=%d (expected 4).",
-            city->mfggoods[tools], toolsBefore + 1, city->commodities[iron]);
+            city->resources[tools], toolsBefore + 1, city->resources[iron]);
         message = std::string(buf);
         return 0;
     }

@@ -163,7 +163,7 @@ int TestCase_028::check(int year)
 
     // MARBLE must never contribute anything before the Quarry exists, no matter how many
     // years have passed.
-    if (ticks < 20 && c->commodities[marble] != 0)
+    if (ticks < 20 && c->resources[marble] != 0)
     {
         isdone = true;
         haspassed = false;
@@ -175,7 +175,7 @@ int TestCase_028::check(int year)
     // least once; capture it as a checkpoint and build the Quarry for the next phase.
     if (ticks == 20)
     {
-        if (c->commodities[silk] < 1)
+        if (c->resources[silk] < 1)
         {
             isdone = true;
             haspassed = false;
@@ -183,7 +183,7 @@ int TestCase_028::check(int year)
             return 0;
         }
 
-        silkAtCheckpoint = c->commodities[silk];
+        silkAtCheckpoint = c->resources[silk];
 
         map.set(2,0).buildQuarry();
     }
@@ -195,14 +195,14 @@ int TestCase_028::check(int year)
     {
         isdone = true;
 
-        if (c->commodities[marble] < 1)
+        if (c->resources[marble] < 1)
         {
             haspassed = false;
             message = std::string("Marble commodity was never gathered after the Quarry was built.");
             return 0;
         }
 
-        if (c->commodities[silk] <= silkAtCheckpoint)
+        if (c->resources[silk] <= silkAtCheckpoint)
         {
             haspassed = false;
             message = std::string("Silk commodity stopped accumulating.");

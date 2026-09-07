@@ -28,9 +28,12 @@ public:
     std::vector<BuildableFactory*> buildable;                   // List of things that can be built within THIS particular city.
     std::vector<Building*> buildings;                           // List of Buildings that are already BUILT in this particular city.
 
-    std::unordered_map<int, int> coreresources;              // Core resources workable
-    std::unordered_map<int, int> commodities;               // Commodity stockpile, keyed by COMMODITIES id (tiles.h), gathered each year.
-    std::unordered_map<int, int> mfggoods;                    // Manufactured goods stockpile, keyed by MANUFACTURED GOODS id (tiles.h), gathered each year.
+    // One stockpile for ALL three resource classes -- core resources (CORE_RESOURCES ids,
+    // worked from tiles), commodities (COMMODITIES ids, gathered from special resources in
+    // range) and manufactured goods (MFGOODS ids, produced by buildings). The id ranges are
+    // disjoint (0x0x / 0x2xx / 0x3xx) so callers still iterate ALL_CORE_RESOURCES /
+    // ALL_COMMODITIES / ALL_MFG_GOODS / ALL_COMMODITIES_AND_MFGGOODS to pick a class.
+    std::unordered_map<int, int> resources;
 
 
     City(Map *map, int faction, int id, int latitude, int longitude);

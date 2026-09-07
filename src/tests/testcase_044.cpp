@@ -118,10 +118,10 @@ void TestCase_044::init()
     City *city = new City(&map, 0, getNextCityId(), 3, 3);
     city->setName("Kattegate");
     city->foundedyear = -4000;
-    city->commodities[copper] = 143;   // -> 14 strip icons
-    city->commodities[iron]   = 7;     // -> 0 strip icons (below one full icon)
-    city->mfggoods[rum]       = 250;   // -> 25 strip icons
-    city->mfggoods[tools]     = 90;    // -> 9 strip icons
+    city->resources[copper] = 143;   // -> 14 strip icons
+    city->resources[iron]   = 7;     // -> 0 strip icons (below one full icon)
+    city->resources[rum]       = 250;   // -> 25 strip icons
+    city->resources[tools]     = 90;    // -> 9 strip icons
     cities[city->id] = city;
     cityid = city->id;
 
@@ -198,14 +198,14 @@ int TestCase_044::check(int year)
     clickOnCityScreen(rumlat, -5, 0, 0);   // "load" arrow, column -5
     processCommandOrders();
 
-    if (city->mfggoods[rum] != 150)
+    if (city->resources[rum] != 150)
     {
         isdone = true; haspassed = false;
         // With the old `ismfggood = resourceid >= tools` test this fails: rum is misread as
-        // a commodity, city->commodities[rum] (0) is drawn from, and nothing is loaded.
+        // a commodity, city->resources[rum] (0) is drawn from, and nothing is loaded.
         char buf[256];
         snprintf(buf,sizeof(buf),"Loading rum did not deduct 100 from the city (mfggoods[rum]=%d, expected 150).",
-                 city->mfggoods[rum]);
+                 city->resources[rum]);
         message = std::string(buf);
         return 0;
     }
@@ -219,13 +219,6 @@ int TestCase_044::check(int year)
         return 0;
     }
 
-    if (city->commodities[rum] != 0)
-    {
-        isdone = true; haspassed = false;
-        message = std::string("Rum leaked into city->commodities -- mfg goods must stay in city->mfggoods.");
-        return 0;
-    }
-
     // Sanity render with a mfg good in storage AND aboard the Wagon: must not crash.
     coordinate c = map.to_screen(city->latitude, city->longitude);
     drawCityScreen(c.lat, c.lon, city);
@@ -236,12 +229,12 @@ int TestCase_044::check(int year)
     processCommandOrders();
 
     isdone = true;
-    haspassed = (city->mfggoods[rum] == 250 && transport->findCargo(rum) == nullptr && transport->manifest() == 0);
+    haspassed = (city->resources[rum] == 250 && transport->findCargo(rum) == nullptr && transport->manifest() == 0);
     if (!haspassed)
     {
         char buf[256];
         snprintf(buf,sizeof(buf),"Unloading rum did not restore the city (mfggoods[rum]=%d) / empty the Wagon.",
-                 city->mfggoods[rum]);
+                 city->resources[rum]);
         message = std::string(buf);
     }
 

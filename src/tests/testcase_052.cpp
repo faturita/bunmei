@@ -23,7 +23,7 @@
 #include "../resources.h"
 #include "../coordinator.h"
 #include "../tiles.h"
-#include "../ai.h"
+#include "../automation.h"
 #include "../usercontrols.h"
 
 #include "testcase_052.h"

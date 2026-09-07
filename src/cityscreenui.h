@@ -42,7 +42,7 @@ void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar);
 // list them) and clickOnCityScreen (to map a clicked row back to the same unit).
 std::vector<Unit*> getUnitsAtCity(City* city);
 
-// Resources actually in storage (city->commodities[id]>0 then city->mfggoods[id]>0), in a
+// Resources actually in storage (city->resources[id]>0 then city->resources[id]>0), in a
 // stable order -- stocked commodities first (ALL_COMMODITIES order), then stocked mfg goods
 // (ALL_MFG_GOODS order) -- shared by drawCityScreen (the "Resource Storage" box) and
 // clickOnCityScreen (its "load" arrow).

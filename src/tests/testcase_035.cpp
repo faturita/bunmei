@@ -123,7 +123,7 @@ void TestCase_035::init()
     cityid = city->id;
 
     city->pop = 5;
-    city->coreresources[0] = getPopulationThresshold(city->pop)/2;
+    city->resources[0] = getPopulationThresshold(city->pop)/2;
 
     citynames[0] = std::queue<std::string>();
 
@@ -253,7 +253,7 @@ int TestCase_035::check(int year)
     {
         int pop = city->pop;
         int thresshold = getPopulationThresshold(pop);
-        city->coreresources[0] = thresshold + 37; // deliberate overshoot past the thresshold
+        city->resources[0] = thresshold + 37; // deliberate overshoot past the thresshold
         endOfYear();
 
         if (city->pop != pop+1)
@@ -267,13 +267,13 @@ int TestCase_035::check(int year)
         }
 
         int expected = (int)(0.5f * (float)getPopulationThresshold(city->pop));  // NEW (post-growth) pop's thresshold -- what the UI line also uses.
-        if (city->coreresources[0] != expected)
+        if (city->resources[0] != expected)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
             sprintf(buf,"Granary reserve after growth was %d, expected half of the CURRENT pop's thresshold (%d) -- matching the UI line -- not half of the pre-growth thresshold or the overshot stock.",
-                    city->coreresources[0], expected);
+                    city->resources[0], expected);
             message = std::string(buf);
             return 0;
         }

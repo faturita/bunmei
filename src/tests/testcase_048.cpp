@@ -35,7 +35,7 @@
 
 // @Task: "Commerce UI". A human Transport stepping onto a foreign city's tile at PEACE or
 // better opens a commerce screen; the player buys from the city (pay faction->coins ->
-// city->coreresources[COINS], resource boards the Transport) and sells cargo back (reverse).
+// city->resources[COINS], resource boards the Transport) and sells cargo back (reverse).
 // Prices live in a new global `prices` (tiles.cpp), all seeded to 1 by initPrices().
 //
 // Rendering can't be inspected by a testcase, so this drives the pieces underneath:
@@ -44,7 +44,7 @@
 //      foreign PEACE+ city and sets controller.view/cityid/tradeunitid; rejects a
 //      non-Transport and an own-faction city.
 //   3. The commerce screen's left-box buy arrow -> Command::BuyResourceOrder: up to 100 units
-//      move city -> Transport, treasury COINS -= qty*price, city->coreresources[COINS] += same.
+//      move city -> Transport, treasury COINS -= qty*price, city->resources[COINS] += same.
 //   4. Pressing a right-box box.png cargo slot -> Command::SellResourceOrder: the reverse.
 //   5. A buy is capped by what the faction can afford.
 
@@ -110,15 +110,15 @@ void TestCase_048::init()
     home->setName("Kaupang");
     home->foundedyear = -4000;
     home->setCapitalCity();
-    home->coreresources[COINS] = 500;
+    home->resources[COINS] = 500;
     cities[home->id] = home;
     homeid = home->id;
 
     City *city = new City(&map, 1, getNextCityId(), 5, 5);   // foreign city (faction 1)
     city->setName("Roma");
     city->foundedyear = -4000;
-    city->commodities[copper] = 250;
-    city->coreresources[COINS] = 0;
+    city->resources[copper] = 250;
+    city->resources[COINS] = 0;
     cities[city->id] = city;
     cityid = city->id;
 
@@ -218,11 +218,11 @@ int TestCase_048::check(int year)
             fail("Buy: 100 copper did not board the Wagon.");
             return 0;
         }
-        if (city->commodities[copper] != 150 || home->coreresources[COINS] != 400 || city->coreresources[COINS] != 100)
+        if (city->resources[copper] != 150 || home->resources[COINS] != 400 || city->resources[COINS] != 100)
         {
             char buf[200];
             snprintf(buf,sizeof(buf),"Buy: bad totals (Roma copper %d exp 150, Kaupang COINS %d exp 400, Roma COINS %d exp 100).",
-                     city->commodities[copper], home->coreresources[COINS], city->coreresources[COINS]);
+                     city->resources[copper], home->resources[COINS], city->resources[COINS]);
             fail(buf);
             return 0;
         }
@@ -239,28 +239,28 @@ int TestCase_048::check(int year)
         fail("Sell: copper is still aboard the Wagon.");
         return 0;
     }
-    if (city->commodities[copper] != 250 || home->coreresources[COINS] != 500 || city->coreresources[COINS] != 0)
+    if (city->resources[copper] != 250 || home->resources[COINS] != 500 || city->resources[COINS] != 0)
     {
         char buf[200];
         snprintf(buf,sizeof(buf),"Sell: bad totals (Roma copper %d exp 250, Kaupang COINS %d exp 500, Roma COINS %d exp 0).",
-                 city->commodities[copper], home->coreresources[COINS], city->coreresources[COINS]);
+                 city->resources[copper], home->resources[COINS], city->resources[COINS]);
         fail(buf);
         return 0;
     }
 
     // 5) Affordability cap: Kaupang holds only 30 coins -> only 30 copper bought.
-    home->coreresources[COINS] = 30;
+    home->resources[COINS] = 30;
     clickOnCommerceScreen(5, -5, 0, 0);
     processCommandOrders();
 
     {
         Resource* r = dynamic_cast<Resource*>(wagon->findCargo(copper));
-        if (r == nullptr || r->amount != 30 || home->coreresources[COINS] != 0
-            || city->commodities[copper] != 220 || city->coreresources[COINS] != 30)
+        if (r == nullptr || r->amount != 30 || home->resources[COINS] != 0
+            || city->resources[copper] != 220 || city->resources[COINS] != 30)
         {
             char buf[200];
             snprintf(buf,sizeof(buf),"Affordability: expected 30 bought (aboard %d, Kaupang COINS %d, Roma copper %d, Roma COINS %d).",
-                     r ? r->amount : -1, home->coreresources[COINS], city->commodities[copper], city->coreresources[COINS]);
+                     r ? r->amount : -1, home->resources[COINS], city->resources[copper], city->resources[COINS]);
             fail(buf);
             return 0;
         }

@@ -13,7 +13,7 @@ class City;
 // "buy" arrow per row, and the bottom-centre "Port" box is the trading Transport drawn as a
 // Units-box row (cityscreenui.cpp:drawUnitsBoxRow) -- press a box.png cargo slot to sell
 // that stack. Buy/sell pay through prices[] and move COINS between the faction's
-// capital-city treasury and city->coreresources[COINS].
+// capital-city treasury and city->resources[COINS].
 void drawCommerceScreen(int centerlatitude, int centerlongitude, City *city);
 void clickOnCommerceScreen(int lat, int lon, int lat2, int lon2);
 

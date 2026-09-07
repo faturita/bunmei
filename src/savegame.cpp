@@ -116,12 +116,12 @@ void savegame(const char* filename)
         out.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
         out.write(c->name, name_len);
 
-        // The buildings and resources are missing.
+        // The buildings are missing.
 
         // Save resources
-        size_t resource_count = c->coreresources.size();
+        size_t resource_count = c->resources.size();
         out.write(reinterpret_cast<const char*>(&resource_count), sizeof(resource_count));
-        for (const auto& res : c->coreresources) {
+        for (const auto& res : c->resources) {
             out.write(reinterpret_cast<const char*>(&res.first), sizeof(res.first));
             out.write(reinterpret_cast<const char*>(&res.second), sizeof(res.second));
         }
@@ -253,7 +253,7 @@ void loadCities(std::ifstream& in)
             int res_id = 0, res_amount = 0;
             in.read(reinterpret_cast<char*>(&res_id), sizeof(res_id));
             in.read(reinterpret_cast<char*>(&res_amount), sizeof(res_amount));
-            c->coreresources[res_id] = res_amount;
+            c->resources[res_id] = res_amount;
         }
 
         // Working tiles are NOT re-assigned here: the map file (saveMap()/loadMap(),
