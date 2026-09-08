@@ -306,20 +306,20 @@ The discovery of a technology or other achievements enable unit productions or r
 
 | Tech | Technology Code | Dependencies |
 |---|---:|---|
-| ROOT | `0x01` | - |
-| Hunting | `0x02` | ROOT |
-| Agriculture | `0x03` | ROOT |
-| Fishing | `0x04` | ROOT |
-| Mining | `0x05` | ROOT |
-| Masonry | `0x06` | ROOT |
-| The Wheel | `0x07` | ROOT |
-| Archery | `0x08` | ROOT, Hunting |
-| Warrior Code | `0x09` | ROOT, Hunting |
-| Bronze Working | `0x0A` | ROOT, Hunting |
-| Animal Husbandry | `0x0B` | ROOT, Hunting |
-| Pottery | `0x0C` | ROOT, Agriculture |
-| Alphabet | `0x0D` | ROOT |
-| Ceremonial Burial | `0x0E` | ROOT |
+| Language | `0x01` | - |
+| Hunting | `0x02` | Language |
+| Agriculture | `0x03` | Language |
+| Fishing | `0x04` | Language |
+| Mining | `0x05` | Language |
+| Masonry | `0x06` | Language |
+| The Wheel | `0x07` | Language |
+| Archery | `0x08` | Language, Hunting |
+| Warrior Code | `0x09` | Language, Hunting |
+| Bronze Working | `0x0A` | Language, Hunting |
+| Animal Husbandry | `0x0B` | Language, Hunting |
+| Pottery | `0x0C` | Language, Agriculture |
+| Alphabet | `0x0D` | Language |
+| Ceremonial Burial | `0x0E` | Language |
 | Writing | `0x0F` | Alphabet |
 | Mathematics | `0x10` | Masonry, Alphabet |
 | Iron Working | `0x11` | Bronze Working |
@@ -352,7 +352,6 @@ The discovery of a technology or other achievements enable unit productions or r
 | Music | `0x2C` | Ceremonial Burial, Mathematics, Literature, Mysticism, Education |
 | Industrialization | `0x2D` | Charters, Magnetism, Code of Laws, Currency, Metallurgy |
 | Military Tradition | `0x2E` | Warrior Code, Horseback Riding, Literature, Chivalry, Education, Gunpowder, Chemistry |
-
 
 ## Government and Society
 
@@ -455,3 +454,21 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * https://github.com/SWY1985/CivOne
 * https://codeberg.org/rhorvat/OpenCivOne
 
+ - @Task: Basic tech tree scaffold.  Please just create the scaffold, the structures and code to implement the following idea.
+   - create technologies.h/cpp.  These files will contain the scaffold for the tech tree.
+   - The tech tree is not a tree. It is a graph, and it will work like a multilayered perceptron.
+   - Eaach node is one tech.  And the SCIENCE resource accumulated each turn can be used on any already discovered tech.  At the beginning it can only be used for 'Language', the root.  And it will be accumulated there (int values like science),
+   - The player (either user or AI) decides to which tech that it already had, derive SCIENCE resources.  They can be shared between several.
+   - Each turn, for each faction, the value that comes from the node, let's say tech_1 is used, as in an MLP, to calculate sigmoid( tech_1 * w1_4 - b4).  This is the edge that connects tech_1 with tech_4.  This is equation 1.
+   - w1_4 and b4 are going to be initialized randomly (they will need to be fine tunnned in the future for sure).  Let's keep them between 0.1 and 0.9 (this depends on the sigmoid function selection)
+   - Once the sigmoid value in equation 1 goes over some threshold value and the sigmoid (or any other non linear function like this) goes over the threshold, this trigger that the technology is discovered and will be now available (Activating the DEP at the level of faction associated with that technology). (that is coded in 'codes.h')
+   - Let's define the 'Frontier': these are the set of techs from the graph that can be potentially discovered.
+   - So each turn, SCIENCE is accumulated in one of the techs from 'Frontier' (that is what the user or AI selects all the time).  
+   - That will change the value of tech_1 (or shared values, the selection can be also partial). 
+   - That will trigger changes in all the output of all the edges connected to all the techs in the 'Frontier'
+   - Then, it should pick all the possible next techs that are fan out of all the 'Frontier' techs and recalculate their values.   Keep in mind that each one of them is indeed, or it could be the sum of several, like 'sigmoid ( tech_1 * w1_4 + tech_2 * w2_4 + b). 
+   - These set of discoverable techs will be 'Next'.  
+   - So the algorithm, after updating all the Frontier techs, it should go through all the Next techs and verify if any of them is 'firing' (the output of the sigmoid went over the threshold or is close to 1).  At that point, remove that tech from Next and push it into 'Frontier'
+   - Verify if some tech in 'Frontier' does not have any non-discovered child node, and remove it from Frontier.
+   - The structure of the graph network is in README.md:307.  Use it for testing, not for implementing now.  Test the scaffold separately.
+   - There is one ROOT tech which is the starting point for any faction.  That tech is 'Language' and all the factions start with it.   
