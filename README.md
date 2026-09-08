@@ -304,23 +304,55 @@ Instead of selecting what scientific advance do you seek, you can invest researc
 
 The discovery of a technology or other achievements enable unit productions or resource production.  Everything is mediated through the commands.
 
-| Tech | Technology Dep Code  | Dependencies |  |
-|---|---|---|---|
-| The Wheel         | 0x01                 |  | - |
-| Archery           | 0x02    |  |  |
-| Warrior Code      | 0x03     |  |  |
-| Bronze Working    | 0x04            |  |  |
-| Iron Working      | 0x05
-| Horseback Riding  | 0x06    |  |  |
-| Animal Husbandry  | 0x07            |  |  |
-| Pottery           | 0x08                | -    | - |
-| Currency          | 0x09           |    |  |
-| Alphabet          | 0x0a           |  |  |
-| Mining            | 0x0b          |  |  |
-| Ceremonial Burial | 0x0c          | | |
-| Writing           | 0x0d          | Alphabet | |
-| Map Making        | 0x0e          | Alphabet + Pottery | |
-| Industrialization | 0x0f          | ... | |
+| Tech | Technology Code | Dependencies |
+|---|---:|---|
+| ROOT | `0x01` | - |
+| Hunting | `0x02` | ROOT |
+| Agriculture | `0x03` | ROOT |
+| Fishing | `0x04` | ROOT |
+| Mining | `0x05` | ROOT |
+| Masonry | `0x06` | ROOT |
+| The Wheel | `0x07` | ROOT |
+| Archery | `0x08` | ROOT, Hunting |
+| Warrior Code | `0x09` | ROOT, Hunting |
+| Bronze Working | `0x0A` | ROOT, Hunting |
+| Animal Husbandry | `0x0B` | ROOT, Hunting |
+| Pottery | `0x0C` | ROOT, Agriculture |
+| Alphabet | `0x0D` | ROOT |
+| Ceremonial Burial | `0x0E` | ROOT |
+| Writing | `0x0F` | Alphabet |
+| Mathematics | `0x10` | Masonry, Alphabet |
+| Iron Working | `0x11` | Bronze Working |
+| Horseback Riding | `0x12` | Warrior Code, Animal Husbandry, Archery |
+| Construction | `0x13` | Masonry, Iron Working, Mathematics, The Wheel |
+| Currency | `0x14` | Iron Working, Mathematics |
+| Mysticism | `0x15` | Ceremonial Burial |
+| Map Making | `0x16` | Fishing, Alphabet, Pottery |
+| Polytheism | `0x17` | Warrior Code, Mysticism |
+| Literature | `0x18` | Writing, Alphabet |
+| Code of Laws | `0x19` | Writing, Warrior Code |
+| Philosophy | `0x1A` | Mathematics, Writing |
+| Metal Casting | `0x1B` | Iron Working, Construction |
+| Monotheism | `0x1C` | Mysticism, Polytheism |
+| Republic | `0x1D` | Code of Laws, Philosophy |
+| Monarchy | `0x1E` | Polytheism, Monotheism |
+| Feudalism | `0x1F` | Archery, Monarchy, Currency |
+| Ship Building | `0x20` | Construction, Map Making, Metal Casting, Feudalism |
+| Theology | `0x21` | Monotheism, Philosophy |
+| Education | `0x22` | Alphabet, Literature, Republic, Theology |
+| Astronomy | `0x23` | Alphabet, Mathematics, Map Making, Ceremonial Burial, Ship Building, Education |
+| Banking | `0x24` | Currency, Code of Laws, Education |
+| Chivalry | `0x25` | Monotheism, Feudalism, Monarchy, Theology |
+| Physics | `0x26` | Alphabet, Mathematics, Iron Working, Astronomy |
+| Gunpowder | `0x27` | Pottery, Ceremonial Burial, Feudalism |
+| Magnetism | `0x28` | Map Making, Iron Working, Ship Building, Astronomy |
+| Chemistry | `0x29` | Ceremonial Burial, Pottery, Gunpowder, Physics |
+| Metallurgy | `0x2A` | Iron Working, Bronze Working, Metal Casting, Chemistry |
+| Charters | `0x2B` | Currency, Banking, Writing, Code of Laws, Philosophy |
+| Music | `0x2C` | Ceremonial Burial, Mathematics, Literature, Mysticism, Education |
+| Industrialization | `0x2D` | Charters, Magnetism, Code of Laws, Currency, Metallurgy |
+| Military Tradition | `0x2E` | Warrior Code, Horseback Riding, Literature, Chivalry, Education, Gunpowder, Chemistry |
+
 
 ## Government and Society
 
