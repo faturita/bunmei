@@ -47,6 +47,13 @@ void chooseResearch(int factionId, bool force = false);
 // produces and consumes nothing that year.  Called from bunmei.cpp's endOfYear().
 void operateCityBuildings(City* c);
 
+// Irrigation needs a water source on one of the four orthogonal neighbours of (lat,lon): a
+// RIVER tile (any variant, estuaries included), a LAKE, an OASIS resource, or a tile that is
+// already irrigated (irrigation extends as a network). lat/lon are REAL map coordinates --
+// the neighbours are read with map.peek(), never the screen-space map.north/south/east/west,
+// which would add the viewing faction's map offset.
+bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon);
+
 int findNearbyEnemyFactionId(int unitId, int radius);
 
 // Makes u the active/selectable unit (coordinator.a_u_id) and wakes it out of whatever

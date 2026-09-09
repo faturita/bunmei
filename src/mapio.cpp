@@ -20,7 +20,13 @@ void saveMap(const std::string &path)
 
     for (int lat = map.minlat; lat < map.maxlat; lat++) {
         for (int lon = map.minlon; lon < map.maxlon; lon++) {
-            auto &cell = map(lat, lon);
+            // peek(), NOT map(lat,lon): operator() adds the viewing faction's map offset
+            // (shifted with 'f'/'g'), so a map saved while the view was scrolled was written
+            // out rotated by that offset while the lat/lon LABELS stayed unshifted -- and
+            // loadMap below reads those labels straight into map.set(), which has no offset.
+            // Reloading then put the terrain back rotated under units and cities, which are
+            // saved at their true coordinates. Save and load must both be offset-free.
+            auto &cell = map.peek(lat, lon);
             out.write(reinterpret_cast<const char*>(&lat), sizeof(lat));
             out.write(reinterpret_cast<const char*>(&lon), sizeof(lon));
             out.write(reinterpret_cast<const char*>(&cell.code), sizeof(cell.code));

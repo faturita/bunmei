@@ -1042,7 +1042,13 @@ void switchUnitIfNoMovesLeft()
 // per the task.
 bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon)
 {
-    mapcell neighbours[4] = { map.north(lat,lon), map.south(lat,lon), map.east(lat,lon), map.west(lat,lon) };
+    // peek(), NOT map.north/south/east/west: those go through Map::operator(), which adds the
+    // viewing faction's map offset (Faction::mapoffset, shifted with 'f'/'g') because they are
+    // meant for SCREEN coordinates -- map.cpp's drawing loops. lat/lon here are the worker's
+    // REAL coordinates, so using them read tiles `offset` columns away and irrigation was
+    // refused next to a river whenever the player had scrolled the map.
+    mapcell neighbours[4] = { map.peek(lat-1,lon), map.peek(lat+1,lon),
+                              map.peek(lat,lon+1), map.peek(lat,lon-1) };
 
     for (auto &n : neighbours)
     {
