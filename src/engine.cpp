@@ -48,6 +48,7 @@
 
 #include "coordinator.h"
 #include "dee.h"
+#include "technologies.h"
 #include "messages.h"
 #include "sounds/sounds.h"
 #include "engine.h"
@@ -57,6 +58,7 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern Coordinator coordinator;
 extern DependencyEvaluationEngine dee;
+extern TechTree techtree;
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern ImprovementEffort improvementeffort;
@@ -174,6 +176,55 @@ City* factionTreasury(int faction_id)
         if (firstCity == nullptr) firstCity = c;
     }
     return firstCity;
+}
+
+// Ask a faction where its SCIENCE should go next. An autoPlayer faction just rolls one of the
+// technologies it can currently research; a human one gets the controller.query selector, one
+// option per Frontier technology (at the start of a game that is only "Language", so the
+// dialog opens with a single option -- it widens as the Frontier does).
+//
+// Normally a no-op while the faction still has a valid target. `force` asks anyway: every
+// discovery widens the Frontier, so the player is re-prompted after one to decide where the
+// science goes now. Either way there is nothing to ask once the Frontier is empty.
+void chooseResearch(int factionId, bool force)
+{
+    if (factionId < 0 || factionId >= techtree.factionCount())
+        return;
+    if (!force && !techtree.needsResearchTarget(factionId))
+        return;
+    if (techtree.graph(factionId).getFrontier().empty())
+        return;
+
+    if (factions[factionId]->autoPlayer)
+    {
+        techtree.pickRandomTarget(factionId);
+        return;
+    }
+
+    // Only one modal dialog fits on screen; if something else is already asking, the fallback
+    // in endOfYear() picks for this year and the player is asked again next year.
+    if (controller.query.active)
+        return;
+
+    std::vector<int> choices = techtree.graph(factionId).getFrontierOrdered();
+    if (choices.empty())
+        return;
+
+    std::vector<std::string> options;
+    for (int id : choices)
+    {
+        const Tech* t = techtree.graph(factionId).getTech(id);
+        options.push_back(t != nullptr ? t->name : std::string("?"));
+    }
+
+    controller.query.active  = true;
+    controller.query.message = "Our scholars await your direction. What shall we study?";
+    controller.query.options = options;
+    controller.query.selected = [factionId, choices](int i)
+    {
+        if (i >= 0 && i < (int)choices.size())
+            techtree.setResearchTarget(factionId, choices[i]);
+    };
 }
 
 // Go through all the things a city can build and check all the dependencies.
@@ -991,7 +1042,13 @@ void switchUnitIfNoMovesLeft()
 // per the task.
 bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon)
 {
-    mapcell neighbours[4] = { map.north(lat,lon), map.south(lat,lon), map.east(lat,lon), map.west(lat,lon) };
+    // peek(), NOT map.north/south/east/west: those go through Map::operator(), which adds the
+    // viewing faction's map offset (Faction::mapoffset, shifted with 'f'/'g') because they are
+    // meant for SCREEN coordinates -- map.cpp's drawing loops. lat/lon here are the worker's
+    // REAL coordinates, so using them read tiles `offset` columns away and irrigation was
+    // refused next to a river whenever the player had scrolled the map.
+    mapcell neighbours[4] = { map.peek(lat-1,lon), map.peek(lat+1,lon),
+                              map.peek(lat,lon+1), map.peek(lat,lon-1) };
 
     for (auto &n : neighbours)
     {
@@ -1108,6 +1165,26 @@ void processCommandOrders()
         continue;
     }
 
+    if (co.command == Command::SetFundamentalRatesOrder)
+    {
+        // Addresses a FACTION (parameters.factionid), not the active unit -- so, like the tile
+        // and city commands above, it must run BEFORE the active-unit guard below (the
+        // /fundamental teletype command has no unit behind it, so spawnid is meaningless).
+        // Sets how much of a city's TRADE turns into COINS / SCIENCE / CULTURE / LUXURY each
+        // year (bunmei.cpp:endOfYear).
+        if (co.parameters.factionid >= 0 && co.parameters.factionid < (int)factions.size())
+        {
+            Faction* f = factions[co.parameters.factionid];
+            for (int i=0;i<4;i++)
+                f->rates[i] = co.parameters.rates[i];
+
+            message(year, co.parameters.factionid,
+                    "%s fundamental rates set to coins %.2f, science %.2f, culture %.2f, luxury %.2f.",
+                    f->name, f->rates[0], f->rates[1], f->rates[2], f->rates[3]);
+        }
+        continue;
+    }
+
     if (units.find(co.parameters.spawnid) == units.end())
     {
         continue;
@@ -1160,6 +1237,11 @@ void processCommandOrders()
         coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
 
         message(year, co.parameters.factionid, "City %s %shas been founded.",city->name, city->isCapitalCity()?"(Capital) ":"");
+
+        // First city == the first time this faction produces any SCIENCE, so this is where it
+        // is asked what to research. Afterwards endOfYear() re-asks whenever the current
+        // target drops out of the Frontier.
+        chooseResearch(co.parameters.factionid);
 
 
     }

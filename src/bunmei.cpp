@@ -64,6 +64,7 @@
 #include "marketui.h"
 #include "automation.h"
 #include "dee.h"
+#include "technologies.h"
 
 #include "buildable.h"
 
@@ -114,6 +115,7 @@ std::vector<Message> messages;
 
 Coordinator coordinator;
 DependencyEvaluationEngine dee;
+TechTree techtree;
 
 extern ImprovementEffort improvementeffort;
 
@@ -447,7 +449,39 @@ inline void endOfYear()
         // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
     }
 
-    
+    // ---- Research ----------------------------------------------------------------------
+    // Every city's SCIENCE for the year is pooled per faction, poured into whatever that
+    // faction currently has selected, and the city's counter cleared -- SCIENCE is spent on
+    // research, not stockpiled in the city. Then the tech graph is stepped: anything that
+    // fires is discovered and its dependency code registered, which is what makes the
+    // buildables gated behind it appear.
+    std::unordered_map<int,int> sciencePerFaction;
+    for (auto& [k, c] : cities)
+    {
+        sciencePerFaction[c->faction] += c->resources[SCIENCE];
+        c->resources[SCIENCE] = 0;
+    }
+
+    for(auto& f:factions)
+    {
+        // A faction with no target yet (or one that just went stale because everything it led
+        // to is known) picks now: the AI rolls, a human gets the selector.
+        chooseResearch(f->id);
+
+        std::vector<int> discovered = techtree.advance(f->id, sciencePerFaction[f->id], dee);
+        for (int id : discovered)
+        {
+            const Tech* t = techtree.graph(f->id).getTech(id);
+            message(year, f->id, "Our scholars have discovered %s.", t != nullptr ? t->name.c_str() : "something");
+        }
+
+        // Every discovery widens the Frontier, so the faction decides again where ALL of its
+        // science goes from here: the player is re-prompted, the AI rerolls. Science handed to
+        // advance() before that is answered is banked by TechTree, not lost.
+        if (!discovered.empty())
+            chooseResearch(f->id, true);
+    }
+
     for(auto& f:factions)
     {
         f->ready();

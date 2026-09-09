@@ -129,13 +129,11 @@ void savegame(const char* filename)
         // Save working tiles
         int number_of_working_tiles = c->numberOfWorkingTiles();
         out.write(reinterpret_cast<const char*>(&number_of_working_tiles), sizeof(number_of_working_tiles));
-        coordinate co = map.to_screen(c->latitude,c->longitude);
+        // Only the tile's offset RELATIVE to the city (-3..3) is stored, so no absolute
+        // coordinate is needed here at all -- loadCities reads the pairs back the same way.
         for(int lats=-3;lats<=3;lats++)
             for(int lons=-3;lons<=3;lons++)
             {
-                int la= co.lat + lats;
-                int lo = co.lon + lons;
-
                 if (c->workingOn(lats,lons))
                 {
                     printf("Saving working tile at offset (%d,%d) for city %s\n", lats, lons, c->name);
@@ -218,7 +216,11 @@ void loadCities(std::ifstream& in)
         // snapshot/restore it around construction so this placeholder claim doesn't corrupt
         // whatever legitimately occupies it (including this very city, if it turns out to
         // actually be located at (0,0)).
-        mapcell origin_snapshot = map(0,0);
+        // peek(), NOT map(0,0): operator() adds the viewing faction's map offset while the
+        // restore below goes through set(), which does not -- so with the view scrolled this
+        // snapshotted one tile and wrote it over a DIFFERENT one. Latent today (the offset is
+        // still 0 this early in loadWorldModelling), but the two sides must match.
+        mapcell origin_snapshot = map.peek(0,0);
         City* c = new City(&map, 0, 0, 0, 0); // Temporary values
         map.set(0,0) = origin_snapshot;
         in.read(reinterpret_cast<char*>(&c->id), sizeof(c->id));

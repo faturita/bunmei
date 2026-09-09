@@ -29,6 +29,7 @@
 #include "buildings/Market.h"
 #include "coordinator.h"
 #include "dee.h"
+#include "technologies.h"
 #include "improvements.h"
 #include "diplomacy.h"
 #include "automation.h"
@@ -55,6 +56,7 @@ Coordinator coordinator;
 // in this headless build (no Transport ever trades here), but the symbol must resolve.
 Controller controller;
 DependencyEvaluationEngine dee;
+TechTree techtree;
 DiplomacyTable diplomacy;
 std::unordered_map<int, Improvement*> improvements;
 
@@ -100,8 +102,8 @@ void initFactions()
     faction->red = 255;
     faction->green = 0;
     faction->blue = 0;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
+    faction->rates[0] = 0.5;
+    faction->rates[1] = 0.5;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
     
@@ -114,8 +116,8 @@ void initFactions()
     faction->red = 255;
     faction->green = 255;
     faction->blue = 255;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
+    faction->rates[0] = 0.5;
+    faction->rates[1] = 0.5;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
 
@@ -129,8 +131,8 @@ void initFactions()
     faction->red = 0;
     faction->green = 0;
     faction->blue = 255;
-    faction->rates[0] = 1;
-    faction->rates[1] = 0;
+    faction->rates[0] = 0.5;
+    faction->rates[1] = 0.5;
     faction->rates[2] = 0;
     faction->rates[3] = 0;
     factions.push_back(faction);
@@ -484,7 +486,35 @@ inline void endOfYear()
         // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
     }
 
-    
+    // ---- Research (mirrors bunmei.cpp:endOfYear()) --------------------------------------
+    // Pool each faction's SCIENCE for the year, clear the cities' counters, and step its tech
+    // graph. Every faction here is an autoPlayer, so chooseResearch() always rolls a random
+    // Frontier technology -- there is no selector dialog in the headless simulator.
+    std::unordered_map<int,int> sciencePerFaction;
+    for (auto& [k, c] : cities)
+    {
+        sciencePerFaction[c->faction] += c->resources[SCIENCE];
+        c->resources[SCIENCE] = 0;
+    }
+
+    for(auto& f:factions)
+    {
+        chooseResearch(f->id);
+
+        std::vector<int> discovered = techtree.advance(f->id, sciencePerFaction[f->id], dee);
+        for (int id : discovered)
+        {
+            const Tech* t = techtree.graph(f->id).getTech(id);
+            message(year, f->id, "Our scholars have discovered %s.", t != nullptr ? t->name.c_str() : "something");
+        }
+
+        // Every discovery widens the Frontier, so the faction decides again where ALL of its
+        // science goes from here: the player is re-prompted, the AI rerolls. Science handed to
+        // advance() before that is answered is banked by TechTree, not lost.
+        if (!discovered.empty())
+            chooseResearch(f->id, true);
+    }
+
     for(auto& f:factions)
     {
         f->ready();
@@ -629,6 +659,11 @@ int main(int argc, char *argv[]) {
     }
 
     initDiplomacy(diplomacy, factions.size());
+
+    // Tech graph: one per faction, everybody starting at the root (Language). Shared with
+    // gamekernel.cpp through initTechnologies() so the game and the simulator set it up the
+    // same way (gamekernel.cpp is not linked into the simulator).
+    initTechnologies(techtree, factions.size(), dee);
 
     initUnits();
 
