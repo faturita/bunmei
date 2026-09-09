@@ -307,51 +307,51 @@ The discovery of a technology or other achievements enable unit productions or r
 | Tech | Technology Code | Dependencies |
 |---|---:|---|
 | Language | `0x01` | - |
-| Hunting | `0x02` | Language |
-| Agriculture | `0x03` | Language |
-| Fishing | `0x04` | Language |
-| Mining | `0x05` | Language |
-| Masonry | `0x06` | Language |
-| The Wheel | `0x07` | Language |
-| Archery | `0x08` | Language, Hunting |
-| Warrior Code | `0x09` | Language, Hunting |
-| Bronze Working | `0x0A` | Language, Hunting |
-| Animal Husbandry | `0x0B` | Language, Hunting |
-| Pottery | `0x0C` | Language, Agriculture |
-| Alphabet | `0x0D` | Language |
-| Ceremonial Burial | `0x0E` | Language |
-| Writing | `0x0F` | Alphabet |
-| Mathematics | `0x10` | Masonry, Alphabet |
-| Iron Working | `0x11` | Bronze Working |
-| Horseback Riding | `0x12` | Warrior Code, Animal Husbandry, Archery |
-| Construction | `0x13` | Masonry, Iron Working, Mathematics, The Wheel |
-| Currency | `0x14` | Iron Working, Mathematics |
-| Mysticism | `0x15` | Ceremonial Burial |
-| Map Making | `0x16` | Fishing, Alphabet, Pottery |
-| Polytheism | `0x17` | Warrior Code, Mysticism |
-| Literature | `0x18` | Writing, Alphabet |
-| Code of Laws | `0x19` | Writing, Warrior Code |
-| Philosophy | `0x1A` | Mathematics, Writing |
-| Metal Casting | `0x1B` | Iron Working, Construction |
-| Monotheism | `0x1C` | Mysticism, Polytheism |
-| Republic | `0x1D` | Code of Laws, Philosophy |
-| Monarchy | `0x1E` | Polytheism, Monotheism |
-| Feudalism | `0x1F` | Archery, Monarchy, Currency |
-| Ship Building | `0x20` | Construction, Map Making, Metal Casting, Feudalism |
-| Theology | `0x21` | Monotheism, Philosophy |
-| Education | `0x22` | Alphabet, Literature, Republic, Theology |
-| Astronomy | `0x23` | Alphabet, Mathematics, Map Making, Ceremonial Burial, Ship Building, Education |
-| Banking | `0x24` | Currency, Code of Laws, Education |
-| Chivalry | `0x25` | Monotheism, Feudalism, Monarchy, Theology |
-| Physics | `0x26` | Alphabet, Mathematics, Iron Working, Astronomy |
-| Gunpowder | `0x27` | Pottery, Ceremonial Burial, Feudalism |
-| Magnetism | `0x28` | Map Making, Iron Working, Ship Building, Astronomy |
-| Chemistry | `0x29` | Ceremonial Burial, Pottery, Gunpowder, Physics |
-| Metallurgy | `0x2A` | Iron Working, Bronze Working, Metal Casting, Chemistry |
-| Charters | `0x2B` | Currency, Banking, Writing, Code of Laws, Philosophy |
-| Music | `0x2C` | Ceremonial Burial, Mathematics, Literature, Mysticism, Education |
-| Industrialization | `0x2D` | Charters, Magnetism, Code of Laws, Currency, Metallurgy |
-| Military Tradition | `0x2E` | Warrior Code, Horseback Riding, Literature, Chivalry, Education, Gunpowder, Chemistry |
+| Hunting | `0x02` | Language (1.0) |
+| Agriculture | `0x03` | Language (1.0) |
+| Fishing | `0x04` | Language (1.0) |
+| Mining | `0x05` | Language (1.0) |
+| Masonry | `0x06` | Language (0.9)|
+| The Wheel | `0x07` | Language (1.0) |
+| Archery | `0x08` | Language (0.8), Hunting (1.0) |
+| Warrior Code | `0x09` | Language (0.8), Hunting (1.0) |
+| Bronze Working | `0x0A` | Language (0.8), Hunting (1.0) |
+| Animal Husbandry | `0x0B` | Language (0.8), Hunting (1.0) |
+| Pottery | `0x0C` | Language (1.0), Agriculture (1.0) |
+| Alphabet | `0x0D` | Language (1.0) |
+| Ceremonial Burial | `0x0E` | Language (1.0) |
+| Writing | `0x0F` | Alphabet (1.0) |
+| Mathematics | `0x10` | Masonry (1.0), Alphabet (1.0) |
+| Iron Working | `0x11` | Bronze Working (1.0) |
+| Horseback Riding | `0x12` | Warrior Code (1.0), Animal Husbandry (1.0), Archery (1.0) |
+| Construction | `0x13` | Masonry (1.0), Iron Working (0.9), Mathematics (0.8), The Wheel (0.9) |
+| Currency | `0x14` | Iron Working (1.0), Mathematics (1.0) |
+| Mysticism | `0x15` | Ceremonial Burial (1.0) |
+| Map Making | `0x16` | Fishing (1.0), Alphabet (1.0), Pottery (1.0) |
+| Polytheism | `0x17` | Warrior Code (0.9), Mysticism (1.0) |
+| Literature | `0x18` | Writing (1.0), Alphabet (0.8) |
+| Code of Laws | `0x19` | Writing (1.0), Warrior Code (1.0)|
+| Philosophy | `0x1A` | Mathematics (1.0), Writing (1.0) |
+| Metal Casting | `0x1B` | Iron Working (0.9), Construction (1.0) |
+| Monotheism | `0x1C` | Mysticism (0.9), Polytheism (1.0)|
+| Republic | `0x1D` | Code of Laws (1.0), Philosophy (1.0) |
+| Monarchy | `0x1E` | Polytheism (0.9), Monotheism (1.0)|
+| Feudalism | `0x1F` | Archery (0.7), Monarchy (1.0), Currency (0.9) |
+| Ship Building | `0x20` | Construction (1.0), Map Making (1.0), Metal Casting (1.0), Feudalism (1.0) |
+| Theology | `0x21` | Monotheism (1.0), Philosophy (1.0) |
+| Education | `0x22` | Alphabet (0.7), Literature (0.9), Republic (1.0), Theology (1.0) |
+| Astronomy | `0x23` | Alphabet (0.7), Mathematics (0.8), Map Making (0.8), Ceremonial Burial (0.8), Ship Building (1.0), Education (1.0) |
+| Banking | `0x24` | Currency (0.9), Code of Laws (0.9), Education (1.0) |
+| Chivalry | `0x25` | Monotheism (0.9), Feudalism (1.0), Monarchy (1.0), Theology (0.9) |
+| Physics | `0x26` | Alphabet (0.7), Mathematics (0.7), Iron Working (0.8), Astronomy (1.0)|
+| Gunpowder | `0x27` | Pottery (0.6), Ceremonial Burial (0.5), Feudalism (1.0) |
+| Magnetism | `0x28` | Map Making (0.6), Iron Working (0.6), Ship Building (0.9), Astronomy (1.0) |
+| Chemistry | `0x29` | Ceremonial Burial (0.4), Pottery (0.4), Gunpowder (0.9), Physics (1.0) |
+| Metallurgy | `0x2A` | Iron Working (0.5), Bronze Working (0.5), Metal Casting (0.8), Chemistry (1.0) |
+| Charters | `0x2B` | Currency (0.5), Banking (0.7), Writing (0.4), Code of Laws (0.4), Philosophy (1.0) |
+| Music | `0x2C` | Ceremonial Burial (0.4), Mathematics (0.2), Literature (0.3), Mysticism (0.5), Education (1.0) |
+| Industrialization | `0x2D` | Charters (1.0), Magnetism (0.9), Code of Laws (0.8), Currency (0.5), Metallurgy (0.7) |
+| Military Tradition | `0x2E` | Warrior Code (0.3), Horseback Riding (0.3), Literature (0.5), Chivalry (0.6), Education (0.7), Gunpowder (0.8), Chemistry (0.9) |
 
 ## Government and Society
 

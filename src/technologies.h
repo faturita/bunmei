@@ -34,22 +34,30 @@
 // the caller through addTech/addEdge, so a test can use any shape it likes. The GAME's graph
 // (README.md's tech table) is buildDefaultTechGraph() at the bottom of this header.
 //
-// There is one TechGraph per faction (TechTree below owns them): weights and biases are
-// randomized per graph, so two civilizations researching the same investment plan discover
-// things in a different order.
+// There is one TechGraph per faction (TechTree below owns them). They are identical copies --
+// the weights and biases come from the table, not from chance -- so what makes two
+// civilizations diverge is purely WHAT THEY INVEST IN, which is the design README.md asks for.
 
-// Random-initialization range for edge weights and node biases, and the sigmoid output at
-// which a technology is considered discovered.
+// Weights and biases are DATA, not random: README.md's "Science" table gives every dependency
+// a factor, and a node's bias grows with its depth in the graph. Two constants tune the whole
+// thing globally.
 //
-// Firing needs sigmoid(science*w - bias) >= TECH_FIRING_THRESHOLD, i.e.
-// science >= (logit(threshold) + bias) / w = (2.197 + bias) / w. Averaged over the ranges
-// below that is ~74 SCIENCE per discovery (the weights were scaled down 10x from an earlier
-// 0.1..0.9, which fired after only ~7). Widen/narrow the WEIGHT range to retune: expected
-// cost scales as 1/w, while the bias only shifts it by a couple of points.
-const float TECH_WEIGHT_MIN       = 0.01f;
-const float TECH_WEIGHT_MAX       = 0.09f;
-const float TECH_BIAS_MIN         = 0.1f;
-const float TECH_BIAS_MAX         = 0.9f;
+// TECH_DEFAULT_WEIGHT is what the table's default "(1.0)" is worth; every edge stores
+// factor * TECH_DEFAULT_WEIGHT, so changing this one number rescales every weight at once
+// without disturbing their relative structure.
+//
+// TECH_BIAS_BASE sets the per-node threshold: bias(j) = TECH_BIAS_BASE ^ depth(j), where
+// depth is the longest path in hops from the root. Deep technologies therefore get
+// exponentially harder, which is what compensates for a faction's SCIENCE income growing as
+// the game goes on.
+//
+// Firing needs sigmoid(SUM(science*w) - bias) >= TECH_FIRING_THRESHOLD, i.e.
+//     science >= (logit(threshold) + bias) / w = (2.197 + TECH_BIAS_BASE^depth) / w
+// With the values below a depth-1 technology off the root costs ~84 SCIENCE; each extra hop
+// roughly doubles it. Retune with TECH_DEFAULT_WEIGHT (scales everything as 1/w) or
+// TECH_BIAS_BASE (changes how steeply the cost climbs with depth).
+const float TECH_DEFAULT_WEIGHT   = 0.05f;
+const float TECH_BIAS_BASE        = 2.0f;
 const float TECH_FIRING_THRESHOLD = 0.9f;
 
 // A node that unlocks nothing in the Dependency Evaluation Engine. Real nodes carry one of
@@ -77,7 +85,8 @@ public:
 
     int   science    = 0;                      // SCIENCE invested INTO this node so far
     bool  discovered = false;
-    float bias       = 0.0f;
+    float bias       = 0.0f;                   // threshold to overcome; set by computeBiases()
+    int   depth      = 0;                      // longest path in hops from the root
 
     std::vector<TechEdge> inputs;              // parents (with their weights)
     std::vector<int>      outputs;             // fan-out: children this node feeds
@@ -91,16 +100,20 @@ public:
     // ---- graph construction -------------------------------------------------------------
     // Adds a node. `id` is the caller's technology code; re-adding an existing id is ignored.
     void addTech(int id, const char* name, int depCode = TECH_NO_DEP_CODE);
-    // Wires parent -> child with a freshly randomized weight. Both nodes must already exist;
+    // Wires parent -> child. `factor` is README.md's per-dependency weight, where 1.0 is the
+    // default -- the edge stores factor * TECH_DEFAULT_WEIGHT. Both nodes must already exist;
     // a duplicate edge is ignored.
-    void addEdge(int fromId, int toId);
+    void addEdge(int fromId, int toId, float factor = 1.0f);
     // The one technology every faction starts with ("Language").
     void setRoot(int id);
     int  getRoot() const;
 
-    // Rerolls every weight and bias inside [TECH_WEIGHT_MIN..MAX] / [TECH_BIAS_MIN..MAX].
-    // Called per faction so each one gets its own graph.
-    void randomize();
+    // Walks the graph from the root and gives every node depth = its longest path in hops and
+    // bias = TECH_BIAS_BASE ^ depth. Call once the graph is fully wired (buildDefaultTechGraph
+    // does); a caller that pins its own biases with setBias() should not call it afterwards.
+    void computeBiases();
+
+    int getDepth(int id) const;
 
     // Resets all progress: only the root is discovered, every node's science is 0, and the
     // Frontier/Next sets are seeded from the root. Weights and biases are left alone.
@@ -158,8 +171,7 @@ private:
 class TechTree
 {
 public:
-    // Gives every faction its own copy of `prototype` with freshly randomized weights/biases,
-    // reset to "only the root is known".
+    // Gives every faction its own copy of `prototype`, reset to "only the root is known".
     void reset(int factionCount, const TechGraph& prototype);
 
     int  factionCount() const;
@@ -206,10 +218,10 @@ private:
 // one place the game's technology data lives.
 TechGraph buildDefaultTechGraph();
 
-// Shared game/simulation setup: builds the default graph, gives every faction its own
-// randomized copy with only the root discovered, and registers the root's dependency code for
-// each of them (every faction starts knowing Language). gamekernel.cpp and simulate.cpp both
-// call this -- it lives here because gamekernel.cpp is not linked into the simulator.
+// Shared game/simulation setup: builds the default graph, gives every faction its own copy
+// with only the root discovered, and registers the root's dependency code for each of them
+// (every faction starts knowing Language). gamekernel.cpp and simulate.cpp both call this --
+// it lives here because gamekernel.cpp is not linked into the simulator.
 void initTechnologies(TechTree& tree, int factionCount, DependencyEvaluationEngine& dee);
 
 #endif // TECHNOLOGIES_H

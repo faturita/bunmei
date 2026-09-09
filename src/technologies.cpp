@@ -8,14 +8,6 @@ float techSigmoid(float x)
     return 1.0f / (1.0f + expf(-x));
 }
 
-// getRandomInteger is the project's single seeded generator (yamathutil.cpp; -seed reseeds
-// it), so derive the float from it instead of introducing a second RNG that -seed would not
-// reach.
-static float randomInRange(float lo, float hi)
-{
-    return lo + (hi - lo) * ((float)getRandomInteger(0,1000) / 1000.0f);
-}
-
 TechGraph::TechGraph()
 {
 }
@@ -29,13 +21,12 @@ void TechGraph::addTech(int id, const char* name, int depCode)
     t.id      = id;
     t.name    = name;
     t.depCode = depCode;
-    t.bias    = randomInRange(TECH_BIAS_MIN, TECH_BIAS_MAX);
 
     techs[id] = t;
     order.push_back(id);
 }
 
-void TechGraph::addEdge(int fromId, int toId)
+void TechGraph::addEdge(int fromId, int toId, float factor)
 {
     auto from = techs.find(fromId);
     auto to   = techs.find(toId);
@@ -48,7 +39,7 @@ void TechGraph::addEdge(int fromId, int toId)
 
     TechEdge e;
     e.from   = fromId;
-    e.weight = randomInRange(TECH_WEIGHT_MIN, TECH_WEIGHT_MAX);
+    e.weight = factor * TECH_DEFAULT_WEIGHT;      // README.md's factor, on the global scale
     to->second.inputs.push_back(e);
 
     from->second.outputs.push_back(toId);
@@ -64,15 +55,53 @@ int TechGraph::getRoot() const
     return root;
 }
 
-void TechGraph::randomize()
+// depth(root) = 0; depth(t) = 1 + max(depth(parents)) -- the LONGEST path, so a technology
+// sitting behind a long chain is priced as late-game even if it also has one shallow parent
+// (Military Tradition depends on Warrior Code, two hops out, but really arrives at hop 11).
+// Then bias = TECH_BIAS_BASE ^ depth.
+//
+// `order` is insertion order and buildDefaultTechGraph adds every technology before any edge,
+// so it is not a topological order -- hence the repeat-until-stable pass rather than a single
+// sweep. The graph is a DAG, so it settles in at most `size()` rounds.
+void TechGraph::computeBiases()
 {
     for (int id : order)
+        techs[id].depth = 0;
+
+    bool changed = true;
+    int guard = (int)order.size() + 1;
+    while (changed && guard-- > 0)
     {
-        Tech& t = techs[id];
-        t.bias = randomInRange(TECH_BIAS_MIN, TECH_BIAS_MAX);
-        for (TechEdge& e : t.inputs)
-            e.weight = randomInRange(TECH_WEIGHT_MIN, TECH_WEIGHT_MAX);
+        changed = false;
+        for (int id : order)
+        {
+            Tech& t = techs[id];
+            if (t.inputs.empty())
+                continue;
+
+            int deepest = 0;
+            for (const TechEdge& e : t.inputs)
+            {
+                auto p = techs.find(e.from);
+                if (p != techs.end() && p->second.depth + 1 > deepest)
+                    deepest = p->second.depth + 1;
+            }
+            if (deepest != t.depth)
+            {
+                t.depth = deepest;
+                changed = true;
+            }
+        }
     }
+
+    for (int id : order)
+        techs[id].bias = powf(TECH_BIAS_BASE, (float)techs[id].depth);
+}
+
+int TechGraph::getDepth(int id) const
+{
+    auto it = techs.find(id);
+    return it == techs.end() ? 0 : it->second.depth;
 }
 
 void TechGraph::start()
@@ -310,8 +339,7 @@ void TechTree::reset(int factionCount, const TechGraph& prototype)
     graphs.reserve(factionCount);
     for (int i=0;i<factionCount;i++)
     {
-        TechGraph g = prototype;      // same shape ...
-        g.randomize();                // ... its own weights and biases
+        TechGraph g = prototype;      // same shape, same weights: the table is the same for all
         g.start();
         graphs.push_back(g);
     }
@@ -491,79 +519,81 @@ static const DefaultTechRow DEFAULT_TECHS[] = {
     { TECH_MILITARY_TRADITION, "Military Tradition" }
 };
 
-struct DefaultTechDep { int from; int to; };
+// One row per (dependency -> technology) pair of README.md's table, carrying that table's
+// weight factor: 1.0 is the default, everything else is relative to it. The stored edge weight
+// is factor * TECH_DEFAULT_WEIGHT, so the whole set rescales from one constant.
+struct DefaultTechDep { int from; int to; float factor; };
 
 static const DefaultTechDep DEFAULT_DEPS[] = {
-    { TECH_LANGUAGE, TECH_HUNTING },
-    { TECH_LANGUAGE, TECH_AGRICULTURE },
-    { TECH_LANGUAGE, TECH_FISHING },
-    { TECH_LANGUAGE, TECH_MINING },
-    { TECH_LANGUAGE, TECH_MASONRY },
-    { TECH_LANGUAGE, TECH_THE_WHEEL },
-    { TECH_LANGUAGE, TECH_ARCHERY },           { TECH_HUNTING, TECH_ARCHERY },
-    { TECH_LANGUAGE, TECH_WARRIOR_CODE },      { TECH_HUNTING, TECH_WARRIOR_CODE },
-    { TECH_LANGUAGE, TECH_BRONZE_WORKING },    { TECH_HUNTING, TECH_BRONZE_WORKING },
-    { TECH_LANGUAGE, TECH_ANIMAL_HUSBANDRY },  { TECH_HUNTING, TECH_ANIMAL_HUSBANDRY },
-    { TECH_LANGUAGE, TECH_POTTERY },           { TECH_AGRICULTURE, TECH_POTTERY },
-    { TECH_LANGUAGE, TECH_ALPHABET },
-    { TECH_LANGUAGE, TECH_CEREMONIAL_BURIAL },
-
-    { TECH_ALPHABET, TECH_WRITING },
-    { TECH_MASONRY, TECH_MATHEMATICS },        { TECH_ALPHABET, TECH_MATHEMATICS },
-    { TECH_BRONZE_WORKING, TECH_IRON_WORKING },
-    { TECH_WARRIOR_CODE, TECH_HORSEBACK_RIDING }, { TECH_ANIMAL_HUSBANDRY, TECH_HORSEBACK_RIDING },
-    { TECH_ARCHERY, TECH_HORSEBACK_RIDING },
-    { TECH_MASONRY, TECH_CONSTRUCTION },       { TECH_IRON_WORKING, TECH_CONSTRUCTION },
-    { TECH_MATHEMATICS, TECH_CONSTRUCTION },   { TECH_THE_WHEEL, TECH_CONSTRUCTION },
-    { TECH_IRON_WORKING, TECH_CURRENCY },      { TECH_MATHEMATICS, TECH_CURRENCY },
-    { TECH_CEREMONIAL_BURIAL, TECH_MYSTICISM },
-    { TECH_FISHING, TECH_MAP_MAKING },         { TECH_ALPHABET, TECH_MAP_MAKING },
-    { TECH_POTTERY, TECH_MAP_MAKING },
-    { TECH_WARRIOR_CODE, TECH_POLYTHEISM },    { TECH_MYSTICISM, TECH_POLYTHEISM },
-    { TECH_WRITING, TECH_LITERATURE },         { TECH_ALPHABET, TECH_LITERATURE },
-    { TECH_WRITING, TECH_CODE_OF_LAWS },       { TECH_WARRIOR_CODE, TECH_CODE_OF_LAWS },
-    { TECH_MATHEMATICS, TECH_PHILOSOPHY },     { TECH_WRITING, TECH_PHILOSOPHY },
-    { TECH_IRON_WORKING, TECH_METAL_CASTING }, { TECH_CONSTRUCTION, TECH_METAL_CASTING },
-    { TECH_MYSTICISM, TECH_MONOTHEISM },       { TECH_POLYTHEISM, TECH_MONOTHEISM },
-    { TECH_CODE_OF_LAWS, TECH_REPUBLIC },      { TECH_PHILOSOPHY, TECH_REPUBLIC },
-    { TECH_POLYTHEISM, TECH_MONARCHY },        { TECH_MONOTHEISM, TECH_MONARCHY },
-    { TECH_ARCHERY, TECH_FEUDALISM },          { TECH_MONARCHY, TECH_FEUDALISM },
-    { TECH_CURRENCY, TECH_FEUDALISM },
-    { TECH_CONSTRUCTION, TECH_SHIP_BUILDING }, { TECH_MAP_MAKING, TECH_SHIP_BUILDING },
-    { TECH_METAL_CASTING, TECH_SHIP_BUILDING },{ TECH_FEUDALISM, TECH_SHIP_BUILDING },
-    { TECH_MONOTHEISM, TECH_THEOLOGY },        { TECH_PHILOSOPHY, TECH_THEOLOGY },
-    { TECH_ALPHABET, TECH_EDUCATION },         { TECH_LITERATURE, TECH_EDUCATION },
-    { TECH_REPUBLIC, TECH_EDUCATION },         { TECH_THEOLOGY, TECH_EDUCATION },
-    { TECH_ALPHABET, TECH_ASTRONOMY },         { TECH_MATHEMATICS, TECH_ASTRONOMY },
-    { TECH_MAP_MAKING, TECH_ASTRONOMY },       { TECH_CEREMONIAL_BURIAL, TECH_ASTRONOMY },
-    { TECH_SHIP_BUILDING, TECH_ASTRONOMY },    { TECH_EDUCATION, TECH_ASTRONOMY },
-    { TECH_CURRENCY, TECH_BANKING },           { TECH_CODE_OF_LAWS, TECH_BANKING },
-    { TECH_EDUCATION, TECH_BANKING },
-    { TECH_MONOTHEISM, TECH_CHIVALRY },        { TECH_FEUDALISM, TECH_CHIVALRY },
-    { TECH_MONARCHY, TECH_CHIVALRY },          { TECH_THEOLOGY, TECH_CHIVALRY },
-    { TECH_ALPHABET, TECH_PHYSICS },           { TECH_MATHEMATICS, TECH_PHYSICS },
-    { TECH_IRON_WORKING, TECH_PHYSICS },       { TECH_ASTRONOMY, TECH_PHYSICS },
-    { TECH_POTTERY, TECH_GUNPOWDER },          { TECH_CEREMONIAL_BURIAL, TECH_GUNPOWDER },
-    { TECH_FEUDALISM, TECH_GUNPOWDER },
-    { TECH_MAP_MAKING, TECH_MAGNETISM },       { TECH_IRON_WORKING, TECH_MAGNETISM },
-    { TECH_SHIP_BUILDING, TECH_MAGNETISM },    { TECH_ASTRONOMY, TECH_MAGNETISM },
-    { TECH_CEREMONIAL_BURIAL, TECH_CHEMISTRY },{ TECH_POTTERY, TECH_CHEMISTRY },
-    { TECH_GUNPOWDER, TECH_CHEMISTRY },        { TECH_PHYSICS, TECH_CHEMISTRY },
-    { TECH_IRON_WORKING, TECH_METALLURGY },    { TECH_BRONZE_WORKING, TECH_METALLURGY },
-    { TECH_METAL_CASTING, TECH_METALLURGY },   { TECH_CHEMISTRY, TECH_METALLURGY },
-    { TECH_CURRENCY, TECH_CHARTERS },          { TECH_BANKING, TECH_CHARTERS },
-    { TECH_WRITING, TECH_CHARTERS },           { TECH_CODE_OF_LAWS, TECH_CHARTERS },
-    { TECH_PHILOSOPHY, TECH_CHARTERS },
-    { TECH_CEREMONIAL_BURIAL, TECH_MUSIC },    { TECH_MATHEMATICS, TECH_MUSIC },
-    { TECH_LITERATURE, TECH_MUSIC },           { TECH_MYSTICISM, TECH_MUSIC },
-    { TECH_EDUCATION, TECH_MUSIC },
-    { TECH_CHARTERS, TECH_INDUSTRIALIZATION }, { TECH_MAGNETISM, TECH_INDUSTRIALIZATION },
-    { TECH_CODE_OF_LAWS, TECH_INDUSTRIALIZATION }, { TECH_CURRENCY, TECH_INDUSTRIALIZATION },
-    { TECH_METALLURGY, TECH_INDUSTRIALIZATION },
-    { TECH_WARRIOR_CODE, TECH_MILITARY_TRADITION }, { TECH_HORSEBACK_RIDING, TECH_MILITARY_TRADITION },
-    { TECH_LITERATURE, TECH_MILITARY_TRADITION },   { TECH_CHIVALRY, TECH_MILITARY_TRADITION },
-    { TECH_EDUCATION, TECH_MILITARY_TRADITION },    { TECH_GUNPOWDER, TECH_MILITARY_TRADITION },
-    { TECH_CHEMISTRY, TECH_MILITARY_TRADITION }
+    { TECH_LANGUAGE, TECH_HUNTING, 1.0f },
+    { TECH_LANGUAGE, TECH_AGRICULTURE, 1.0f },
+    { TECH_LANGUAGE, TECH_FISHING, 1.0f },
+    { TECH_LANGUAGE, TECH_MINING, 1.0f },
+    { TECH_LANGUAGE, TECH_MASONRY, 0.9f },
+    { TECH_LANGUAGE, TECH_THE_WHEEL, 1.0f },
+    { TECH_LANGUAGE, TECH_ARCHERY, 0.8f }, { TECH_HUNTING, TECH_ARCHERY, 1.0f },
+    { TECH_LANGUAGE, TECH_WARRIOR_CODE, 0.8f }, { TECH_HUNTING, TECH_WARRIOR_CODE, 1.0f },
+    { TECH_LANGUAGE, TECH_BRONZE_WORKING, 0.8f }, { TECH_HUNTING, TECH_BRONZE_WORKING, 1.0f },
+    { TECH_LANGUAGE, TECH_ANIMAL_HUSBANDRY, 0.8f }, { TECH_HUNTING, TECH_ANIMAL_HUSBANDRY, 1.0f },
+    { TECH_LANGUAGE, TECH_POTTERY, 1.0f }, { TECH_AGRICULTURE, TECH_POTTERY, 1.0f },
+    { TECH_LANGUAGE, TECH_ALPHABET, 1.0f },
+    { TECH_LANGUAGE, TECH_CEREMONIAL_BURIAL, 1.0f },
+    { TECH_ALPHABET, TECH_WRITING, 1.0f },
+    { TECH_MASONRY, TECH_MATHEMATICS, 1.0f }, { TECH_ALPHABET, TECH_MATHEMATICS, 1.0f },
+    { TECH_BRONZE_WORKING, TECH_IRON_WORKING, 1.0f },
+    { TECH_WARRIOR_CODE, TECH_HORSEBACK_RIDING, 1.0f }, { TECH_ANIMAL_HUSBANDRY, TECH_HORSEBACK_RIDING, 1.0f },
+    { TECH_ARCHERY, TECH_HORSEBACK_RIDING, 1.0f },
+    { TECH_MASONRY, TECH_CONSTRUCTION, 1.0f }, { TECH_IRON_WORKING, TECH_CONSTRUCTION, 0.9f },
+    { TECH_MATHEMATICS, TECH_CONSTRUCTION, 0.8f }, { TECH_THE_WHEEL, TECH_CONSTRUCTION, 0.9f },
+    { TECH_IRON_WORKING, TECH_CURRENCY, 1.0f }, { TECH_MATHEMATICS, TECH_CURRENCY, 1.0f },
+    { TECH_CEREMONIAL_BURIAL, TECH_MYSTICISM, 1.0f },
+    { TECH_FISHING, TECH_MAP_MAKING, 1.0f }, { TECH_ALPHABET, TECH_MAP_MAKING, 1.0f },
+    { TECH_POTTERY, TECH_MAP_MAKING, 1.0f },
+    { TECH_WARRIOR_CODE, TECH_POLYTHEISM, 0.9f }, { TECH_MYSTICISM, TECH_POLYTHEISM, 1.0f },
+    { TECH_WRITING, TECH_LITERATURE, 1.0f }, { TECH_ALPHABET, TECH_LITERATURE, 0.8f },
+    { TECH_WRITING, TECH_CODE_OF_LAWS, 1.0f }, { TECH_WARRIOR_CODE, TECH_CODE_OF_LAWS, 1.0f },
+    { TECH_MATHEMATICS, TECH_PHILOSOPHY, 1.0f }, { TECH_WRITING, TECH_PHILOSOPHY, 1.0f },
+    { TECH_IRON_WORKING, TECH_METAL_CASTING, 0.9f }, { TECH_CONSTRUCTION, TECH_METAL_CASTING, 1.0f },
+    { TECH_MYSTICISM, TECH_MONOTHEISM, 0.9f }, { TECH_POLYTHEISM, TECH_MONOTHEISM, 1.0f },
+    { TECH_CODE_OF_LAWS, TECH_REPUBLIC, 1.0f }, { TECH_PHILOSOPHY, TECH_REPUBLIC, 1.0f },
+    { TECH_POLYTHEISM, TECH_MONARCHY, 0.9f }, { TECH_MONOTHEISM, TECH_MONARCHY, 1.0f },
+    { TECH_ARCHERY, TECH_FEUDALISM, 0.7f }, { TECH_MONARCHY, TECH_FEUDALISM, 1.0f },
+    { TECH_CURRENCY, TECH_FEUDALISM, 0.9f },
+    { TECH_CONSTRUCTION, TECH_SHIP_BUILDING, 1.0f }, { TECH_MAP_MAKING, TECH_SHIP_BUILDING, 1.0f },
+    { TECH_METAL_CASTING, TECH_SHIP_BUILDING, 1.0f }, { TECH_FEUDALISM, TECH_SHIP_BUILDING, 1.0f },
+    { TECH_MONOTHEISM, TECH_THEOLOGY, 1.0f }, { TECH_PHILOSOPHY, TECH_THEOLOGY, 1.0f },
+    { TECH_ALPHABET, TECH_EDUCATION, 0.7f }, { TECH_LITERATURE, TECH_EDUCATION, 0.9f },
+    { TECH_REPUBLIC, TECH_EDUCATION, 1.0f }, { TECH_THEOLOGY, TECH_EDUCATION, 1.0f },
+    { TECH_ALPHABET, TECH_ASTRONOMY, 0.7f }, { TECH_MATHEMATICS, TECH_ASTRONOMY, 0.8f },
+    { TECH_MAP_MAKING, TECH_ASTRONOMY, 0.8f }, { TECH_CEREMONIAL_BURIAL, TECH_ASTRONOMY, 0.8f },
+    { TECH_SHIP_BUILDING, TECH_ASTRONOMY, 1.0f }, { TECH_EDUCATION, TECH_ASTRONOMY, 1.0f },
+    { TECH_CURRENCY, TECH_BANKING, 0.9f }, { TECH_CODE_OF_LAWS, TECH_BANKING, 0.9f },
+    { TECH_EDUCATION, TECH_BANKING, 1.0f },
+    { TECH_MONOTHEISM, TECH_CHIVALRY, 0.9f }, { TECH_FEUDALISM, TECH_CHIVALRY, 1.0f },
+    { TECH_MONARCHY, TECH_CHIVALRY, 1.0f }, { TECH_THEOLOGY, TECH_CHIVALRY, 0.9f },
+    { TECH_ALPHABET, TECH_PHYSICS, 0.7f }, { TECH_MATHEMATICS, TECH_PHYSICS, 0.7f },
+    { TECH_IRON_WORKING, TECH_PHYSICS, 0.8f }, { TECH_ASTRONOMY, TECH_PHYSICS, 1.0f },
+    { TECH_POTTERY, TECH_GUNPOWDER, 0.6f }, { TECH_CEREMONIAL_BURIAL, TECH_GUNPOWDER, 0.5f },
+    { TECH_FEUDALISM, TECH_GUNPOWDER, 1.0f },
+    { TECH_MAP_MAKING, TECH_MAGNETISM, 0.6f }, { TECH_IRON_WORKING, TECH_MAGNETISM, 0.6f },
+    { TECH_SHIP_BUILDING, TECH_MAGNETISM, 0.9f }, { TECH_ASTRONOMY, TECH_MAGNETISM, 1.0f },
+    { TECH_CEREMONIAL_BURIAL, TECH_CHEMISTRY, 0.4f }, { TECH_POTTERY, TECH_CHEMISTRY, 0.4f },
+    { TECH_GUNPOWDER, TECH_CHEMISTRY, 0.9f }, { TECH_PHYSICS, TECH_CHEMISTRY, 1.0f },
+    { TECH_IRON_WORKING, TECH_METALLURGY, 0.5f }, { TECH_BRONZE_WORKING, TECH_METALLURGY, 0.5f },
+    { TECH_METAL_CASTING, TECH_METALLURGY, 0.8f }, { TECH_CHEMISTRY, TECH_METALLURGY, 1.0f },
+    { TECH_CURRENCY, TECH_CHARTERS, 0.5f }, { TECH_BANKING, TECH_CHARTERS, 0.7f },
+    { TECH_WRITING, TECH_CHARTERS, 0.4f }, { TECH_CODE_OF_LAWS, TECH_CHARTERS, 0.4f },
+    { TECH_PHILOSOPHY, TECH_CHARTERS, 1.0f },
+    { TECH_CEREMONIAL_BURIAL, TECH_MUSIC, 0.4f }, { TECH_MATHEMATICS, TECH_MUSIC, 0.2f },
+    { TECH_LITERATURE, TECH_MUSIC, 0.3f }, { TECH_MYSTICISM, TECH_MUSIC, 0.5f },
+    { TECH_EDUCATION, TECH_MUSIC, 1.0f },
+    { TECH_CHARTERS, TECH_INDUSTRIALIZATION, 1.0f }, { TECH_MAGNETISM, TECH_INDUSTRIALIZATION, 0.9f },
+    { TECH_CODE_OF_LAWS, TECH_INDUSTRIALIZATION, 0.8f }, { TECH_CURRENCY, TECH_INDUSTRIALIZATION, 0.5f },
+    { TECH_METALLURGY, TECH_INDUSTRIALIZATION, 0.7f },
+    { TECH_WARRIOR_CODE, TECH_MILITARY_TRADITION, 0.3f }, { TECH_HORSEBACK_RIDING, TECH_MILITARY_TRADITION, 0.3f },
+    { TECH_LITERATURE, TECH_MILITARY_TRADITION, 0.5f }, { TECH_CHIVALRY, TECH_MILITARY_TRADITION, 0.6f },
+    { TECH_EDUCATION, TECH_MILITARY_TRADITION, 0.7f }, { TECH_GUNPOWDER, TECH_MILITARY_TRADITION, 0.8f },
+    { TECH_CHEMISTRY, TECH_MILITARY_TRADITION, 0.9f }
 };
 
 TechGraph buildDefaultTechGraph()
@@ -576,7 +606,10 @@ TechGraph buildDefaultTechGraph()
     g.setRoot(TECH_ROOT);
 
     for (unsigned int i=0;i<sizeof(DEFAULT_DEPS)/sizeof(DEFAULT_DEPS[0]);i++)
-        g.addEdge(DEFAULT_DEPS[i].from, DEFAULT_DEPS[i].to);
+        g.addEdge(DEFAULT_DEPS[i].from, DEFAULT_DEPS[i].to, DEFAULT_DEPS[i].factor);
+
+    // Depth (and therefore each node's threshold) only makes sense once every edge is wired.
+    g.computeBiases();
 
     return g;
 }

@@ -137,13 +137,23 @@ int TestCase_058::check(int year)
         if (g.getTech(B)->depCode != TECH_ALPHABET || g.getTech(A)->depCode != TECH_NO_DEP_CODE)
         { fail("A node's depCode is independent of its graph id (and defaults to TECH_NO_DEP_CODE)."); return 0; }
 
-        // Random init must land inside the documented ranges.
-        float wAB = g.getWeight(A,B);
-        if (wAB < TECH_WEIGHT_MIN || wAB > TECH_WEIGHT_MAX)
-        { fail("A randomly initialized edge weight is outside [TECH_WEIGHT_MIN, TECH_WEIGHT_MAX]."); return 0; }
-        float bB = g.getBias(B);
-        if (bB < TECH_BIAS_MIN || bB > TECH_BIAS_MAX)
-        { fail("A randomly initialized bias is outside [TECH_BIAS_MIN, TECH_BIAS_MAX]."); return 0; }
+        // addEdge with no factor stores the table's default weight, on the global scale.
+        if (fabs(g.getWeight(A,B) - TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("addEdge() with no factor should store exactly TECH_DEFAULT_WEIGHT."); return 0; }
+        // A factor is relative to that default.
+        g.addEdge(A,C);                      // duplicate, ignored -- C was already wired below
+        if (fabs(g.getWeight(A,C) - TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("A re-added edge must keep its original weight."); return 0; }
+
+        // Depths and biases are only assigned by computeBiases(); before that a node's bias is 0.
+        if (g.getBias(D) != 0.0f)
+        { fail("A node's bias should be 0 until computeBiases() runs."); return 0; }
+        g.computeBiases();
+        if (g.getDepth(A) != 0 || g.getDepth(B) != 1 || g.getDepth(C) != 1 || g.getDepth(D) != 2)
+        { fail("computeBiases() should set depth = longest path in hops from the root (A0 B1 C1 D2)."); return 0; }
+        if (fabs(g.getBias(A) - 1.0f) > 0.0001f ||
+            fabs(g.getBias(D) - TECH_BIAS_BASE*TECH_BIAS_BASE) > 0.0001f)
+        { fail("computeBiases() should set bias = TECH_BIAS_BASE ^ depth."); return 0; }
 
         // Pin everything so no assertion below depends on the random initialization.
         g.setWeight(A,B, 0.5f);  g.setBias(B, 0.1f);   // fires on ~10 science in A
@@ -278,7 +288,51 @@ int TestCase_058::check(int year)
         if (readme.getTech(TECH_LANGUAGE)->inputs.size() != 0)
         { fail("Language is the root -- it should have no parents."); return 0; }
 
-        // Two factions, each with its own graph (and its own random weights).
+        // README.md's per-dependency weights, on the TECH_DEFAULT_WEIGHT scale: a "(1.0)"
+        // dependency stores exactly the default, a "(0.8)" stores 0.8 of it.
+        if (fabs(readme.getWeight(TECH_LANGUAGE, TECH_HUNTING) - TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("Language -> Hunting is (1.0) in README.md: it should store TECH_DEFAULT_WEIGHT."); return 0; }
+        if (fabs(readme.getWeight(TECH_LANGUAGE, TECH_ARCHERY) - 0.8f*TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("Language -> Archery is (0.8) in README.md: it should store 0.8 * TECH_DEFAULT_WEIGHT."); return 0; }
+        if (fabs(readme.getWeight(TECH_MATHEMATICS, TECH_MUSIC) - 0.2f*TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("Mathematics -> Music is (0.2) in README.md, the smallest factor in the table."); return 0; }
+        // Every weight must be a factor OF the default -- nothing above it, nothing at zero.
+        for (int code = TECH_FIRST; code <= TECH_LAST; code++)
+            for (const TechEdge& e : readme.getTech(code)->inputs)
+                if (e.weight <= 0.0f || e.weight > TECH_DEFAULT_WEIGHT + 0.0001f)
+                {
+                    char buf[160];
+                    snprintf(buf,sizeof(buf),"edge 0x%02x -> 0x%02x has weight %.4f, outside (0, TECH_DEFAULT_WEIGHT].",
+                             e.from, code, e.weight);
+                    fail(buf); return 0;
+                }
+
+        // Depth and the exponential bias that rides on it.
+        if (readme.getDepth(TECH_LANGUAGE) != 0)
+        { fail("The root technology sits at depth 0."); return 0; }
+        if (readme.getDepth(TECH_HUNTING) != 1 || readme.getDepth(TECH_ARCHERY) != 2)
+        { fail("Hunting is one hop from Language, Archery two (through Hunting)."); return 0; }
+        if (readme.getDepth(TECH_INDUSTRIALIZATION) != 12)
+        { fail("Industrialization is the deepest technology in README.md, 12 hops out."); return 0; }
+        // Military Tradition has Warrior Code (2 hops) among its parents, but the LONGEST path
+        // is what prices it -- otherwise a late technology with one shallow parent stays cheap.
+        if (readme.getDepth(TECH_MILITARY_TRADITION) != 11)
+        { fail("Military Tradition should be priced by its LONGEST path (11), not its shortest (2)."); return 0; }
+        for (int code = TECH_FIRST; code <= TECH_LAST; code++)
+        {
+            const Tech* t = readme.getTech(code);
+            float expected = powf(TECH_BIAS_BASE, (float)t->depth);
+            if (fabs(t->bias - expected) > 0.001f * expected + 0.0001f)
+            {
+                char buf[160];
+                snprintf(buf,sizeof(buf),"'%s' (depth %d) has bias %.3f, expected TECH_BIAS_BASE^depth = %.3f.",
+                         t->name.c_str(), t->depth, t->bias, expected);
+                fail(buf); return 0;
+            }
+        }
+
+        // Two factions, each with its own copy of the graph (same weights -- they are data now;
+        // what diverges is what each faction invests in).
         DependencyEvaluationEngine techdee;
         TechTree tree;
         tree.reset(2, readme);
@@ -291,7 +345,7 @@ int TestCase_058::check(int year)
         { fail("A faction should start with the root only."); return 0; }
 
         // Turn 1: dump enough SCIENCE into Language that every one of its 13 children fires
-        // regardless of how their weights were randomized (w >= TECH_WEIGHT_MIN = 0.1 > 0).
+        // (the smallest factor out of Language is 0.8, and even a depth-2 bias is only 4).
         std::unordered_map<int,int> plan;
         plan[TECH_LANGUAGE] = 1000;
         std::vector<int> got = tree.advance(0, plan, techdee);
