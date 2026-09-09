@@ -81,6 +81,32 @@ void handleKeypress(unsigned char key, int x, int y) {
 
                 savegame(savegamefilename.c_str());
             } else
+            if (controller.str.find("/fundamental")!=std::string::npos)
+            {
+                // /fundamental r1,r2,r3,r4  -> the share of each city's TRADE that endOfYear()
+                // turns into COINS, SCIENCE, CULTURE and LUXURY for the CALLING faction
+                // (coordinator.a_f_id). Goes through a CommandOrder like every other action.
+                std::istringstream iss(controller.str);
+                std::string cmd, list;
+                iss >> cmd >> list;
+
+                float parsed[4];
+                int n = sscanf(list.c_str(), "%f,%f,%f,%f", &parsed[0], &parsed[1], &parsed[2], &parsed[3]);
+
+                if (n == 4)
+                {
+                    CommandOrder co;
+                    co.command = Command::SetFundamentalRatesOrder;
+                    co.parameters.factionid = coordinator.a_f_id;
+                    for (int i=0;i<4;i++)
+                        co.parameters.rates[i] = parsed[i];
+                    coordinator.push(co);
+                }
+                else
+                {
+                    message(year, coordinator.a_f_id, "Usage: /fundamental <coins>,<science>,<culture>,<luxury>");
+                }
+            } else
             if (controller.str.find("/autoplayer")!=std::string::npos)
             {
                 if (controller.str.find("on")!=std::string::npos)

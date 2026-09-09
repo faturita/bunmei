@@ -23,6 +23,8 @@
 #include "diplomacy.h"
 
 #include "savegame.h"
+#include "dee.h"
+#include "technologies.h"
 
 #include "sounds/sounds.h"
 
@@ -45,6 +47,8 @@ extern std::unordered_map<int, City*> cities;
 extern std::vector<Faction*> factions;
 extern std::unordered_map<int, Improvement*> improvements;
 extern DiplomacyTable diplomacy;
+extern DependencyEvaluationEngine dee;
+extern TechTree techtree;
 
 void update(int value);
 //void replayupdate(int value);
@@ -728,24 +732,24 @@ struct FactionDefinition
 };
 
 static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0,  "Vikings",     255, 0,   0,   {1, 0, 0, 0}, true, vikings     },
-    { 1,  "Romans",      255, 255, 255, {1, 0, 0, 0}, true, romans      },
-    { 2,  "Greeks",      0,   0,   255, {1, 0, 0, 0}, true, greeks      },
-    { 3,  "Chinese",     0,   255, 255, {1, 0, 0, 0}, true, chinese     },
-    { 4,  "Egyptians",   255, 255, 0,   {1, 0, 0, 0}, true, egyptians   },
-    { 5,  "Babylonians", 0,   255, 0,   {1, 0, 0, 0}, true, babylonians },
-    { 6,  "English",     100, 33,  100, {1, 0, 0, 0}, true, english     },
-    { 7,  "Mongols",     128, 128, 128, {1, 0, 0, 0}, true, mongols     },
-    { 8,  "Russians",    160, 20,  40,  {1, 0, 0, 0}, true, russians    },
-    { 9,  "Zulus",       20,  130, 40,  {1, 0, 0, 0}, true, zulus       },
-    { 10, "Germans",     40,  70,  130, {1, 0, 0, 0}, true, germans     },
-    { 11, "French",      90,  140, 230, {1, 0, 0, 0}, true, french      },
-    { 12, "Aztec",       235, 175, 30,  {1, 0, 0, 0}, true, aztec       },
-    { 13, "Americans",   40,  170, 160, {1, 0, 0, 0}, true, americans   },
-    { 14, "Indians",     190, 190, 190, {1, 0, 0, 0}, true, indians     },
-    { 15, "Incan",       200, 130, 20,  {1, 0, 0, 0}, true, incan       },
-    { 16, "Japanese",    245, 225, 230, {1, 0, 0, 0}, true, japanese    },
-    { 17, "Spanish",     200, 50,  20,  {1, 0, 0, 0}, true, spanish     },
+    { 0,  "Vikings",     255, 0,   0,   {0.5, 0.5, 0, 0}, true, vikings     },
+    { 1,  "Romans",      255, 255, 255, {0.5, 0.5, 0, 0}, true, romans      },
+    { 2,  "Greeks",      0,   0,   255, {0.5, 0.5, 0, 0}, true, greeks      },
+    { 3,  "Chinese",     0,   255, 255, {0.5, 0.5, 0, 0}, true, chinese     },
+    { 4,  "Egyptians",   255, 255, 0,   {0.5, 0.5, 0, 0}, true, egyptians   },
+    { 5,  "Babylonians", 0,   255, 0,   {0.5, 0.5, 0, 0}, true, babylonians },
+    { 6,  "English",     100, 33,  100, {0.5, 0.5, 0, 0}, true, english     },
+    { 7,  "Mongols",     128, 128, 128, {0.5, 0.5, 0, 0}, true, mongols     },
+    { 8,  "Russians",    160, 20,  40,  {0.5, 0.5, 0, 0}, true, russians    },
+    { 9,  "Zulus",       20,  130, 40,  {0.5, 0.5, 0, 0}, true, zulus       },
+    { 10, "Germans",     40,  70,  130, {0.5, 0.5, 0, 0}, true, germans     },
+    { 11, "French",      90,  140, 230, {0.5, 0.5, 0, 0}, true, french      },
+    { 12, "Aztec",       235, 175, 30,  {0.5, 0.5, 0, 0}, true, aztec       },
+    { 13, "Americans",   40,  170, 160, {0.5, 0.5, 0, 0}, true, americans   },
+    { 14, "Indians",     190, 190, 190, {0.5, 0.5, 0, 0}, true, indians     },
+    { 15, "Incan",       200, 130, 20,  {0.5, 0.5, 0, 0}, true, incan       },
+    { 16, "Japanese",    245, 225, 230, {0.5, 0.5, 0, 0}, true, japanese    },
+    { 17, "Spanish",     200, 50,  20,  {0.5, 0.5, 0, 0}, true, spanish     },
 };
 
 #define NUMBER_OF_FACTION_DEFINITIONS ((int)(sizeof(FACTION_DEFINITIONS)/sizeof(FACTION_DEFINITIONS[0])))
@@ -864,6 +868,12 @@ void initWorldModelling()
     initFactions();
     initDiplomacy(diplomacy, factions.size());
 
+    // One tech graph per faction, everybody starting at the root (Language, registered in
+    // the DEE too). initTechnologies() lives in technologies.cpp so the simulator -- which
+    // does not link gamekernel.cpp -- sets this up exactly the same way.
+    initTechnologies(techtree, factions.size(), dee);
+
+
     initUnits();
 
     // @NOTE: Turn order (a_f_id) must always start at the first faction so the round-robin
@@ -920,6 +930,12 @@ void loadWorldModelling()
 
     initFactions();
     initDiplomacy(diplomacy, factions.size());
+
+    // One tech graph per faction, everybody starting at the root (Language, registered in
+    // the DEE too). initTechnologies() lives in technologies.cpp so the simulator -- which
+    // does not link gamekernel.cpp -- sets this up exactly the same way.
+    initTechnologies(techtree, factions.size(), dee);
+
 
     loadCities(in);
 

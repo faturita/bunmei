@@ -58,7 +58,12 @@ enum class Command {
     // back into the city stockpile), but also pays out -- city->resources[COINS] goes down
     // and faction->coins goes up by quantity*prices[resourceid] (quantity capped by what the
     // city can afford).
-    SellResourceOrder=27
+    SellResourceOrder=27,
+    // Sets the calling faction's four "fundamental rates" -- the share of a city's TRADE that
+    // endOfYear() converts into COINS, SCIENCE, CULTURE and LUXURY respectively (Faction::rates).
+    // parameters.factionid says whose, parameters.rates carries the four values. Pushed by the
+    // /fundamental teletype command.
+    SetFundamentalRatesOrder=28
 };
 
 struct commandparameters
@@ -91,6 +96,10 @@ struct commandparameters
     // Commodity/MfgGood id (resources.h) -- for LoadCargoOrder/UnloadCargoOrder. Kept
     // separate from latitude/longitude, which those two commands don't use.
     int resourceid;
+
+    // The four TRADE conversion shares (COINS, SCIENCE, CULTURE, LUXURY) -- for
+    // SetFundamentalRatesOrder only. Same order and meaning as Faction::rates.
+    float rates[4];
 };
 
 struct CommandOrder

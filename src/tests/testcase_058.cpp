@@ -57,155 +57,12 @@ extern Controller controller;
 
 #define TEST_MAPSIZE 1
 
-// ---- README.md:307 as data ------------------------------------------------------------
-// The technology codes themselves are codes.h's TECH_* (they ARE the README codes now), so a
-// node's graph id and the dependency code it registers on discovery are the same number.
-
-struct ReadmeTech { int code; const char* name; };
-
-static const ReadmeTech README_TECHS[] = {
-    { TECH_LANGUAGE,           "Language"           },
-    { TECH_HUNTING,            "Hunting"            },
-    { TECH_AGRICULTURE,        "Agriculture"        },
-    { TECH_FISHING,            "Fishing"            },
-    { TECH_MINING,             "Mining"             },
-    { TECH_MASONRY,            "Masonry"            },
-    { TECH_THE_WHEEL,          "The Wheel"          },
-    { TECH_ARCHERY,            "Archery"            },
-    { TECH_WARRIOR_CODE,       "Warrior Code"       },
-    { TECH_BRONZE_WORKING,     "Bronze Working"     },
-    { TECH_ANIMAL_HUSBANDRY,   "Animal Husbandry"   },
-    { TECH_POTTERY,            "Pottery"            },
-    { TECH_ALPHABET,           "Alphabet"           },
-    { TECH_CEREMONIAL_BURIAL,  "Ceremonial Burial"  },
-    { TECH_WRITING,            "Writing"            },
-    { TECH_MATHEMATICS,        "Mathematics"        },
-    { TECH_IRON_WORKING,       "Iron Working"       },
-    { TECH_HORSEBACK_RIDING,   "Horseback Riding"   },
-    { TECH_CONSTRUCTION,       "Construction"       },
-    { TECH_CURRENCY,           "Currency"           },
-    { TECH_MYSTICISM,          "Mysticism"          },
-    { TECH_MAP_MAKING,         "Map Making"         },
-    { TECH_POLYTHEISM,         "Polytheism"         },
-    { TECH_LITERATURE,         "Literature"         },
-    { TECH_CODE_OF_LAWS,       "Code of Laws"       },
-    { TECH_PHILOSOPHY,         "Philosophy"         },
-    { TECH_METAL_CASTING,      "Metal Casting"      },
-    { TECH_MONOTHEISM,         "Monotheism"         },
-    { TECH_REPUBLIC,           "Republic"           },
-    { TECH_MONARCHY,           "Monarchy"           },
-    { TECH_FEUDALISM,          "Feudalism"          },
-    { TECH_SHIP_BUILDING,      "Ship Building"      },
-    { TECH_THEOLOGY,           "Theology"           },
-    { TECH_EDUCATION,          "Education"          },
-    { TECH_ASTRONOMY,          "Astronomy"          },
-    { TECH_BANKING,            "Banking"            },
-    { TECH_CHIVALRY,           "Chivalry"           },
-    { TECH_PHYSICS,            "Physics"            },
-    { TECH_GUNPOWDER,          "Gunpowder"          },
-    { TECH_MAGNETISM,          "Magnetism"          },
-    { TECH_CHEMISTRY,          "Chemistry"          },
-    { TECH_METALLURGY,         "Metallurgy"         },
-    { TECH_CHARTERS,           "Charters"           },
-    { TECH_MUSIC,              "Music"              },
-    { TECH_INDUSTRIALIZATION,  "Industrialization"  },
-    { TECH_MILITARY_TRADITION, "Military Tradition" }
-};
-
-// One row per (dependency -> technology) pair of the README table.
-struct ReadmeDep { int from; int to; };
-
-static const ReadmeDep README_DEPS[] = {
-    { TECH_LANGUAGE, TECH_HUNTING },
-    { TECH_LANGUAGE, TECH_AGRICULTURE },
-    { TECH_LANGUAGE, TECH_FISHING },
-    { TECH_LANGUAGE, TECH_MINING },
-    { TECH_LANGUAGE, TECH_MASONRY },
-    { TECH_LANGUAGE, TECH_THE_WHEEL },
-    { TECH_LANGUAGE, TECH_ARCHERY },           { TECH_HUNTING, TECH_ARCHERY },
-    { TECH_LANGUAGE, TECH_WARRIOR_CODE },      { TECH_HUNTING, TECH_WARRIOR_CODE },
-    { TECH_LANGUAGE, TECH_BRONZE_WORKING },    { TECH_HUNTING, TECH_BRONZE_WORKING },
-    { TECH_LANGUAGE, TECH_ANIMAL_HUSBANDRY },  { TECH_HUNTING, TECH_ANIMAL_HUSBANDRY },
-    { TECH_LANGUAGE, TECH_POTTERY },           { TECH_AGRICULTURE, TECH_POTTERY },
-    { TECH_LANGUAGE, TECH_ALPHABET },
-    { TECH_LANGUAGE, TECH_CEREMONIAL_BURIAL },
-
-    { TECH_ALPHABET, TECH_WRITING },
-    { TECH_MASONRY, TECH_MATHEMATICS },        { TECH_ALPHABET, TECH_MATHEMATICS },
-    { TECH_BRONZE_WORKING, TECH_IRON_WORKING },
-    { TECH_WARRIOR_CODE, TECH_HORSEBACK_RIDING }, { TECH_ANIMAL_HUSBANDRY, TECH_HORSEBACK_RIDING },
-    { TECH_ARCHERY, TECH_HORSEBACK_RIDING },
-    { TECH_MASONRY, TECH_CONSTRUCTION },       { TECH_IRON_WORKING, TECH_CONSTRUCTION },
-    { TECH_MATHEMATICS, TECH_CONSTRUCTION },   { TECH_THE_WHEEL, TECH_CONSTRUCTION },
-    { TECH_IRON_WORKING, TECH_CURRENCY },      { TECH_MATHEMATICS, TECH_CURRENCY },
-    { TECH_CEREMONIAL_BURIAL, TECH_MYSTICISM },
-    { TECH_FISHING, TECH_MAP_MAKING },         { TECH_ALPHABET, TECH_MAP_MAKING },
-    { TECH_POTTERY, TECH_MAP_MAKING },
-    { TECH_WARRIOR_CODE, TECH_POLYTHEISM },    { TECH_MYSTICISM, TECH_POLYTHEISM },
-    { TECH_WRITING, TECH_LITERATURE },         { TECH_ALPHABET, TECH_LITERATURE },
-    { TECH_WRITING, TECH_CODE_OF_LAWS },       { TECH_WARRIOR_CODE, TECH_CODE_OF_LAWS },
-    { TECH_MATHEMATICS, TECH_PHILOSOPHY },     { TECH_WRITING, TECH_PHILOSOPHY },
-    { TECH_IRON_WORKING, TECH_METAL_CASTING }, { TECH_CONSTRUCTION, TECH_METAL_CASTING },
-    { TECH_MYSTICISM, TECH_MONOTHEISM },       { TECH_POLYTHEISM, TECH_MONOTHEISM },
-    { TECH_CODE_OF_LAWS, TECH_REPUBLIC },      { TECH_PHILOSOPHY, TECH_REPUBLIC },
-    { TECH_POLYTHEISM, TECH_MONARCHY },        { TECH_MONOTHEISM, TECH_MONARCHY },
-    { TECH_ARCHERY, TECH_FEUDALISM },          { TECH_MONARCHY, TECH_FEUDALISM },
-    { TECH_CURRENCY, TECH_FEUDALISM },
-    { TECH_CONSTRUCTION, TECH_SHIP_BUILDING }, { TECH_MAP_MAKING, TECH_SHIP_BUILDING },
-    { TECH_METAL_CASTING, TECH_SHIP_BUILDING },{ TECH_FEUDALISM, TECH_SHIP_BUILDING },
-    { TECH_MONOTHEISM, TECH_THEOLOGY },        { TECH_PHILOSOPHY, TECH_THEOLOGY },
-    { TECH_ALPHABET, TECH_EDUCATION },         { TECH_LITERATURE, TECH_EDUCATION },
-    { TECH_REPUBLIC, TECH_EDUCATION },         { TECH_THEOLOGY, TECH_EDUCATION },
-    { TECH_ALPHABET, TECH_ASTRONOMY },         { TECH_MATHEMATICS, TECH_ASTRONOMY },
-    { TECH_MAP_MAKING, TECH_ASTRONOMY },       { TECH_CEREMONIAL_BURIAL, TECH_ASTRONOMY },
-    { TECH_SHIP_BUILDING, TECH_ASTRONOMY },    { TECH_EDUCATION, TECH_ASTRONOMY },
-    { TECH_CURRENCY, TECH_BANKING },           { TECH_CODE_OF_LAWS, TECH_BANKING },
-    { TECH_EDUCATION, TECH_BANKING },
-    { TECH_MONOTHEISM, TECH_CHIVALRY },        { TECH_FEUDALISM, TECH_CHIVALRY },
-    { TECH_MONARCHY, TECH_CHIVALRY },          { TECH_THEOLOGY, TECH_CHIVALRY },
-    { TECH_ALPHABET, TECH_PHYSICS },           { TECH_MATHEMATICS, TECH_PHYSICS },
-    { TECH_IRON_WORKING, TECH_PHYSICS },       { TECH_ASTRONOMY, TECH_PHYSICS },
-    { TECH_POTTERY, TECH_GUNPOWDER },          { TECH_CEREMONIAL_BURIAL, TECH_GUNPOWDER },
-    { TECH_FEUDALISM, TECH_GUNPOWDER },
-    { TECH_MAP_MAKING, TECH_MAGNETISM },       { TECH_IRON_WORKING, TECH_MAGNETISM },
-    { TECH_SHIP_BUILDING, TECH_MAGNETISM },    { TECH_ASTRONOMY, TECH_MAGNETISM },
-    { TECH_CEREMONIAL_BURIAL, TECH_CHEMISTRY },{ TECH_POTTERY, TECH_CHEMISTRY },
-    { TECH_GUNPOWDER, TECH_CHEMISTRY },        { TECH_PHYSICS, TECH_CHEMISTRY },
-    { TECH_IRON_WORKING, TECH_METALLURGY },    { TECH_BRONZE_WORKING, TECH_METALLURGY },
-    { TECH_METAL_CASTING, TECH_METALLURGY },   { TECH_CHEMISTRY, TECH_METALLURGY },
-    { TECH_CURRENCY, TECH_CHARTERS },          { TECH_BANKING, TECH_CHARTERS },
-    { TECH_WRITING, TECH_CHARTERS },           { TECH_CODE_OF_LAWS, TECH_CHARTERS },
-    { TECH_PHILOSOPHY, TECH_CHARTERS },
-    { TECH_CEREMONIAL_BURIAL, TECH_MUSIC },    { TECH_MATHEMATICS, TECH_MUSIC },
-    { TECH_LITERATURE, TECH_MUSIC },           { TECH_MYSTICISM, TECH_MUSIC },
-    { TECH_EDUCATION, TECH_MUSIC },
-    { TECH_CHARTERS, TECH_INDUSTRIALIZATION }, { TECH_MAGNETISM, TECH_INDUSTRIALIZATION },
-    { TECH_CODE_OF_LAWS, TECH_INDUSTRIALIZATION }, { TECH_CURRENCY, TECH_INDUSTRIALIZATION },
-    { TECH_METALLURGY, TECH_INDUSTRIALIZATION },
-    { TECH_WARRIOR_CODE, TECH_MILITARY_TRADITION }, { TECH_HORSEBACK_RIDING, TECH_MILITARY_TRADITION },
-    { TECH_LITERATURE, TECH_MILITARY_TRADITION },   { TECH_CHIVALRY, TECH_MILITARY_TRADITION },
-    { TECH_EDUCATION, TECH_MILITARY_TRADITION },    { TECH_GUNPOWDER, TECH_MILITARY_TRADITION },
-    { TECH_CHEMISTRY, TECH_MILITARY_TRADITION }
-};
-
-#define ARRAY_COUNT(a) ((int)(sizeof(a)/sizeof((a)[0])))
-
-// The node id IS the codes.h dependency code for the game's graph, so each row supplies its
-// code twice: once as the graph id, once as what discovery registers in the DEE.
-static TechGraph buildReadmeGraph()
-{
-    TechGraph g;
-
-    for (int i=0;i<ARRAY_COUNT(README_TECHS);i++)
-        g.addTech(README_TECHS[i].code, README_TECHS[i].name, README_TECHS[i].code);
-
-    g.setRoot(TECH_ROOT);
-
-    for (int i=0;i<ARRAY_COUNT(README_DEPS);i++)
-        g.addEdge(README_DEPS[i].from, README_DEPS[i].to);
-
-    return g;
-}
+// README.md:307's table now lives in technologies.cpp (buildDefaultTechGraph) because the
+// game needs it -- this test drives THAT graph, so the two cannot drift apart. The numbers
+// below are the README table's own shape.
+#define README_TECH_COUNT       46
+#define README_DEPENDENCY_COUNT 118
+#define LANGUAGE_CHILD_COUNT    13
 
 TestCase_058::TestCase_058() {}
 TestCase_058::~TestCase_058() {}
@@ -371,58 +228,49 @@ int TestCase_058::check(int year)
 
     // ================= B. the README.md:307 graph, end to end ============================
     {
-        // codes.h now carries the whole README table, so its own bookkeeping must line up.
-        if (ARRAY_COUNT(README_TECHS) != TECH_COUNT)
+        // codes.h carries the whole README table, so its own bookkeeping must line up.
+        if (TECH_COUNT != README_TECH_COUNT)
         {
             char buf[160];
-            snprintf(buf,sizeof(buf),"codes.h says TECH_COUNT=%d but the README table lists %d technologies.",
-                     (int)TECH_COUNT, ARRAY_COUNT(README_TECHS));
+            snprintf(buf,sizeof(buf),"codes.h says TECH_COUNT=%d but README.md lists %d technologies.",
+                     (int)TECH_COUNT, README_TECH_COUNT);
             fail(buf); return 0;
         }
-        // Codes must be the contiguous run TECH_FIRST..TECH_LAST, in table order.
-        for (int i=0;i<ARRAY_COUNT(README_TECHS);i++)
-            if (README_TECHS[i].code != TECH_FIRST + i)
-            {
-                char buf[160];
-                snprintf(buf,sizeof(buf),"codes.h technology codes are not contiguous: row %d ('%s') is 0x%02x.",
-                         i, README_TECHS[i].name, README_TECHS[i].code);
-                fail(buf); return 0;
-            }
         if (TECH_ROOT != TECH_LANGUAGE)
         { fail("codes.h TECH_ROOT should be TECH_LANGUAGE."); return 0; }
 
-        TechGraph readme = buildReadmeGraph();
+        // The graph the GAME ships (technologies.cpp), not a copy of it.
+        TechGraph readme = buildDefaultTechGraph();
 
-        if (readme.size() != TECH_COUNT)
+        if (readme.size() != README_TECH_COUNT)
         {
             char buf[160];
-            snprintf(buf,sizeof(buf),"The README tech table should build %d nodes, built %d.",
-                     (int)TECH_COUNT, readme.size());
+            snprintf(buf,sizeof(buf),"buildDefaultTechGraph() should build %d nodes, built %d.",
+                     README_TECH_COUNT, readme.size());
             fail(buf); return 0;
         }
         if (readme.getRoot() != TECH_LANGUAGE)
         { fail("Language must be the root of the README graph."); return 0; }
 
-        // Every node registers its own code, and every declared dependency became an edge.
-        for (int i=0;i<ARRAY_COUNT(README_TECHS);i++)
+        // Every codes.h technology is present exactly once, carries its own code as its
+        // depCode, and the wiring matches the README table's dependency count.
+        int edges = 0;
+        for (int code = TECH_FIRST; code <= TECH_LAST; code++)
         {
-            const Tech* t = readme.getTech(README_TECHS[i].code);
-            if (t == nullptr || t->depCode != README_TECHS[i].code)
+            const Tech* t = readme.getTech(code);
+            if (t == nullptr || t->depCode != code)
             {
                 char buf[160];
-                snprintf(buf,sizeof(buf),"'%s' should carry its own codes.h code as depCode.",
-                         README_TECHS[i].name);
+                snprintf(buf,sizeof(buf),"technology 0x%02x is missing from the graph or does not carry its own code as depCode.", code);
                 fail(buf); return 0;
             }
+            edges += (int)t->inputs.size();
         }
-        int edges = 0;
-        for (int i=0;i<ARRAY_COUNT(README_TECHS);i++)
-            edges += (int)readme.getTech(README_TECHS[i].code)->inputs.size();
-        if (edges != ARRAY_COUNT(README_DEPS))
+        if (edges != README_DEPENDENCY_COUNT)
         {
             char buf[160];
-            snprintf(buf,sizeof(buf),"The README table declares %d dependencies but the graph wired %d edges.",
-                     ARRAY_COUNT(README_DEPS), edges);
+            snprintf(buf,sizeof(buf),"README.md declares %d dependencies but the graph wired %d edges.",
+                     README_DEPENDENCY_COUNT, edges);
             fail(buf); return 0;
         }
         if (readme.getTech(TECH_MILITARY_TRADITION)->inputs.size() != 7)
@@ -448,11 +296,11 @@ int TestCase_058::check(int year)
         plan[TECH_LANGUAGE] = 1000;
         std::vector<int> got = tree.advance(0, plan, techdee);
 
-        if (got.size() != 13)
+        if ((int)got.size() != LANGUAGE_CHILD_COUNT)
         {
             char buf[160];
-            snprintf(buf,sizeof(buf),"Language has 13 direct children in the README table; %d fired.",
-                     (int)got.size());
+            snprintf(buf,sizeof(buf),"Language has %d direct children in the README table; %d fired.",
+                     LANGUAGE_CHILD_COUNT, (int)got.size());
             fail(buf); return 0;
         }
         if (!contains(got,TECH_HUNTING) || !contains(got,TECH_ALPHABET) || !contains(got,TECH_POTTERY) ||
@@ -474,7 +322,7 @@ int TestCase_058::check(int year)
         // Frontier bookkeeping at scale: Language is spent (every child known), Mining is a
         // leaf nothing depends on, Alphabet still leads somewhere.
         if (tree.graph(0).getFrontier().count(TECH_LANGUAGE) != 0)
-        { fail("Language should leave the Frontier once all 13 of its children are discovered."); return 0; }
+        { fail("Language should leave the Frontier once all of its children are discovered."); return 0; }
         if (tree.graph(0).getFrontier().count(TECH_MINING) != 0)
         { fail("Mining is a leaf in the README table -- it should not sit in the Frontier."); return 0; }
         if (tree.graph(0).getFrontier().count(TECH_ALPHABET) != 1)
@@ -514,7 +362,7 @@ int TestCase_058::check(int year)
 
 std::string TestCase_058::title()
 {
-    return std::string("Tech tree scaffold (technologies.{h,cpp}): MLP-style tech GRAPH -- invest SCIENCE into Frontier techs, sigmoid(SUM(science*w)-bias) fires Next techs, Frontier/Next bookkeeping, and discovery registers the codes.h dep code at faction scope. Driven with the README.md:307 table, whose codes now live in codes.h.");
+    return std::string("Tech tree scaffold (technologies.{h,cpp}): MLP-style tech GRAPH -- invest SCIENCE into Frontier techs, sigmoid(SUM(science*w)-bias) fires Next techs, Frontier/Next bookkeeping, and discovery registers the codes.h dep code at faction scope. Driven with the graph the game ships (buildDefaultTechGraph), whose codes live in codes.h.");
 }
 
 bool TestCase_058::done()   { return isdone; }

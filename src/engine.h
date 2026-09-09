@@ -31,6 +31,14 @@ Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 // list (e.g. Command::PopulateBuildableOrder) must clear() before calling.
 void populateCityBuildables(City* city);
 
+// Ask faction `factionId` what to research next. autoPlayer factions roll a random Frontier
+// technology; a human one gets the controller.query selector. By default it only asks when the
+// faction needs asking (no target yet, or the one it had left the Frontier); `force` asks even
+// when the current target is still valid, which is what endOfYear() does after a discovery --
+// the Frontier just widened, so the choice is worth revisiting. Also called when a faction
+// founds its first city.
+void chooseResearch(int factionId, bool force = false);
+
 // Runs every Building in the city once for the year: a building that consumes commodities
 // (Building::getConsumptionRate > 0 over ALL_COMMODITIES) and produces mfg goods
 // (Building::getProductionRate > 0 over ALL_MFG_GOODS) -- e.g. a Factory turning iron into

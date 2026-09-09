@@ -12,6 +12,7 @@
 #include "gamekernel.h"
 #include "messages.h"
 #include "dialog.h"
+#include "technologies.h"
 #include "hud.h"
 
 extern std::unordered_map<std::string, GLuint> maptextures;
@@ -25,6 +26,7 @@ extern std::unordered_map<int, Unit*> units;
 extern std::vector<Faction*> factions;
 
 extern std::vector<Message> messages;
+extern TechTree techtree;
 
 
 void placeMark4(float x, float y, int size, const char* modelName)
@@ -151,7 +153,20 @@ void drawHUD()
     sprintf (str, "Population:%d",factions[coordinator.v_f_id]->pop);
     drawString(0,-90,1,str,0.2f);
 
-    sprintf (str, "Alphabet");
+    // What the viewed faction is currently researching (technologies.h: the Frontier node its
+    // SCIENCE is being poured into every endOfYear), instead of the old hardcoded "Alphabet".
+    // @FIXME the science icon is still the generic one -- a per-technology icon comes later.
+    {
+        const char* researching = "-";
+        int target = techtree.getResearchTarget(coordinator.v_f_id);
+        if (target != 0 && coordinator.v_f_id < techtree.factionCount())
+        {
+            const Tech* t = techtree.graph(coordinator.v_f_id).getTech(target);
+            if (t != nullptr)
+                researching = t->name.c_str();
+        }
+        sprintf (str, "%s", researching);
+    }
     placeMark4(10,-110,7*3,"assets/assets/status/science_25.png");
     drawString(30,-120,1,str,0.2f);
 

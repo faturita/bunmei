@@ -30,20 +30,24 @@
 //   Next       -- the undiscovered techs fanning out of the Frontier: this turn's candidates.
 //                 A Next tech that fires is moved into the Frontier.
 //
-// NOTE: this header/implementation is the SCAFFOLD only -- it deliberately carries no
-// technology data. The concrete graph (README.md's tech table) is supplied by the caller via
-// addTech/addEdge, so the game and the testcases build their own.
+// The TechGraph/TechTree machinery itself carries no technology data -- a graph is built by
+// the caller through addTech/addEdge, so a test can use any shape it likes. The GAME's graph
+// (README.md's tech table) is buildDefaultTechGraph() at the bottom of this header.
 //
 // There is one TechGraph per faction (TechTree below owns them): weights and biases are
 // randomized per graph, so two civilizations researching the same investment plan discover
 // things in a different order.
 
 // Random-initialization range for edge weights and node biases, and the sigmoid output at
-// which a technology is considered discovered. @FIXME These need real balancing: with the
-// current ranges a node fires after roughly half a dozen SCIENCE points invested in one
-// parent, which is far too fast for a full game.
-const float TECH_WEIGHT_MIN       = 0.1f;
-const float TECH_WEIGHT_MAX       = 0.9f;
+// which a technology is considered discovered.
+//
+// Firing needs sigmoid(science*w - bias) >= TECH_FIRING_THRESHOLD, i.e.
+// science >= (logit(threshold) + bias) / w = (2.197 + bias) / w. Averaged over the ranges
+// below that is ~74 SCIENCE per discovery (the weights were scaled down 10x from an earlier
+// 0.1..0.9, which fired after only ~7). Widen/narrow the WEIGHT range to retune: expected
+// cost scales as 1/w, while the bias only shifts it by a couple of points.
+const float TECH_WEIGHT_MIN       = 0.01f;
+const float TECH_WEIGHT_MAX       = 0.09f;
 const float TECH_BIAS_MIN         = 0.1f;
 const float TECH_BIAS_MAX         = 0.9f;
 const float TECH_FIRING_THRESHOLD = 0.9f;
@@ -106,6 +110,9 @@ public:
     bool isDiscovered(int id) const;
     const std::unordered_set<int>& getFrontier() const;
     const std::unordered_set<int>& getNext() const;
+    // The Frontier in graph insertion order. The set itself is unordered, so anything that
+    // maps a position back to a technology (the research selector dialog) must use this.
+    std::vector<int> getFrontierOrdered() const;
 
     Tech*       getTech(int id);
     const Tech* getTech(int id) const;
@@ -159,6 +166,25 @@ public:
     TechGraph&       graph(int factionId);
     const TechGraph& graph(int factionId) const;
 
+    // ---- research target: the ONE technology a faction is currently pouring SCIENCE into --
+    // 0 when nothing is selected.
+    int  getResearchTarget(int factionId) const;
+    // Accepted only for a technology currently in that faction's Frontier (you can only
+    // research what you already know). Returns false otherwise, leaving the target alone.
+    bool setResearchTarget(int factionId, int techId);
+    // True when the faction has no usable target -- it never picked one, or the one it had
+    // dropped out of the Frontier because everything that technology led to is now known.
+    // That is the moment to ask the player again (or let the AI reroll).
+    bool needsResearchTarget(int factionId) const;
+    // A random Frontier technology: what an autoPlayer faction picks, and the fallback for a
+    // human faction that has not answered the selector. 0 if the Frontier is empty.
+    int  pickRandomTarget(int factionId);
+
+    // SCIENCE handed to advance() while the faction had no valid target -- e.g. the player has
+    // not answered the selector yet. It is held here and spent whole on the next investment,
+    // so a year's research is never silently thrown away while the dialog is open.
+    int  getPendingScience(int factionId) const;
+
     // One research turn for one faction: `investments` is (techId -> SCIENCE) for this turn
     // (all of it must land on Frontier nodes; anything else is ignored), then the graph is
     // stepped and every newly discovered technology's depCode is registered in `dee`.
@@ -166,9 +192,24 @@ public:
     std::vector<int> advance(int factionId,
                              const std::unordered_map<int,int>& investments,
                              DependencyEvaluationEngine& dee);
+    // The same, pouring a year's SCIENCE into whatever the faction currently has selected.
+    std::vector<int> advance(int factionId, int science, DependencyEvaluationEngine& dee);
 
 private:
     std::vector<TechGraph> graphs;
+    std::vector<int>       targets;      // per faction, 0 = nothing selected
+    std::vector<int>       pending;      // per faction, SCIENCE banked awaiting a target
 };
+
+// The README.md "Science" table as a graph: every technology in codes.h (TECH_FIRST..TECH_LAST)
+// wired by the dependencies that table declares, rooted at TECH_ROOT (Language). This is the
+// one place the game's technology data lives.
+TechGraph buildDefaultTechGraph();
+
+// Shared game/simulation setup: builds the default graph, gives every faction its own
+// randomized copy with only the root discovered, and registers the root's dependency code for
+// each of them (every faction starts knowing Language). gamekernel.cpp and simulate.cpp both
+// call this -- it lives here because gamekernel.cpp is not linked into the simulator.
+void initTechnologies(TechTree& tree, int factionCount, DependencyEvaluationEngine& dee);
 
 #endif // TECHNOLOGIES_H
