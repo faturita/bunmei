@@ -143,6 +143,11 @@ public:
     // Returns the ids discovered by this call (empty if none fired).
     std::vector<int> step();
 
+    // Rebuilds the Frontier and Next sets from the nodes' `discovered` flags alone. Used when
+    // progress is restored from a savegame by setting those flags directly (savegame.cpp):
+    // only what each faction KNOWS is persisted, everything derived is recomputed here.
+    void rebuildFrontier();
+
     // sigmoid( SUM(parent.science * w) - bias ). 0 for an unknown id.
     float activation(int id) const;
 
@@ -188,6 +193,10 @@ public:
     // dropped out of the Frontier because everything that technology led to is now known.
     // That is the moment to ask the player again (or let the AI reroll).
     bool needsResearchTarget(int factionId) const;
+    // Sets the banked SCIENCE directly. Only for restoring a savegame -- normal play goes
+    // through advance(), which banks and spends on its own.
+    void setPendingScience(int factionId, int science);
+
     // A random Frontier technology: what an autoPlayer faction picks, and the fallback for a
     // human faction that has not answered the selector. 0 if the Frontier is empty.
     int  pickRandomTarget(int factionId);

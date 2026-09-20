@@ -38,6 +38,13 @@ class DependencyEvaluationEngine {
         bool verifyDepAll(int contextId, const std::vector<int>& codeIds);
         bool verifyDepAny(int contextId, const std::vector<int>& codeIds);
 
+        // Serialization (savegame.cpp). A contextId already encodes its scope -- world,
+        // faction or city, see the encoders above -- so the registry map IS the whole state
+        // at all three levels; saving it as-is needs no per-scope special casing.
+        const std::unordered_map<int, std::unordered_set<int>>& getRegistry() const;
+
+        // Drops every registration. Used on load, right before replaying a saved registry.
+        void clear();
 };
 
 #endif // DEE_H

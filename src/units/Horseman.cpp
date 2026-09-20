@@ -45,15 +45,19 @@ std::vector<int> HorsemanFactory::getRequiredResources()
 {
     std::vector<int> requiredResources;
     requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(horses);
     return requiredResources;
 }
 
 std::vector<Resource*> HorsemanFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
 {
     std::vector<Resource*> consumedResources;
-    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40)
+    
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40 &&
+        availableResources[horses] && availableResources[horses]->amount >= 25)
     {
         consumedResources.push_back(new Resource{SHIELDS, 40});
+        consumedResources.push_back(new Resource{horses, 25});
     }
     return consumedResources;
 }

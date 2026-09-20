@@ -136,7 +136,7 @@ int Wagon::getSubType()
 WagonFactory::WagonFactory()
 {
     strncpy(this->name,"Wagon",256);
-    addDependencyCode(TECH_THE_WHEEL);
+    addDependencyCode(TECH_THE_WHEEL); 
 }
 
 std::vector<int> WagonFactory::getRequiredResources()

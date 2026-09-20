@@ -135,22 +135,25 @@ int Galleon::getSubType()
 GalleonFactory::GalleonFactory()
 {
     strncpy(this->name,"Galleon",256);
-    addDependencyCode(TECH_MAP_MAKING);
+    addDependencyCode(TECH_SHIP_BUILDING);
 }
 
 std::vector<int> GalleonFactory::getRequiredResources()
 {
     std::vector<int> requiredResources;
     requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(iron);
     return requiredResources;
 }
 
 std::vector<Resource*> GalleonFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
 {
     std::vector<Resource*> consumedResources;
-    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 200)
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 200 &&
+        availableResources[iron] && availableResources[iron]->amount >= 100)
     {
         consumedResources.push_back(new Resource{SHIELDS, 200});
+        consumedResources.push_back(new Resource{iron, 100});
     }
     return consumedResources;
 }

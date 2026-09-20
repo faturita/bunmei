@@ -10,6 +10,8 @@
 #include "City.h"
 #include "resources.h"
 #include "coordinator.h"
+#include "dee.h"
+#include "technologies.h"
 
 #include "units/Unit.h"
 #include "units/Warrior.h"
@@ -51,6 +53,75 @@ extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern Map map;
 
 extern int year;
+extern DependencyEvaluationEngine dee;
+extern TechTree techtree;
+
+// ---------------------------------------------------------------------------------------
+// Dependency Evaluation Engine and tech graph.
+//
+// Both are written as plain (count, then that many records) blocks with no fixed-size tables
+// and no positional indices -- every record names what it is (a contextId, a technology code).
+// That is deliberate: the tech table and the code set are expected to keep changing, and this
+// way adding or removing a technology only costs the unknown records on load, not the file
+// format.
+
+// The DEE registry verbatim: contextId -> the codes registered against it. contextId already
+// encodes world / faction / city scope (dee.cpp), so all three levels come along for free.
+static void saveDependencies(std::ofstream& out)
+{
+    const auto& registry = dee.getRegistry();
+
+    size_t context_count = registry.size();
+    out.write(reinterpret_cast<const char*>(&context_count), sizeof(context_count));
+
+    for (const auto& entry : registry)
+    {
+        int contextId = entry.first;
+        size_t code_count = entry.second.size();
+        out.write(reinterpret_cast<const char*>(&contextId), sizeof(contextId));
+        out.write(reinterpret_cast<const char*>(&code_count), sizeof(code_count));
+        for (int codeId : entry.second)
+            out.write(reinterpret_cast<const char*>(&codeId), sizeof(codeId));
+    }
+}
+
+// Only each faction's PROGRESS. The graph itself -- nodes, edges, README weights, depth-based
+// biases -- is rebuilt from buildDefaultTechGraph() on load, so it is not worth persisting and
+// a save cannot pin down a stale copy of a table that is still being tuned. Frontier and Next
+// are pure functions of the discovered flags (TechGraph::rebuildFrontier), so they are not
+// stored either. Undiscovered nodes always have science 0 (invest() only accepts Frontier
+// technologies), so listing the discovered ones is complete.
+static void saveTechnologies(std::ofstream& out)
+{
+    size_t faction_count = techtree.factionCount();
+    out.write(reinterpret_cast<const char*>(&faction_count), sizeof(faction_count));
+
+    for (size_t f = 0; f < faction_count; ++f)
+    {
+        const TechGraph& g = techtree.graph((int)f);
+
+        int target  = techtree.getResearchTarget((int)f);
+        int pending = techtree.getPendingScience((int)f);
+        out.write(reinterpret_cast<const char*>(&target), sizeof(target));
+        out.write(reinterpret_cast<const char*>(&pending), sizeof(pending));
+
+        std::vector<int> ids = g.getTechIds();
+        std::vector<int> discovered;
+        for (int id : ids)
+            if (g.isDiscovered(id))
+                discovered.push_back(id);
+
+        size_t discovered_count = discovered.size();
+        out.write(reinterpret_cast<const char*>(&discovered_count), sizeof(discovered_count));
+        for (int id : discovered)
+        {
+            const Tech* t = g.getTech(id);
+            int science = t != nullptr ? t->science : 0;
+            out.write(reinterpret_cast<const char*>(&id), sizeof(id));
+            out.write(reinterpret_cast<const char*>(&science), sizeof(science));
+        }
+    }
+}
 
 void savegame(const char* filename)
 {
@@ -195,6 +266,9 @@ void savegame(const char* filename)
         out.write(reinterpret_cast<const char*>(&name_len), sizeof(name_len));
         out.write(u->name, name_len);
     }
+
+    saveDependencies(out);
+    saveTechnologies(out);
 
     out.close();
     printf("Game saved to %s\n", path.c_str());
@@ -436,3 +510,92 @@ void loadgame()
 
 }
 
+
+
+// Replaces the whole registry with the saved one -- authoritative, so anything registered
+// during setup (initTechnologies' root code) or while loading is superseded. This is also what
+// restores CITY-level perks: loadCities() rebuilds a city's buildings but never re-registers
+// their perk codes (only bunmei.cpp does, when one is actually built), so before this they
+// were silently lost across a save/load.
+void loadDependencies(std::ifstream& in)
+{
+    size_t context_count = 0;
+    in.read(reinterpret_cast<char*>(&context_count), sizeof(context_count));
+    if (!in) return;
+
+    dee.clear();
+
+    for (size_t i = 0; i < context_count; ++i)
+    {
+        int contextId = 0;
+        size_t code_count = 0;
+        in.read(reinterpret_cast<char*>(&contextId), sizeof(contextId));
+        in.read(reinterpret_cast<char*>(&code_count), sizeof(code_count));
+        if (!in) return;
+
+        for (size_t j = 0; j < code_count; ++j)
+        {
+            int codeId = 0;
+            in.read(reinterpret_cast<char*>(&codeId), sizeof(codeId));
+            if (!in) return;
+            dee.regDep(contextId, codeId);
+        }
+    }
+
+    printf("Loaded dependencies for %zu contexts.\n", context_count);
+}
+
+// Rebuilds each faction's progress on top of the graph initTechnologies() already created.
+// A technology code that no longer exists (the table changed since the save) is skipped rather
+// than treated as an error -- that is the whole point of storing codes instead of indices.
+void loadTechnologies(std::ifstream& in)
+{
+    size_t faction_count = 0;
+    in.read(reinterpret_cast<char*>(&faction_count), sizeof(faction_count));
+    if (!in) return;
+
+    for (size_t f = 0; f < faction_count; ++f)
+    {
+        int target = 0, pending = 0;
+        size_t discovered_count = 0;
+        in.read(reinterpret_cast<char*>(&target), sizeof(target));
+        in.read(reinterpret_cast<char*>(&pending), sizeof(pending));
+        in.read(reinterpret_cast<char*>(&discovered_count), sizeof(discovered_count));
+        if (!in) return;
+
+        bool known = (int)f < techtree.factionCount();
+        TechGraph* g = known ? &techtree.graph((int)f) : nullptr;
+
+        int skipped = 0;
+        for (size_t i = 0; i < discovered_count; ++i)
+        {
+            int id = 0, science = 0;
+            in.read(reinterpret_cast<char*>(&id), sizeof(id));
+            in.read(reinterpret_cast<char*>(&science), sizeof(science));
+            if (!in) return;
+
+            Tech* t = g != nullptr ? g->getTech(id) : nullptr;
+            if (t == nullptr) { skipped++; continue; }
+
+            t->discovered = true;
+            t->science    = science;
+        }
+
+        if (g == nullptr)
+            continue;
+
+        // Everything derived comes back from the flags above.
+        g->rebuildFrontier();
+
+        // setResearchTarget only accepts a technology that is in the rebuilt Frontier, so this
+        // silently drops a target that no longer makes sense; endOfYear's chooseResearch() then
+        // asks for a new one.
+        techtree.setResearchTarget((int)f, target);
+        techtree.setPendingScience((int)f, pending);
+
+        if (skipped > 0)
+            printf("Faction %zu: skipped %d saved technologies that no longer exist.\n", f, skipped);
+    }
+
+    printf("Loaded technologies for %zu factions.\n", faction_count);
+}

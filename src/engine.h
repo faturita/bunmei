@@ -54,6 +54,11 @@ void operateCityBuildings(City* c);
 // which would add the viewing faction's map offset.
 bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon);
 
+// Tags one landlocked ocean body (gamekernel.cpp's findOceanBodies) as LAKE, so irrigation can
+// use it. Plain open water only -- bioma 0 or OCEANBIOMA; a river mouth is left alone.
+// Returns the number of cells changed.
+int tagLakeCells(const std::vector<coordinate>& body);
+
 int findNearbyEnemyFactionId(int unitId, int radius);
 
 // Makes u the active/selectable unit (coordinator.a_u_id) and wakes it out of whatever

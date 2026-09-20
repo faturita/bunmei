@@ -47,15 +47,18 @@ std::vector<int> HorsearcherFactory::getRequiredResources()
 {
     std::vector<int> requiredResources;
     requiredResources.push_back(SHIELDS);
+    requiredResources.push_back(horses);
     return requiredResources;
 }
 
 std::vector<Resource*> HorsearcherFactory::fullfillment(std::unordered_map<int, Resource*> availableResources)
 {
     std::vector<Resource*> consumedResources;
-    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 40)
+    if (availableResources[SHIELDS] && availableResources[SHIELDS]->amount >= 200 &&
+        availableResources[horses] && availableResources[horses]->amount >= 25)
     {
-        consumedResources.push_back(new Resource{SHIELDS, 40});
+        consumedResources.push_back(new Resource{SHIELDS, 200});
+        consumedResources.push_back(new Resource{horses, 25});
     }
     return consumedResources;
 }

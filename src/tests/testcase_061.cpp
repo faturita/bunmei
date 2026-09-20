@@ -41,6 +41,14 @@
 //
 // Both are checked at offset 0 first (so the test would also catch a regression that broke the
 // unshifted case) and then with the map scrolled.
+//
+// @Issue (issue.png, second report): the same message appeared beside an INNER LAKE on a loaded
+// game. Different root cause: gamekernel.cpp tagged a landlocked ocean body as LAKE only where
+// `bioma == 0`, but every ocean cell is set to OCEANBIOMA by the generator's "single water
+// bioma" pass first -- so the guard was never true and NO cell was ever tagged, on a freshly
+// generated map as much as a loaded one. The rule now lives in engine.cpp:tagLakeCells() (so it
+// is testable at all -- gamekernel.cpp is not linked into the testcase build) and accepts plain
+// open water, bioma 0 or OCEANBIOMA, while still leaving a river mouth alone.
 
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
@@ -177,6 +185,60 @@ int TestCase_061::check(int year)
         { fail("After save+load a Worker at (0,0) should still be able to irrigate next to the river."); return 0; }
     }
 
+    // ---- 3) landlocked lakes actually get tagged, and make their shore irrigable ----------
+    {
+        map.setCenter(0,0);
+
+        // A 2x2 inner lake at (5..6, 5..6), the shape of the one in issue.png: OCEAN cells
+        // carrying OCEANBIOMA, exactly as the generator leaves them and as a savegame stores
+        // them. One of the four is a river mouth, which must be left alone.
+        std::vector<coordinate> body;
+        for (int lat=5; lat<=6; lat++)
+            for (int lon=5; lon<=6; lon++)
+            {
+                map.set(lat,lon) = mapcell(OCEAN);
+                map.set(lat,lon).bioma = OCEANBIOMA;
+                body.push_back(coordinate(lat,lon));
+            }
+        map.set(6,6).bioma = RIVER_MOUTH_S;
+
+        // Before tagging, the land beside it is not irrigable: plain ocean is not a water
+        // source, which is the state the game shipped in.
+        if (tileHasWaterOasisOrIrrigationNearby(5,4))
+        { fail("Plain OCEANBIOMA water must not count as an irrigation source on its own."); return 0; }
+
+        int tagged = tagLakeCells(body);
+
+        if (tagged != 3)
+        {
+            char buf[160];
+            snprintf(buf,sizeof(buf),"tagLakeCells tagged %d of 4 cells; expected 3 (the river mouth is left alone).", tagged);
+            fail(buf); return 0;
+        }
+        if (map.set(5,5).bioma != LAKE || map.set(5,6).bioma != LAKE || map.set(6,5).bioma != LAKE)
+        { fail("tagLakeCells should turn plain OCEANBIOMA water into LAKE."); return 0; }
+        if (map.set(6,6).bioma != RIVER_MOUTH_S)
+        { fail("tagLakeCells must not overwrite a river mouth."); return 0; }
+
+        // Which is the whole point: the shore is now irrigable.
+        if (!tileHasWaterOasisOrIrrigationNearby(5,4))
+        { fail("Land beside a tagged lake should be irrigable."); return 0; }
+        if (!tileHasWaterOasisOrIrrigationNearby(4,5))
+        { fail("Land north of a tagged lake should be irrigable."); return 0; }
+        if (tileHasWaterOasisOrIrrigationNearby(5,0))
+        { fail("Land far from the lake should still be refused."); return 0; }
+
+        // Running it twice must not double count -- LAKE is not plain water any more.
+        if (tagLakeCells(body) != 0)
+        { fail("tagLakeCells should be idempotent: an already tagged lake has nothing left to tag."); return 0; }
+
+        // And it survives the scroll, same as everything else here.
+        map.setCenter(0,MAP_SHIFT);
+        if (!tileHasWaterOasisOrIrrigationNearby(5,4))
+        { fail("Scrolled: the lake shore must still be irrigable."); return 0; }
+        map.setCenter(0,0);
+    }
+
     isdone = true;
     haspassed = true;
     return 0;
@@ -184,7 +246,7 @@ int TestCase_061::check(int year)
 
 std::string TestCase_061::title()
 {
-    return std::string("Map view offset ('f'/'g') must not leak into world logic: irrigation adjacency reads REAL neighbours (map.peek, not the screen-space map.north/south/east/west), and saveMap writes unshifted cells so a scrolled save reloads identical.");
+    return std::string("Irrigation water sources: the map view offset ('f'/'g') must not leak into the adjacency check or into saveMap, and a landlocked ocean body must actually be tagged LAKE (tagLakeCells accepts plain OCEANBIOMA water, not just bioma 0) so its shore is irrigable.");
 }
 
 bool TestCase_061::done()   { return isdone; }

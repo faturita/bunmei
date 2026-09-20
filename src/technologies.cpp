@@ -281,6 +281,20 @@ std::vector<int> TechGraph::step()
     return discovered;
 }
 
+// frontier = every discovered node that still has an undiscovered child (pruneFrontier drops
+// the rest); next = their fan-out. Both are pure functions of the discovered flags, which is
+// why a savegame only has to store those.
+void TechGraph::rebuildFrontier()
+{
+    frontier.clear();
+    for (int id : order)
+        if (techs[id].discovered)
+            frontier.insert(id);
+
+    pruneFrontier();
+    rebuildNext();
+}
+
 float TechGraph::getWeight(int fromId, int toId) const
 {
     auto to = techs.find(toId);
@@ -381,6 +395,13 @@ bool TechTree::needsResearchTarget(int factionId) const
         return false;
 
     return graphs[factionId].getFrontier().count(targets[factionId]) == 0;
+}
+
+void TechTree::setPendingScience(int factionId, int science)
+{
+    if (factionId < 0 || factionId >= (int)pending.size())
+        return;
+    pending[factionId] = science < 0 ? 0 : science;
 }
 
 int TechTree::pickRandomTarget(int factionId)

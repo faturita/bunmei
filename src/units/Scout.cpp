@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../codes.h"
 #include "Scout.h"
 
 extern std::vector<Faction*> factions;
@@ -37,6 +38,7 @@ Scout* ScoutFactory::create()
 ScoutFactory::ScoutFactory()
 {
     strncpy(this->name,"Scout",256);  
+    addDependencyCode(TECH_ANIMAL_HUSBANDRY);
 }
 
 std::vector<int> ScoutFactory::getRequiredResources()

@@ -1040,6 +1040,32 @@ void switchUnitIfNoMovesLeft()
 // being rejected because that tile itself isn't a water/oasis/lake tile). A plain open-ocean
 // coastal neighbour does NOT count. Checked on the 4 orthogonal neighbours only (N/S/E/W),
 // per the task.
+// Tags one landlocked ocean body as LAKE so irrigation can use it as a water source, and
+// returns how many cells it actually changed.
+//
+// Only PLAIN open water is tagged. An ocean cell carries OCEANBIOMA once the generator's
+// "single water bioma" pass has run and 0 only before it, so both mean untouched water; a cell
+// already carrying a river mouth (RIVER_MOUTH_*) keeps it and is still a valid water source
+// through the RIVER_MOUTH branch of tileHasWaterOasisOrIrrigationNearby below.
+//
+// This guard used to be `bioma == 0` alone, which is never true -- OCEANBIOMA is assigned
+// first -- so no cell was ever tagged and irrigation beside an inner lake was always refused,
+// on a freshly generated map as much as a loaded one.
+int tagLakeCells(const std::vector<coordinate>& body)
+{
+    int tagged = 0;
+    for (const coordinate& c : body)
+    {
+        int bioma = map.peek(c.lat,c.lon).bioma;
+        if (bioma == 0 || bioma == OCEANBIOMA)
+        {
+            map.set(c.lat,c.lon).bioma = LAKE;
+            tagged++;
+        }
+    }
+    return tagged;
+}
+
 bool tileHasWaterOasisOrIrrigationNearby(int lat, int lon)
 {
     // peek(), NOT map.north/south/east/west: those go through Map::operator(), which adds the

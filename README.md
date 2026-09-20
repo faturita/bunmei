@@ -126,7 +126,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Trireme         | Map Making      | - | - |
 | Galley          | Map Making + Horseback Riding  | -    | - |
 | Horse Archer    | Animal Husbandry + Horseback Riding | -    | - |
-| Galleon         | Map Making | - | - |
+| Galleon         | Ship Building | - | - |
 | Musketman       | Gunpowder | Guns | - |
 | Granadier       | Chemestry | Guns + Spices | - |
 | Cavalry         | Military Tradition | Horses + Guns | - |
@@ -308,18 +308,18 @@ The discovery of a technology or other achievements enable unit productions or r
 |---|---:|---|
 | Language | `0x01` | - |
 | Hunting | `0x02` | Language (1.0) |
-| Agriculture | `0x03` | Language (1.0) |
-| Fishing | `0x04` | Language (1.0) |
+| Agriculture | `0x03` | Hunting (1.0) |
+| Fishing | `0x04` | Hunting (1.0) |
 | Mining | `0x05` | Language (1.0) |
-| Masonry | `0x06` | Language (0.9)|
-| The Wheel | `0x07` | Language (1.0) |
-| Archery | `0x08` | Language (0.8), Hunting (1.0) |
-| Warrior Code | `0x09` | Language (0.8), Hunting (1.0) |
-| Bronze Working | `0x0A` | Language (0.8), Hunting (1.0) |
-| Animal Husbandry | `0x0B` | Language (0.8), Hunting (1.0) |
-| Pottery | `0x0C` | Language (1.0), Agriculture (1.0) |
+| Masonry | `0x06` | Mining (0.9)|
+| The Wheel | `0x07` | Agriculture (1.0) |
+| Archery | `0x08` | Fishing (0.8), Hunting (1.0) |
+| Warrior Code | `0x09` | Archery (0.8), Hunting (1.0) |
+| Bronze Working | `0x0A` | Mining (0.8), Hunting (1.0) |
+| Animal Husbandry | `0x0B` | Agriculture (0.8), Hunting (1.0) |
+| Pottery | `0x0C` | Masonry (1.0), Agriculture (1.0) |
 | Alphabet | `0x0D` | Language (1.0) |
-| Ceremonial Burial | `0x0E` | Language (1.0) |
+| Ceremonial Burial | `0x0E` | Warrior Code (1.0) |
 | Writing | `0x0F` | Alphabet (1.0) |
 | Mathematics | `0x10` | Masonry (1.0), Alphabet (1.0) |
 | Iron Working | `0x11` | Bronze Working (1.0) |

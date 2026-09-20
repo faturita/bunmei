@@ -63,3 +63,13 @@ bool DependencyEvaluationEngine::verifyDepAny(int contextId, const std::vector<i
     }
     return false;
 }
+
+const std::unordered_map<int, std::unordered_set<int>>& DependencyEvaluationEngine::getRegistry() const
+{
+    return registry;
+}
+
+void DependencyEvaluationEngine::clear()
+{
+    registry.clear();
+}

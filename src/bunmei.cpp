@@ -330,7 +330,7 @@ inline void endOfYear()
         if (c->isCapitalCity())
         {
             c->resources[COINS] -= salaries[c->faction];
-            printf("City %s has paid %d in salaries (Net in city %d).\n",c->name,salaries[c->faction],c->resources[COINS]);
+            printf("City %s\t\t\thas paid %d in salaries (Net in city %d).\n",c->name,salaries[c->faction],c->resources[COINS]);
         }
 
         // Peek the production queue.

@@ -684,17 +684,21 @@ void initMap()
     // are left alone (still a valid water source for irrigation either way).
     std::vector<std::vector<coordinate>> oceanbodies = findOceanBodies();
     int lakecount = 0;
+    int lakecells = 0;
     for (auto &body : oceanbodies)
     {
         if ((int)body.size() <= LANDLOCKED_OCEAN_MAX_SIZE)
         {
-            for (auto &c : body)
-                if (map(c.lat,c.lon).bioma == 0)
-                    map.set(c.lat,c.lon).bioma = LAKE;
+            // The tagging rule itself lives in engine.cpp so it can be tested (gamekernel.cpp
+            // is not linked into the testcase build); this loop only decides WHICH bodies are
+            // small enough to count as lakes.
+            lakecells += tagLakeCells(body);
             lakecount++;
         }
     }
-    printf("Detected %d lake(s) from landlocked oceans\n", lakecount);
+    // Cells, not just bodies: the old message counted qualifying bodies whether or not it
+    // changed anything, which is exactly why the bug above stayed invisible.
+    printf("Detected %d lake(s) from landlocked oceans (%d tiles tagged)\n", lakecount, lakecells);
     fflush(stdout);
 
     int lat = 23;
@@ -940,6 +944,12 @@ void loadWorldModelling()
     loadCities(in);
 
     loadUnits(in);
+
+    // The DEE registry and each faction's tech progress, in the order savegame() wrote them.
+    // After loadCities/loadUnits deliberately: loadDependencies() REPLACES the registry, so it
+    // must run once nothing else is going to register anything.
+    loadDependencies(in);
+    loadTechnologies(in);
 
     //initUnits();
 

@@ -14,7 +14,7 @@
 //
 // Codes are only unique WITHIN a context type: a faction-scoped TECH_* may share a number
 // with a city-scoped code below, which is exactly what dee.h's context tagging is for.
-#define TECH_LANGUAGE           0x01
+#define TECH_LANGUAGE           0x01 
 #define TECH_HUNTING            0x02
 #define TECH_AGRICULTURE        0x03
 #define TECH_FISHING            0x04
