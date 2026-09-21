@@ -306,6 +306,7 @@ inline void endOfYear()
         for(int commodity_id : ALL_COMMODITIES)
         {
             c->resources[commodity_id] += c->getCommodityProductionRate(commodity_id);
+
         }
 
         // Reduce the number of resources according to what is required now.
@@ -406,6 +407,7 @@ inline void endOfYear()
             c->resources[SHIELDS] = 0;
             //message(year, c->faction, "City %s has nothing to build.",c->name);
         }
+        capResources(c);
         
         // Balance city population according to available resources.
         float popFactor = 0.0f;

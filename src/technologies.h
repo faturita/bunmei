@@ -69,7 +69,7 @@
 //     technology, ~180 for Banking through Education, ~327 for Astronomy (six parents).
 // So breadth is rewarded and tunnelling is priced, which is what the Frontier design wants.
 const float TECH_DEFAULT_WEIGHT   = 0.05f;
-const float TECH_BIAS_BASE        = 1.0f;
+const float TECH_BIAS_BASE        = 1.1f;
 const float TECH_FIRING_THRESHOLD = 0.9f;
 
 // A node that unlocks nothing in the Dependency Evaluation Engine. Real nodes carry one of

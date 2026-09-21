@@ -105,5 +105,6 @@ bool attack(Unit* attacker, int lat, int lon, bool &forceBreak);
 // commerce screen (controller.view = 4) instead of moving; returns true when it handled it.
 bool engageTrade(Unit* unit, int lat, int lon);
 
+void capResources(City* c);
 
 #endif // ENGINE_H

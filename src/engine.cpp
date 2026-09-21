@@ -1751,3 +1751,19 @@ void processWork()
     coordinator.a_u_id = nextMovableUnitId(coordinator.a_f_id);
 }
 
+void capResources(City* c)
+{
+    int cap = 300; // @FIXME: Put this as a constant (same for the other values)
+
+    // Capping the amount of commodities based on storage expansion technologies
+    if (dee.verifyDep(cityContext(c->id), STORAGE_EXPANSION_1))
+        cap = 600;
+    if (dee.verifyDep(cityContext(c->id), STORAGE_EXPANSION_2))
+        cap = 900;
+
+    for(int r_id : ALL_COMMODITIES_AND_MFGGOODS)
+    {
+        if (c->resources[r_id] > cap)
+            c->resources[r_id] = cap;
+    }
+}

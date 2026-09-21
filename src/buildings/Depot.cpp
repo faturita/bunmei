@@ -6,7 +6,7 @@ Depot::Depot()
 {
     strcpy(name,"Depot");
     strncpy(this->assetname,"assets/assets/city/depot.png",256);
-    perkCodes.push_back(STORAGE_EXPANSION_1);
+    perkCodes.push_back(STORAGE_EXPANSION_2);
 }
 
 int Depot::getSubType()
