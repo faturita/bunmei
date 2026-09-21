@@ -376,6 +376,21 @@ int TestCase_001::check(int year)
 
     isdone = true;
 
+    Map map;
+    coordinate s = map.adjust(lat,lon,1,0);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    s = map.adjust(lat,lon,1,1);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    s = map.adjust(lat,lon,0,1);
+
+    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
+
+    //exit(-1);
+
     return 0;
 }
 std::string TestCase_001::title()

@@ -95,6 +95,37 @@ float travelCost(int fromlat, int fromlon, int tolat, int tolon)
     return 1.0f;
 }
 
+// Gives every tile on the map its base production rates from the productionrates tables
+// (tiles.h). Runs on a freshly generated world AND right after a map is loaded (loadMap,
+// mapio.cpp, calls it), so a tile's yield never has to be carried in a save file -- which is
+// what let the stored, improvement-inflated rates feed back into themselves before.
+//
+// One copy, deliberately: this used to be duplicated in gamekernel.cpp and simulate.cpp, and
+// the two had silently DRIFTED -- simulate.cpp's older hand-written chain gave grassland
+// FOOD 3 where the table says 1 and plain land 2 where it says 1, so the simulator and the
+// game were modelling different worlds. engine.cpp is linked into every build.
+//
+// Improvements are not folded in here; getResourceProductionRate() applies them live, so a
+// worker finishing a road takes effect with no re-assignment.
+void assignProductionRates(Map &mmp)
+{
+    for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
+        for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
+        {
+            mapcell &cell = mmp.set(lat,lon);
+
+            std::array<int,6> rates = tileBaseProductionRates(productionrates, cell.code, cell.bioma, cell.resource);
+
+            // The vector is sized on the first pass and overwritten on any later one, so
+            // re-assigning an already-populated map (after a load) is safe and idempotent.
+            while (cell.getResourceProductionRateSize() < (int)rates.size())
+                cell.addResourceProductionRate(0);
+
+            for (size_t i = 0; i < rates.size(); i++)
+                cell.setResourceProductionRate((int)i, rates[i]);
+        }
+}
+
 int getNextCityId()
 {
     int nextid = 0;
@@ -176,6 +207,44 @@ City* factionTreasury(int faction_id)
         if (firstCity == nullptr) firstCity = c;
     }
     return firstCity;
+}
+
+// The bulk of a city's COINS, SCIENCE and CULTURE is its TRADE converted by the faction's
+// fundamental rates (the /fundamental command), which endOfYear() does once a year: it
+// doubles the trade first if the city has the TRADE_SURPLUS perk, then splits it coins /
+// science / culture across rates[0..2].
+//
+// This mirrors that arithmetic so the city screen can show those rows without waiting for
+// the year to turn. It is a projection of the CURRENT turn: TRADE never accumulates
+// (endOfYear zeroes it after converting), so the figure comes from the production rate
+// rather than from resources[TRADE], which is 0 between turns.
+//
+// It is an ADDITION to getProductionRate(), never a replacement: all three can also come
+// straight off the tiles. No bioma yields them (gamekernel.cpp BASE_PRODUCTION_RATE), but
+// SPECIAL RESOURCES do -- a worked GOLD tile gives COINS 2 + CULTURE 1 and GEMS gives
+// CULTURE 2 (RESOURCE_RATE_OVERRIDE). No resource currently yields SCIENCE, but that is
+// just today's table, not a rule: adding one (an archaeological dig, say) is a single
+// RESOURCE_RATE_OVERRIDE row and needs no change here or in the city screen, because both
+// sum getProductionRate() with this conversion for EVERY core resource. testcase_065 pins
+// that, SCIENCE included.
+int cityTradeConversionRate(City* city, int r_id)
+{
+    int rateIndex;
+    switch (r_id)
+    {
+        case COINS:   rateIndex = 0; break;
+        case SCIENCE: rateIndex = 1; break;
+        case CULTURE: rateIndex = 2; break;
+        default: return 0;                  // every other resource comes off the tiles
+    }
+
+    int trade = city->getProductionRate(TRADE) - city->getConsumptionRate(TRADE);
+    if (trade < 0) trade = 0;
+
+    if (dee.verifyDep(cityContext(city->id), TRADE_SURPLUS_CODE))
+        trade *= 2;
+
+    return (int)((float)trade * factions[city->faction]->rates[rateIndex]);
 }
 
 // Ask a faction where its SCIENCE should go next. An autoPlayer faction just rolls one of the

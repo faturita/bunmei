@@ -68,89 +68,11 @@ extern bool switchVisibleFaction;
 extern int selectedFaction;
 extern int numCivs;
 
-// context keys for BASE_PRODUCTION_RATE / RESOURCE_RATE_OVERRIDE: real biomas (tiles.h
-// BIOMAS) are all >= 0x20, so these negative sentinels never collide with one.
-#define OCEAN_CONTEXT   -2   // any OCEAN-coded tile, regardless of bioma
-#define ANY_LAND_BIOMA  -1   // any LAND-coded tile, regardless of bioma (e.g. GEMS, GOLD)
-
-// Table 1: base production rate per terrain/bioma, before any special-resource bonus.
-// Array order matches RESOURCE_TYPES (resources.h): FOOD, SHIELDS, TRADE, COINS, SCIENCE,
-// CULTURE.  Bioma variants share their base bioma's rate (looked up by bioma & 0xf0, same
-// convention as travelCost in map.cpp).  A LAND bioma with no entry here (undecorated land,
-// jungle, tundra, ...) falls back to DEFAULT_LAND_RATE.
-static const std::array<int,6> DEFAULT_LAND_RATE = {1, 0, 0, 0, 0, 0};
-
-static const std::unordered_map<int, std::array<int,6>> BASE_PRODUCTION_RATE = {
-    { OCEAN_CONTEXT, {1, 0, 1, 0, 0, 0} },
-    { ARCTIC,        {1, 0, 0, 0, 0, 0} },
-    { DESERT,        {0, 1, 0, 0, 0, 0} },
-    { FOREST,        {1, 2, 0, 0, 0, 0} },
-    { GRASSLAND,     {1, 0, 0, 0, 0, 0} },
-    { HILLS,         {1, 1, 0, 0, 0, 0} },
-    { MOUNTAINS,     {1, 1, 0, 0, 0, 0} },
-    { PLAINS,        {1, 1, 0, 0, 0, 0} },
-    { RIVER,         {2, 0, 1, 0, 0, 0} },
-    { SWAMP,         {1, 0, 1, 0, 0, 0} },
-};
-
-// Table 2: how a special resource (tiles.h SPECIALRESOURCES) nudges rates on top of the base
-// for a given context.  Only the listed RESOURCE_TYPES indices are overridden; every other
-// rate keeps whatever BASE_PRODUCTION_RATE gave it.
-struct ResourceRateOverride
-{
-    int context;                              // OCEAN_CONTEXT, a BIOMAS constant, or ANY_LAND_BIOMA
-    int resource;                             // a SPECIALRESOURCES constant
-    std::vector<std::pair<int,int>> rates;    // (RESOURCE_TYPES index, value) pairs
-};
-
-static const std::vector<ResourceRateOverride> RESOURCE_RATE_OVERRIDE = {
-    { OCEAN_CONTEXT,  FISH,      {{FOOD,3}} },
-    { OCEAN_CONTEXT,  OIL,       {{SHIELDS,2}} },
-    { GRASSLAND,      GEOSHIELD, {{SHIELDS,1}} },
-    { PLAINS,         GEOSHIELD, {{SHIELDS,2}} },
-    { PLAINS,         CATTLE,    {{FOOD,3},{SHIELDS,1}} },
-    { PLAINS,         HORSE,     {{SHIELDS,2}} },
-    { FOREST,         GAME,      {{FOOD,2},{SHIELDS,3}} },
-    { DESERT,         CARBON,      {{SHIELDS,2}} },
-    { DESERT,         OIL,       {{SHIELDS,3}} },
-    { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
-    { MOUNTAINS,      CARBON,      {{SHIELDS,2}} },
-    { ARCTIC,         SEAL,      {{FOOD,3}} },
-    { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2}} },
-    { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
-};
-
-void assignProductionRates(Map &mmp)
-{
-    for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
-        for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
-        {
-            mapcell &cell = mmp.set(lat,lon);
-
-            for(auto &r:ALL_CORE_RESOURCES)
-            {
-                cell.addResourceProductionRate(0);
-            }
-
-            int context = (cell.code == OCEAN) ? OCEAN_CONTEXT : (cell.bioma & 0xf0);
-
-            auto baseit = BASE_PRODUCTION_RATE.find(context);
-            std::array<int,6> rates = (baseit != BASE_PRODUCTION_RATE.end()) ? baseit->second : DEFAULT_LAND_RATE;
-
-            for (auto &ov : RESOURCE_RATE_OVERRIDE)
-            {
-                if (ov.resource != cell.resource) continue;
-                if (ov.context != context && !(ov.context == ANY_LAND_BIOMA && cell.code == LAND)) continue;
-
-                for (auto &kv : ov.rates)
-                    rates[kv.first] = kv.second;
-            }
-
-            for (size_t i = 0; i < rates.size(); i++)
-                cell.setResourceProductionRate((int)i, rates[i]);
-        }
-}
-
+// The tile production tables moved to tiles.cpp (initProductionRates / tileBaseProductionRates,
+// declared in tiles.h) and assignProductionRates() to engine.cpp, which every build links --
+// this file had one copy of the tables and simulate.cpp another, and the two had drifted.
+// Each tile still keeps its own rates; they are just filled from the shared tables, here for
+// a generated world and inside loadMap() for a loaded one, instead of being saved.
 
 // saveMap()/loadMap() moved to mapio.cpp (see gamekernel.h), so they can be linked into
 // the testcase and simulate builds too, which don't link gamekernel.cpp itself.
@@ -257,6 +179,8 @@ std::vector<std::vector<coordinate>> findOceanBodies() {
 void initMap()
 {
     initTiles(tiles);
+
+    initProductionRates(productionrates);
 
     initCoreResources();
 
@@ -704,20 +628,9 @@ void initMap()
     int lat = 23;
     int lon = 35;
 
-    coordinate s = map.adjust(lat,lon,1,0);
-
-    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
-
-    s = map.adjust(lat,lon,1,1);
-
-    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
-
-    s = map.adjust(lat,lon,0,1);
-
-    printf("Adjusted Coordinate %d,%d\n",s.lat,s.lon) ;
-
-    //exit(-1);
-   
+    // Fresh world: give every tile its rates. A LOADED map gets them inside loadMap() (the
+    // branch above), so both paths arrive here with the same per-tile state -- re-running it
+    // is harmless either way.
     assignProductionRates(map);
 }
 

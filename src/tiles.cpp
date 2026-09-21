@@ -10,6 +10,7 @@ ImprovementEffort improvementeffort;
 ImprovementResources improvementresources;
 ImprovementBiomaRestrictions improvementbiomarestrictions;
 std::unordered_map<int, int> commodityxresource;
+ProductionRates productionrates;                                // Tile yield per bioma/resource/improvement
 
 // Unit price of every tradeable resource (commodity or mfg good), used by the commerce
 // screen (commerceui.cpp / engine.cpp Buy/SellResourceOrder). initPrices() seeds every id
@@ -466,6 +467,85 @@ void initPrices(std::unordered_map<int, int> &prices)
 {
     for (int id : ALL_COMMODITIES) prices[id] = 1;
     for (int id : ALL_MFG_GOODS)   prices[id] = 1;
+}
+
+// The production model (see the note in tiles.h). This was two separate copies before --
+// gamekernel.cpp's table-driven one and simulate.cpp's older hand-written if/else chain,
+// which had drifted to different numbers (grassland FOOD 3 against the table's 1, plain land
+// 2 against 1). The game's table is the one kept.
+ProductionRates::ProductionRates()
+{
+    initProductionRates(*this);
+}
+
+void initProductionRates(ProductionRates &rates)
+{
+    rates.defaultland = {1, 0, 0, 0, 0, 0};
+
+    rates.base = {
+        { OCEAN_CONTEXT, {1, 0, 1, 0, 0, 0} },
+        { ARCTIC,        {1, 0, 0, 0, 0, 0} },
+        { DESERT,        {0, 1, 0, 0, 0, 0} },
+        { FOREST,        {1, 2, 0, 0, 0, 0} },
+        { GRASSLAND,     {1, 0, 0, 0, 0, 0} },
+        { HILLS,         {1, 1, 0, 0, 0, 0} },
+        { MOUNTAINS,     {1, 1, 0, 0, 0, 0} },
+        { PLAINS,        {1, 1, 0, 0, 0, 0} },
+        { RIVER,         {2, 0, 1, 0, 0, 0} },
+        { SWAMP,         {1, 0, 1, 0, 0, 0} },
+    };
+
+    rates.overrides = {
+        { OCEAN_CONTEXT,  FISH,      {{FOOD,3}} },
+        { OCEAN_CONTEXT,  OIL,       {{SHIELDS,2}} },
+        { GRASSLAND,      GEOSHIELD, {{SHIELDS,1}} },
+        { PLAINS,         GEOSHIELD, {{SHIELDS,2}} },
+        { PLAINS,         CATTLE,    {{FOOD,3},{SHIELDS,1}} },
+        { PLAINS,         HORSE,     {{SHIELDS,2}} },
+        { FOREST,         GAME,      {{FOOD,2},{SHIELDS,3}} },
+        { DESERT,         CARBON,    {{SHIELDS,2}} },
+        { DESERT,         OIL,       {{SHIELDS,3}} },
+        { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
+        { MOUNTAINS,      CARBON,    {{SHIELDS,2}} },
+        { ARCTIC,         SEAL,      {{FOOD,3}} },
+        { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2}} },
+        { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
+    };
+
+    // [resource][Irrigation, Mine, Road, Railroad][factor, additive]
+    static const float IMPROVEMENT_FACTORS[6][4][2] = {
+        {{2.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},   // FOOD
+        {{1.0f, 0.0f}, {2.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}},   // SHIELDS
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // TRADE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // COINS
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // SCIENCE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}}    // CULTURE
+    };
+
+    for (int r=0;r<6;r++)
+        for (int i=0;i<4;i++)
+            for (int k=0;k<2;k++)
+                rates.improvement[r][i][k] = IMPROVEMENT_FACTORS[r][i][k];
+}
+
+std::array<int,6> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource)
+{
+    const int context = (code == OCEAN) ? OCEAN_CONTEXT : (bioma & 0xf0);
+
+    auto baseit = rates.base.find(context);
+    std::array<int,6> out = (baseit != rates.base.end()) ? baseit->second : rates.defaultland;
+
+    for (const ResourceRateOverride &ov : rates.overrides)
+    {
+        if (ov.resource != resource) continue;
+        if (ov.context != context && !(ov.context == ANY_LAND_BIOMA && code == LAND)) continue;
+
+        for (const auto &kv : ov.rates)
+            if (kv.first >= 0 && kv.first < 6)
+                out[kv.first] = kv.second;
+    }
+
+    return out;
 }
 
 #define CITY_NAMES_PER_CIVILIZATION 100

@@ -3,6 +3,7 @@
 
 #include "map.h"
 #include "mapio.h"
+#include "engine.h"    // assignProductionRates: a loaded map gets its rates rebuilt, never read from the file
 
 extern Map map;
 
@@ -32,13 +33,21 @@ void saveMap(const std::string &path)
             out.write(reinterpret_cast<const char*>(&cell.code), sizeof(cell.code));
             out.write(reinterpret_cast<const char*>(&cell.bioma), sizeof(cell.bioma));
             out.write(reinterpret_cast<const char*>(&cell.resource), sizeof(cell.resource));
-            // Save resource production rates using mapcell accessors.
-            size_t sz = static_cast<size_t>(cell.getResourceProductionRateSize());
+            // Production rates are NOT saved. Every tile keeps its own (mapcell), but they
+            // are REBUILT from the code/bioma/resource written above plus the productionrates
+            // tables, by assignProductionRates() -- on a fresh world and again at the end of
+            // loadMap(). Saving them stored the same fact twice, and stored it wrong: this
+            // wrote getResourceProductionRate(i), which has the improvement factor already
+            // applied, where loadMap read the BASE. Any load that did not re-assign
+            // afterwards therefore took an inflated base and applied the bonus again, and
+            // saving compounded it (an irrigated river tile 2 -> 4 -> 8 -> 16).
+            //
+            // The count stays in the format, always 0, because the block is self-describing
+            // (count, then that many ints) and the map file carries no version header: a
+            // pre-change file still says 6 and its stale rates are read and discarded below,
+            // so old saves keep loading. Drop the field when the format gains a version.
+            const size_t sz = 0;
             out.write(reinterpret_cast<const char*>(&sz), sizeof(sz));
-            for (size_t i = 0; i < sz; ++i) {
-                int rate = cell.getResourceProductionRate(static_cast<int>(i));
-                out.write(reinterpret_cast<const char*>(&rate), sizeof(rate));
-            }
             // Save owner if present
             out.write(reinterpret_cast<const char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
             out.write(reinterpret_cast<const char*>(&cell.f_id_owner), sizeof(cell.f_id_owner));
@@ -87,13 +96,15 @@ void loadMap(const std::string &path)
             cell.bioma = bioma;
             cell.resource = resource;
 
-            // Load resource production rates using mapcell accessors.
+            // Read and DISCARD whatever rates the file carries (see saveMap): a file written
+            // before this change holds improvement-inflated values, and assignProductionRates()
+            // at the end of this function rebuilds every tile's rates anyway. Files written
+            // now store a count of 0 and nothing follows it.
             size_t sz = 0;
             in.read(reinterpret_cast<char*>(&sz), sizeof(sz));
             for (size_t i = 0; i < sz; ++i) {
-                int rate = 0;
-                in.read(reinterpret_cast<char*>(&rate), sizeof(rate));
-                cell.addResourceProductionRate(rate);
+                int staleRate = 0;
+                in.read(reinterpret_cast<char*>(&staleRate), sizeof(staleRate));
             }
             // Load owner if present
             in.read(reinterpret_cast<char*>(&cell.c_id_owner), sizeof(cell.c_id_owner));
@@ -113,5 +124,12 @@ void loadMap(const std::string &path)
         }
     }
     in.close();
+
+    // The rates are not in the file (see above), so give every tile its own from the tables
+    // now that code/bioma/resource are in place. Here rather than at the call sites so no
+    // loader can forget: initMap() used to be the only thing that re-assigned, which is the
+    // single reason the stored inflated values never corrupted a live game.
+    assignProductionRates(map);
+
     printf("Map loaded from %s\n", path.c_str());
 }

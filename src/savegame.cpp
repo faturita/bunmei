@@ -300,7 +300,13 @@ void loadCities(std::ifstream& in)
         in.read(reinterpret_cast<char*>(&c->id), sizeof(c->id));
         bool isCapital;
         in.read(reinterpret_cast<char*>(&isCapital), sizeof(isCapital));
-        c->setCapitalCity();
+        // The flag that was just read decides this -- calling setCapitalCity() unconditionally
+        // made EVERY loaded city a capital, which is not cosmetic: endOfYear() charges the
+        // faction's whole salary bill to each capital (bunmei.cpp), so a four-city faction
+        // paid four times over, and factionTreasury() picked an arbitrary one. The City
+        // constructor already clears the flag, so there is nothing to do in the false case.
+        if (isCapital)
+            c->setCapitalCity();
         in.read(reinterpret_cast<char*>(&c->faction), sizeof(c->faction));
         in.read(reinterpret_cast<char*>(&c->latitude), sizeof(c->latitude));
         in.read(reinterpret_cast<char*>(&c->longitude), sizeof(c->longitude));

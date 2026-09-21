@@ -5,6 +5,7 @@
 #include "coordinate.h"
 #include "resources.h"
 #include "improvements.h"
+#include "tiles.h"          // TERRAIN/BIOMAS and the productionrates tables getResourceProductionRate derives from
 
 // Map dimension presets.  Each mapsize covers the whole screen exactly at its default zoom:
 // zoom level N means the N-th zoom out step, which is mapzoom = 2^-(N-1) internally.
@@ -42,7 +43,12 @@ inline MapDimension getMapDimension(int mapsize)
 struct mapcell
 {
     private:
-    std::vector<int> resource_production_rate;   // List of resource production per tile.
+    // This tile's own BASE production, one entry per RESOURCE_TYPES index. Per-tile on
+    // purpose: a single tile can be given a yield nothing else on the map has, for whatever
+    // reason a scenario or an event needs. assignProductionRates() (engine.h) fills it from
+    // the productionrates tables (tiles.h) both on a fresh world and after a load, which is
+    // why mapio.cpp does not save it -- see the note in tiles.h.
+    std::vector<int> resource_production_rate;
 
 
     public:
@@ -50,16 +56,6 @@ struct mapcell
     int f_id_owner = FREE_LAND;                                 // Free land.
 
     int owners = 0;
-
-    float resource_factor[6][4][2] = { 
-        {{2.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},   // FOOD
-        {{1.0f, 0.0f}, {2.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}},   // SHIELDS
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // TRADE
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // COINS
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // SCIENCE
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}}    // CULTURE
-    };  // Irrigation, Mine, Road, Railroad.
-
 
     mapcell(int code)
     {
@@ -94,33 +90,40 @@ struct mapcell
     {
         return resource_production_rate.size();
     }
+
+    // This tile's base rate for one resource, times whatever its improvements do to it. The
+    // improvement factors are the one part that is NOT per-tile: they were a 192-byte array
+    // copied identically into every single mapcell, so they live in the shared
+    // productionrates table now (tiles.h). Applying them live rather than folding them into
+    // the stored base is what keeps building a road from needing a re-assign -- and is why
+    // this value must never be written back into resource_production_rate, nor saved.
     int getResourceProductionRate(int resourceIndex)
     {
-        if (resourceIndex < 0 || resourceIndex >= resource_production_rate.size())
+        if (resourceIndex < 0 || resourceIndex >= (int)resource_production_rate.size())
             return 0;
 
-        float resource_factor_value = 1.0f;
-        float resource_additive_value = 0.0f;
+        float factor   = 1.0f;
+        float additive = 0.0f;
 
         for (int i = 0; i < 4; ++i) {
             if ((improvements & (1 << i)) != 0) {
-                resource_factor_value *= resource_factor[resourceIndex][i][0];
-                resource_additive_value += resource_factor[resourceIndex][i][1];
+                factor   *= productionrates.improvement[resourceIndex][i][0];
+                additive += productionrates.improvement[resourceIndex][i][1];
             }
         }
 
-        return (int)(((float)resource_production_rate[resourceIndex] * resource_factor_value) + resource_additive_value);
+        return (int)(((float)resource_production_rate[resourceIndex] * factor) + additive);
     }
 
     // @NOTE: Keep in mind that the resource indexes are the same as the RESOURCE_TYPES enum values, so you can use them directly to access the production rates.
     void addResourceProductionRate(int rate)
     {
-        resource_production_rate.push_back(rate);       
+        resource_production_rate.push_back(rate);
     }
-    
+
     void setResourceProductionRate(int resourceIndex, int rate)
     {
-        if (resourceIndex < 0 || resourceIndex >= resource_production_rate.size())
+        if (resourceIndex < 0 || resourceIndex >= (int)resource_production_rate.size())
             return;
         resource_production_rate[resourceIndex] = rate;
     }

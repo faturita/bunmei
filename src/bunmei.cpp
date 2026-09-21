@@ -292,6 +292,8 @@ inline void endOfYear()
         // Pick two food items per one population and gather the rest.
         // If granary is present the amount of food that is required to increase the population is half.
 
+        // @FIXME: verify that there is only one city with a palace and that city reset it as the capital.
+
         printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[FOOD]);
         // Go through all the map locations and gather all the resources.
         for(int r_id : ALL_CORE_RESOURCES)
@@ -463,6 +465,10 @@ inline void endOfYear()
     for (auto& [k, c] : cities)
     {
         sciencePerFaction[c->faction] += c->resources[SCIENCE];
+
+        printf("City %s\t\t\thas contributed %d science to faction %d.\n", c->name, c->resources[SCIENCE], c->faction);
+
+
         c->resources[SCIENCE] = 0;
     }
 

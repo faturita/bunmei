@@ -533,7 +533,13 @@ void drawCityScreen(int cla, int clo, City *city)
         {
             int r = ALL_CORE_RESOURCES[i];
             int consumptionrate = city->getConsumptionRate(r) + city->getBuildingConsumptionRate(r);
-            int netproduction   = city->getProductionRate(r) - consumptionrate;
+            // Most of a city's COINS, SCIENCE and CULTURE is its TRADE converted at the
+            // faction's rates rather than anything a tile yields, so getProductionRate()
+            // alone reported 0 and the SCIENCE/CULTURE rows drew empty. Added, not
+            // substituted: a GOLD or GEMS tile does yield COINS/CULTURE directly.
+            // cityTradeConversionRate() (engine.cpp) returns 0 for every other resource.
+            int production      = city->getProductionRate(r) + cityTradeConversionRate(city, r);
+            int netproduction   = production - consumptionrate;
             if (netproduction < 0) netproduction = 0;   // a shortfall shows no "added" icons
 
             // @TODO: Pick an icon to highlight the situation where resources are not enough to cover the consumption rate.  This is a very important situation and should be highlighted.

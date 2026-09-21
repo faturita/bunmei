@@ -14,6 +14,11 @@
 // the mover in but leaves the tile with its original owner, and neither blocks the move.
 enum class LandEntry { BLOCKED, ENTER, ENTER_AND_CLAIM };
 
+// Fills every tile's base production rates from the productionrates tables (tiles.h). Call it
+// on a freshly generated map and again after loading one -- loadMap() does the latter itself.
+// Idempotent. See the note on the definition.
+void assignProductionRates(Map &mmp);
+
 int getNextCityId();
 int getNextUnitId();
 int nextUnitId(int faction);
@@ -24,6 +29,11 @@ City* findCityAt(int lat, int lon);
 // The city a faction's trade coins come from / go to (its capital, else its first city,
 // else nullptr) -- the engine has no persistent per-faction coin pot.
 City* factionTreasury(int faction_id);
+
+// What a city gains this turn of COINS / SCIENCE / CULTURE by converting its TRADE at the
+// faction's fundamental rates (0 for any other resource). Add it to getProductionRate() --
+// it is the bulk of those three but not all of it -- see the note on the definition.
+int cityTradeConversionRate(City* city, int r_id);
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 
 // Fills city->buildable with everything the city can currently build (based on the faction

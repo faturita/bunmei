@@ -1,8 +1,11 @@
 #ifndef TILES_H
 #define TILES_H
 
+#include <array>
 #include <queue>
 #include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "resources.h"
 #include "improvements.h"
@@ -95,6 +98,78 @@ enum SPECIALRESOURCES
     ALUMINIUM   = 0x11b,
     HELIUM_3    = 0x11c
 };
+
+// ---------------------------------------------------------------------------------------
+// Tile production.
+//
+// Every tile carries its OWN base production rates (mapcell::resource_production_rate), so a
+// single tile can be given a yield nothing else on the map has -- a scenario, an event, a
+// one-off. assignProductionRates() (engine.h) populates all of them from the tables below,
+// and it runs BOTH when a world is generated from scratch and when one is loaded, so the
+// stored map never has to carry a yield at all.
+//
+// That last part is the fix to a real defect: mapio.cpp used to SAVE the rate vector, writing
+// the IMPROVEMENT-ADJUSTED value (getResourceProductionRate applies the factor) where the
+// BASE belongs. Anything that loaded a map without re-assigning afterwards read those
+// inflated numbers as the base and applied the improvement bonus a second time -- and saving
+// again compounded it. initMap() did re-assign, which is why the live game got away with it;
+// the file was simply storing a derived value it had no business storing. Now only what a
+// tile IS gets saved -- terrain/bioma, special resource, improvements -- and the rates are
+// rebuilt from these tables on both paths.
+
+// Context keys for the two tables: real biomas (BIOMAS above) are all >= 0x20, so these
+// negative sentinels never collide with one.
+#define OCEAN_CONTEXT   -2   // any OCEAN-coded tile, regardless of bioma
+#define ANY_LAND_BIOMA  -1   // any LAND-coded tile, regardless of bioma (e.g. GEMS, GOLD)
+
+// How a special resource (SPECIALRESOURCES) nudges the rates on top of the base, for a given
+// context. Only the listed RESOURCE_TYPES indices are overridden; the rest keep the base.
+struct ResourceRateOverride
+{
+    int context;                              // OCEAN_CONTEXT, a BIOMAS constant, or ANY_LAND_BIOMA
+    int resource;                             // a SPECIALRESOURCES constant
+    std::vector<std::pair<int,int>> rates;    // (RESOURCE_TYPES index, value) pairs
+};
+
+// The whole production model, in one table initialized once at startup (initProductionRates)
+// by the game, the simulator and the testcase harness alike -- it used to be duplicated in
+// gamekernel.cpp and simulate.cpp, and the two copies had silently drifted apart.
+struct ProductionRates
+{
+    // Fills itself from initProductionRates(). The tables have to be valid before the first
+    // tile yield is read, and that happens in three different builds (the game, the headless
+    // simulator, and every testcase's init()) -- so rather than rely on each of them
+    // remembering a call, the default state IS the initialized state. initProductionRates()
+    // stays public and idempotent: the game still calls it explicitly at startup alongside
+    // initTiles() and friends, and a scenario is free to re-fill the table.
+    ProductionRates();
+
+    // Base rate per terrain/bioma, before any special resource. Array order matches
+    // RESOURCE_TYPES (resources.h): FOOD, SHIELDS, TRADE, COINS, SCIENCE, CULTURE. Bioma
+    // variants share their base bioma's rate (looked up by bioma & 0xf0, same convention as
+    // MovementCost). A LAND bioma with no entry here (undecorated land, jungle, tundra, ...)
+    // falls back to `defaultland`.
+    std::unordered_map<int, std::array<int,6>> base;
+    std::array<int,6>                          defaultland;
+    std::vector<ResourceRateOverride>          overrides;
+
+    // [RESOURCE_TYPES index][improvement][factor, additive], improvements in IMPROVEMENT_TYPES
+    // bit order: Irrigation, Mine, Road, Railroad. Applied on top of the base+override rate
+    // for every improvement present on the tile. This lived as a 192-byte member of EVERY
+    // mapcell, identical in all of them.
+    float improvement[6][4][2];
+};
+
+extern ProductionRates productionrates;
+
+void initProductionRates(ProductionRates &rates);
+
+// The BASE rates (one per RESOURCE_TYPES index) the tables give a tile that is `code`/`bioma`
+// and carries `resource`: the bioma's row, with any special-resource override applied on top.
+// This is what assignProductionRates() writes into each cell. Improvements are NOT included
+// -- they are a live multiplier applied by mapcell::getResourceProductionRate(), so building
+// a road changes the yield without anything having to be re-assigned.
+std::array<int,6> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource);
 
 typedef std::unordered_map<int, std::string> Tiles;
 typedef std::unordered_map<int, std::vector<int>> Commodities;

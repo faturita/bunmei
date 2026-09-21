@@ -198,104 +198,10 @@ void initUnits()
     }    
 }
 
-void assignProductionRates(Map &mmp)
-{
-    for(int lat=mmp.minlat;lat<mmp.maxlat;lat++)
-        for (int lon=mmp.minlon;lon<mmp.maxlon;lon++)
-        {
-            mapcell &cell = mmp.set(lat,lon);
-
-            for(auto &r:ALL_CORE_RESOURCES)
-            {
-                cell.addResourceProductionRate(0);
-            }
-
-            if (cell.code==OCEAN)       // Water
-            {
-                cell.setResourceProductionRate(FOOD, 1);
-                cell.setResourceProductionRate(TRADE, 1);
-
-                if (cell.resource==FISH) cell.setResourceProductionRate(FOOD, 3);
-                if (cell.resource==OIL)  cell.setResourceProductionRate(SHIELDS, 2);
-            }
-            else
-            if (cell.code==LAND)       // Land
-            {
-                // @FIXME Adjust the basic production rate of each tile
-                cell.setResourceProductionRate(FOOD, 1);
-
-                //printf("Bioma %x\n",mmp(lat,lon).bioma);
-                if (cell.code == LAND && cell.bioma == LANDBIOMA) // Regular land
-                {
-                    cell.setResourceProductionRate(FOOD, 2);
-                }
-                if (cell.bioma/16==GRASSLAND/16) // Grassland
-                {
-                    cell.setResourceProductionRate(FOOD, 3);
-                    if (cell.resource==GEOSHIELD) cell.setResourceProductionRate(SHIELDS, 1);
-                }
-                if (cell.bioma/16==RIVER/16) // River
-                {
-                    cell.setResourceProductionRate(FOOD, 4);
-                    cell.setResourceProductionRate(TRADE, 1);
-                }
-                if (cell.bioma/16==DESERT/16) // Desert
-                {
-                    cell.setResourceProductionRate(FOOD, 1);
-                }
-                if (cell.bioma/16==SWAMP/16) // Swamps
-                {
-                    cell.setResourceProductionRate(FOOD, 1);
-                    cell.setResourceProductionRate(TRADE, 1);
-                }
-                if (cell.bioma/16==PLAINS/16) // Plains
-                {
-                    cell.setResourceProductionRate(FOOD, 1);
-                    cell.setResourceProductionRate(SHIELDS, 1);
-                }
-                if (cell.bioma/16==HILLS/16) // Hills
-                {
-                    cell.setResourceProductionRate(SHIELDS, 1);
-                }
-                if (cell.bioma/16==FOREST/16) // Forests
-                {
-                    cell.setResourceProductionRate(SHIELDS, 2);
-                    if (cell.resource==GAME) cell.setResourceProductionRate(FOOD, 2);
-                    if (cell.resource==GAME) cell.setResourceProductionRate(SHIELDS, 3);
-                }
-                if (cell.bioma/16==DESERT/16)   // Deserts
-                {
-                    if (cell.resource==CARBON) cell.setResourceProductionRate(SHIELDS, 2);
-                    if (cell.resource==OIL)  cell.setResourceProductionRate(SHIELDS, 3);
-                    if (cell.resource==OASIS)
-                    {
-                        cell.setResourceProductionRate(FOOD, 3);
-                        cell.setResourceProductionRate(TRADE, 1);
-                    }
-                }
-                if (cell.bioma/16==MOUNTAINS/16) // Mountains
-                {
-                    cell.setResourceProductionRate(SHIELDS, 1);
-                    if (cell.resource==CARBON) cell.setResourceProductionRate(SHIELDS, 2);
-                }
-
-                if (cell.bioma/16==ARCTIC/16) // Mountains
-                {
-                    if (cell.resource==SEAL) cell.setResourceProductionRate(FOOD, 3);
-                }
-
-                if (cell.resource==GEMS) cell.setResourceProductionRate(CULTURE, 2);
-                if (cell.resource==GOLD)
-                {
-                    cell.setResourceProductionRate(COINS, 2);
-                    cell.setResourceProductionRate(CULTURE, 1);
-                }
-            }
-        }
-}
-
-
-
+// assignProductionRates() now lives in engine.cpp, shared. The copy that used to be here was
+// an older hand-written if/else chain that had DRIFTED from gamekernel.cpp's table -- it gave
+// grassland FOOD 3 where the table says 1, and plain land 2 where it says 1 -- so the
+// simulator and the game were quietly modelling different worlds. Both read the one table now.
 
 void placeThisUnit(float flat, float flon, int size, const char* filename, int red, int green, int blue)
 {
@@ -631,6 +537,7 @@ int main(int argc, char *argv[]) {
     
 
     initTiles(tiles);
+    initProductionRates(productionrates);
     initCommodities(commodityxresource);
     initPrices(prices);
     initMovementCosts(movementcosts);
