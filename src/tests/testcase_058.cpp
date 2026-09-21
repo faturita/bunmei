@@ -62,7 +62,7 @@ extern Controller controller;
 // below are the README table's own shape.
 #define README_TECH_COUNT       46
 #define README_DEPENDENCY_COUNT 118
-#define LANGUAGE_CHILD_COUNT    13
+#define LANGUAGE_CHILD_COUNT    3
 
 TestCase_058::TestCase_058() {}
 TestCase_058::~TestCase_058() {}
@@ -288,15 +288,20 @@ int TestCase_058::check(int year)
         if (readme.getTech(TECH_LANGUAGE)->inputs.size() != 0)
         { fail("Language is the root -- it should have no parents."); return 0; }
 
-        // README.md's per-dependency weights, on the TECH_DEFAULT_WEIGHT scale: a "(1.0)"
-        // dependency stores exactly the default, a "(0.8)" stores 0.8 of it.
+        // README.md's per-dependency weights, normalized: the table's factors are a
+        // technology's dependencies RELATIVE to each other, so each edge stores its SHARE of
+        // TECH_DEFAULT_WEIGHT (normalizeWeights()). testcase_063 owns that rule; what matters
+        // here is that the game's graph is actually built through it.
         if (fabs(readme.getWeight(TECH_LANGUAGE, TECH_HUNTING) - TECH_DEFAULT_WEIGHT) > 0.0001f)
-        { fail("Language -> Hunting is (1.0) in README.md: it should store TECH_DEFAULT_WEIGHT."); return 0; }
-        if (fabs(readme.getWeight(TECH_LANGUAGE, TECH_ARCHERY) - 0.8f*TECH_DEFAULT_WEIGHT) > 0.0001f)
-        { fail("Language -> Archery is (0.8) in README.md: it should store 0.8 * TECH_DEFAULT_WEIGHT."); return 0; }
-        if (fabs(readme.getWeight(TECH_MATHEMATICS, TECH_MUSIC) - 0.2f*TECH_DEFAULT_WEIGHT) > 0.0001f)
-        { fail("Mathematics -> Music is (0.2) in README.md, the smallest factor in the table."); return 0; }
-        // Every weight must be a factor OF the default -- nothing above it, nothing at zero.
+        { fail("Hunting depends on Language alone: that edge is the whole fan-in, TECH_DEFAULT_WEIGHT."); return 0; }
+        // Archery is Fishing (0.8) + Hunting (1.0): shares of 1.8, not 0.8 and 1.0 outright.
+        if (fabs(readme.getWeight(TECH_FISHING, TECH_ARCHERY) - (0.8f/1.8f)*TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("Fishing -> Archery should store 0.8/1.8 of TECH_DEFAULT_WEIGHT, its share of Archery's fan-in."); return 0; }
+        // Music is the widest fan-in in the table (0.4 + 0.2 + 0.3 + 0.5 + 1.0 = 2.4), so its
+        // (0.2) dependency ends up the smallest weight in the whole graph.
+        if (fabs(readme.getWeight(TECH_MATHEMATICS, TECH_MUSIC) - (0.2f/2.4f)*TECH_DEFAULT_WEIGHT) > 0.0001f)
+        { fail("Mathematics -> Music should store 0.2/2.4 of TECH_DEFAULT_WEIGHT."); return 0; }
+        // Every weight must be a share OF the default -- nothing above it, nothing at zero.
         for (int code = TECH_FIRST; code <= TECH_LAST; code++)
             for (const TechEdge& e : readme.getTech(code)->inputs)
                 if (e.weight <= 0.0f || e.weight > TECH_DEFAULT_WEIGHT + 0.0001f)
@@ -306,18 +311,37 @@ int TestCase_058::check(int year)
                              e.from, code, e.weight);
                     fail(buf); return 0;
                 }
+        // ...and every technology's whole fan-in is worth exactly TECH_DEFAULT_WEIGHT.
+        for (int code = TECH_FIRST; code <= TECH_LAST; code++)
+        {
+            const Tech* t = readme.getTech(code);
+            if (t->inputs.empty())
+                continue;                       // the root
+            float sum = 0.0f;
+            for (const TechEdge& e : t->inputs)
+                sum += e.weight;
+            if (fabs(sum - TECH_DEFAULT_WEIGHT) > 0.0001f)
+            {
+                char buf[160];
+                snprintf(buf,sizeof(buf),"'%s' fan-in sums to %.4f, not TECH_DEFAULT_WEIGHT (%.4f).",
+                         t->name.c_str(), sum, TECH_DEFAULT_WEIGHT);
+                fail(buf); return 0;
+            }
+        }
 
-        // Depth and the exponential bias that rides on it.
+        // Depth, and the bias that rides on it.
         if (readme.getDepth(TECH_LANGUAGE) != 0)
         { fail("The root technology sits at depth 0."); return 0; }
-        if (readme.getDepth(TECH_HUNTING) != 1 || readme.getDepth(TECH_ARCHERY) != 2)
-        { fail("Hunting is one hop from Language, Archery two (through Hunting)."); return 0; }
-        if (readme.getDepth(TECH_INDUSTRIALIZATION) != 12)
-        { fail("Industrialization is the deepest technology in README.md, 12 hops out."); return 0; }
-        // Military Tradition has Warrior Code (2 hops) among its parents, but the LONGEST path
-        // is what prices it -- otherwise a late technology with one shallow parent stays cheap.
-        if (readme.getDepth(TECH_MILITARY_TRADITION) != 11)
-        { fail("Military Tradition should be priced by its LONGEST path (11), not its shortest (2)."); return 0; }
+        if (readme.getDepth(TECH_HUNTING) != 1 || readme.getDepth(TECH_ARCHERY) != 3)
+        { fail("Hunting is one hop from Language, Archery three (Hunting -> Fishing -> Archery)."); return 0; }
+        if (readme.getDepth(TECH_INDUSTRIALIZATION) != 16)
+        { fail("Industrialization is the deepest technology in README.md, 16 hops out."); return 0; }
+        // Depth is still the LONGEST path, not the shortest: Military Tradition has Literature
+        // (3 hops) among its parents but sits at 15. It no longer PRICES the technology (see
+        // the flat bias below), it is what computeBiases() would scale by if TECH_BIAS_BASE
+        // were ever raised above 1.0 again.
+        if (readme.getDepth(TECH_MILITARY_TRADITION) != 15)
+        { fail("Military Tradition's depth is its LONGEST path (15), not its shortest (4)."); return 0; }
         for (int code = TECH_FIRST; code <= TECH_LAST; code++)
         {
             const Tech* t = readme.getTech(code);
@@ -330,6 +354,11 @@ int TestCase_058::check(int year)
                 fail(buf); return 0;
             }
         }
+        // At TECH_BIAS_BASE 1.0 that makes the threshold FLAT -- a depth-16 technology is no
+        // harder to fire than a depth-1 one, which is the whole point of the convex weights:
+        // difficulty comes from how many dependencies a technology has, not how far out it is.
+        if (fabs(readme.getBias(TECH_INDUSTRIALIZATION) - readme.getBias(TECH_HUNTING)) > 0.0001f)
+        { fail("With TECH_BIAS_BASE at 1.0 every technology must carry the same bias, whatever its depth."); return 0; }
 
         // Two factions, each with its own copy of the graph (same weights -- they are data now;
         // what diverges is what each faction invests in).
@@ -344,8 +373,8 @@ int TestCase_058::check(int year)
         if (tree.graph(0).isDiscovered(TECH_ALPHABET))
         { fail("A faction should start with the root only."); return 0; }
 
-        // Turn 1: dump enough SCIENCE into Language that every one of its 13 children fires
-        // (the smallest factor out of Language is 0.8, and even a depth-2 bias is only 4).
+        // Turn 1: dump enough SCIENCE into Language that every one of its 3 children fires
+        // (each hangs off a (1.0) dependency, and a depth-1 bias is only 2).
         std::unordered_map<int,int> plan;
         plan[TECH_LANGUAGE] = 1000;
         std::vector<int> got = tree.advance(0, plan, techdee);
@@ -357,28 +386,29 @@ int TestCase_058::check(int year)
                      LANGUAGE_CHILD_COUNT, (int)got.size());
             fail(buf); return 0;
         }
-        if (!contains(got,TECH_HUNTING) || !contains(got,TECH_ALPHABET) || !contains(got,TECH_POTTERY) ||
-            !contains(got,TECH_ARCHERY) || !contains(got,TECH_CEREMONIAL_BURIAL))
+        if (!contains(got,TECH_HUNTING) || !contains(got,TECH_MINING) || !contains(got,TECH_ALPHABET))
         { fail("Turn 1 should have discovered Language's direct children."); return 0; }
         if (tree.graph(0).isDiscovered(TECH_WRITING))
         { fail("Writing is two layers deep -- it must not fire on turn 1."); return 0; }
+        if (tree.graph(0).isDiscovered(TECH_AGRICULTURE) || tree.graph(0).isDiscovered(TECH_MASONRY))
+        { fail("Agriculture and Masonry hang off Hunting/Mining now, not off the root -- not on turn 1."); return 0; }
 
         // Discovery activated the codes.h dependency codes, at FACTION scope -- which is what
         // the gated BuildableFactories (Granary/Barracks/Chariot/...) actually read.
-        if (!techdee.verifyDep(factionContext(0), TECH_POTTERY) ||
+        if (!techdee.verifyDep(factionContext(0), TECH_HUNTING) ||
             !techdee.verifyDep(factionContext(0), TECH_ALPHABET) ||
-            !techdee.verifyDep(factionContext(0), TECH_THE_WHEEL) ||
             !techdee.verifyDep(factionContext(0), TECH_MINING))
         { fail("A discovered technology must register its codes.h code in the DEE at faction scope."); return 0; }
         if (techdee.verifyDep(factionContext(0), TECH_INDUSTRIALIZATION))
         { fail("Industrialization is undiscovered -- its dep code must NOT be registered."); return 0; }
 
-        // Frontier bookkeeping at scale: Language is spent (every child known), Mining is a
-        // leaf nothing depends on, Alphabet still leads somewhere.
+        // Frontier bookkeeping at scale: Language is spent (every child known), while the
+        // children it just handed over all still lead somewhere.
         if (tree.graph(0).getFrontier().count(TECH_LANGUAGE) != 0)
         { fail("Language should leave the Frontier once all of its children are discovered."); return 0; }
-        if (tree.graph(0).getFrontier().count(TECH_MINING) != 0)
-        { fail("Mining is a leaf in the README table -- it should not sit in the Frontier."); return 0; }
+        if (tree.graph(0).getFrontier().count(TECH_MINING) != 1 ||
+            tree.graph(0).getFrontier().count(TECH_HUNTING) != 1)
+        { fail("Mining and Hunting have undiscovered children -- they belong in the Frontier."); return 0; }
         if (tree.graph(0).getFrontier().count(TECH_ALPHABET) != 1)
         { fail("Alphabet still has undiscovered children -- it belongs in the Frontier."); return 0; }
         if (tree.graph(0).getNext().count(TECH_WRITING) != 1)

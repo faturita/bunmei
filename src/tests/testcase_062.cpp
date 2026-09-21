@@ -178,7 +178,11 @@ int TestCase_062::check(int year)
     if (frontier0.empty())
     { fail("Setup: faction 0 should have a Frontier after researching."); return 0; }
     techtree.setResearchTarget(0, frontier0[0]);
-    techtree.advance(0, 150, dee);
+    // Deliberately a PARTIAL year: frontier0[0] is Hunting, whose children cost 64 through the
+    // two that depend on it alone and 115 through the four that share it with a sibling. 100
+    // therefore fires some but not all, which leaves Hunting in the Frontier -- and so leaves
+    // the research target still VALID, which is the thing the round trip has to bring back.
+    techtree.advance(0, 100, dee);
 
     techtree.advance(1, 60, dee);                           // no target -> banked, not spent
 
@@ -283,7 +287,8 @@ int TestCase_062::check(int year)
     { fail("Next was not rebuilt after loading -- nothing could ever fire again."); return 0; }
 
     // And the graph itself (weights, biases) is the rebuilt default, not something stale.
-    if (fabs(techtree.graph(0).getWeight(TECH_LANGUAGE, TECH_ARCHERY) - 0.8f*TECH_DEFAULT_WEIGHT) > 0.0001f)
+    // Archery is Fishing (0.8) + Hunting (1.0), normalized: Fishing's share is 0.8/1.8.
+    if (fabs(techtree.graph(0).getWeight(TECH_FISHING, TECH_ARCHERY) - (0.8f/1.8f)*TECH_DEFAULT_WEIGHT) > 0.0001f)
     { fail("The restored graph does not carry README.md's weights -- it should be rebuilt, not loaded."); return 0; }
 
     // ---- 4) research still works after the load ---------------------------------------------

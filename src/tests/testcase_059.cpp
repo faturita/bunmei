@@ -193,23 +193,37 @@ int TestCase_059::check(int year)
 
     std::vector<int> discovered = techtree.advance(0, sciencePerFaction[0], dee);
 
-    // 1000 SCIENCE in Language fires every one of its children whatever the random weights
-    // (every weight is >= TECH_WEIGHT_MIN = 0.1 > 0).
+    // 1000 SCIENCE in Language fires every one of its children (Hunting, Mining, Alphabet).
     if (discovered.empty())
     { fail("A year of SCIENCE poured into Language should have discovered something."); return 0; }
-    if (!techtree.graph(0).isDiscovered(TECH_POTTERY))
-    { fail("Pottery is a direct child of Language -- it should have fired."); return 0; }
-    if (!dee.verifyDep(factionContext(0), TECH_POTTERY))
+    if (!techtree.graph(0).isDiscovered(TECH_HUNTING))
+    { fail("Hunting is a direct child of Language -- it should have fired."); return 0; }
+    if (!dee.verifyDep(factionContext(0), TECH_HUNTING))
     { fail("A discovery must register its dep code in the DEE at faction scope."); return 0; }
 
     // Faction 1 never got any SCIENCE, so its graph must be untouched.
-    if (techtree.graph(1).isDiscovered(TECH_POTTERY) || dee.verifyDep(factionContext(1), TECH_POTTERY))
+    if (techtree.graph(1).isDiscovered(TECH_HUNTING) || dee.verifyDep(factionContext(1), TECH_HUNTING))
     { fail("Faction 1 spent no SCIENCE -- it must not have discovered anything."); return 0; }
 
     // Language has now spent its whole fan-out, so the faction needs a new target -- which is
     // what makes endOfYear() ask again next year.
     if (!techtree.needsResearchTarget(0))
     { fail("Once the selected technology leaves the Frontier the faction must need a new target."); return 0; }
+
+    // Pottery is no longer a direct child of Language (README.md: Masonry + Agriculture), so
+    // faction 0 researches down to it for real -- two more years, one per layer.
+    if (!techtree.setResearchTarget(0, TECH_HUNTING))
+    { fail("Hunting is in the Frontier after turn 1 -- it must be selectable."); return 0; }
+    techtree.advance(0, 1000, dee);
+    if (!techtree.graph(0).isDiscovered(TECH_AGRICULTURE))
+    { fail("A year of SCIENCE in Hunting should have discovered Agriculture."); return 0; }
+    if (!techtree.setResearchTarget(0, TECH_AGRICULTURE))
+    { fail("Agriculture is in the Frontier once discovered -- it must be selectable."); return 0; }
+    techtree.advance(0, 1000, dee);
+    if (!techtree.graph(0).isDiscovered(TECH_POTTERY))
+    { fail("A year of SCIENCE in Agriculture should have discovered Pottery."); return 0; }
+    if (!dee.verifyDep(factionContext(0), TECH_POTTERY))
+    { fail("Pottery's dep code must be registered at faction scope on discovery."); return 0; }
 
     // ---- 5) the payoff: the gated buildable is now offered -------------------------------
     // Granary is gated on TECH_POTTERY (Granary.cpp addDependencyCode). Faction 1 has not

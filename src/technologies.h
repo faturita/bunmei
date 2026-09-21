@@ -39,25 +39,37 @@
 // civilizations diverge is purely WHAT THEY INVEST IN, which is the design README.md asks for.
 
 // Weights and biases are DATA, not random: README.md's "Science" table gives every dependency
-// a factor, and a node's bias grows with its depth in the graph. Two constants tune the whole
-// thing globally.
+// a factor. Those factors are RELATIVE, not absolute -- a technology's incoming weights are a
+// CONVEX combination (normalizeWeights() below), so what the table says about a dependency is
+// how much it matters COMPARED TO THE OTHER DEPENDENCIES OF THE SAME TECHNOLOGY:
 //
-// TECH_DEFAULT_WEIGHT is what the table's default "(1.0)" is worth; every edge stores
-// factor * TECH_DEFAULT_WEIGHT, so changing this one number rescales every weight at once
-// without disturbing their relative structure.
+//     w(p,t) = TECH_DEFAULT_WEIGHT * factor(p,t) / SUM over parents q of factor(q,t)
 //
-// TECH_BIAS_BASE sets the per-node threshold: bias(j) = TECH_BIAS_BASE ^ depth(j), where
-// depth is the longest path in hops from the root. Deep technologies therefore get
-// exponentially harder, which is what compensates for a faction's SCIENCE income growing as
-// the game goes on.
+// so SUM over parents of w = TECH_DEFAULT_WEIGHT, for every technology. Banking depends on
+// Currency (0.9), Code of Laws (0.9) and Education (1.0): Education matters most, but its
+// share is 1.0/2.8 = 0.357 of the whole, not an independent 1.0. Note the corollary -- a
+// technology with a SINGLE dependency normalizes to 1.0 whatever the table's factor says.
+//
+// TECH_DEFAULT_WEIGHT is the one global magnitude knob: it is what a node's whole incoming
+// fan-in is worth, so changing it rescales every weight at once without disturbing any of
+// their relative structure.
+//
+// TECH_BIAS_BASE sets the per-node threshold: bias(j) = TECH_BIAS_BASE ^ depth(j), where depth
+// is the longest path in hops from the root. At 1.0 the bias is FLAT -- every technology
+// carries the same threshold and depth prices nothing. That is deliberate: with convex
+// weights, difficulty comes from how many dependencies a technology has, not from how far out
+// it sits. Raise the base above 1.0 to bring exponential depth-pricing back on top of that.
 //
 // Firing needs sigmoid(SUM(science*w) - bias) >= TECH_FIRING_THRESHOLD, i.e.
-//     science >= (logit(threshold) + bias) / w = (2.197 + TECH_BIAS_BASE^depth) / w
-// With the values below a depth-1 technology off the root costs ~84 SCIENCE; each extra hop
-// roughly doubles it. Retune with TECH_DEFAULT_WEIGHT (scales everything as 1/w) or
-// TECH_BIAS_BASE (changes how steeply the cost climbs with depth).
+//     SUM(science*w) >= logit(threshold) + bias = 2.197 + TECH_BIAS_BASE^depth
+// Two figures follow from that, and they are the whole balance picture:
+//   - spread evenly across ALL of a technology's parents, the weights sum to
+//     TECH_DEFAULT_WEIGHT and EVERY technology in the table costs the same ~64 SCIENCE;
+//   - poured into one parent only, it costs 64/share instead -- 64 for a single-dependency
+//     technology, ~180 for Banking through Education, ~327 for Astronomy (six parents).
+// So breadth is rewarded and tunnelling is priced, which is what the Frontier design wants.
 const float TECH_DEFAULT_WEIGHT   = 0.05f;
-const float TECH_BIAS_BASE        = 2.0f;
+const float TECH_BIAS_BASE        = 1.0f;
 const float TECH_FIRING_THRESHOLD = 0.9f;
 
 // A node that unlocks nothing in the Dependency Evaluation Engine. Real nodes carry one of
@@ -112,6 +124,13 @@ public:
     // bias = TECH_BIAS_BASE ^ depth. Call once the graph is fully wired (buildDefaultTechGraph
     // does); a caller that pins its own biases with setBias() should not call it afterwards.
     void computeBiases();
+
+    // Turns every node's incoming weights into a CONVEX combination: they keep their relative
+    // proportions but are rescaled to sum to TECH_DEFAULT_WEIGHT (see the note at the top of
+    // this header). A node with no parents, or one whose weights sum to 0, is left alone.
+    // Call once the graph is fully wired; addEdge() stores the RAW factor, so a caller that
+    // wants the table's factors taken literally simply never calls this.
+    void normalizeWeights();
 
     int getDepth(int id) const;
 

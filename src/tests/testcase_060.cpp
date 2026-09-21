@@ -235,14 +235,19 @@ int TestCase_060::check(int year)
             fail(buf); return 0;
         }
 
-        // A lighter dependency costs proportionally more: Language -> Masonry is (0.9).
-        int gotMasonry = measure(TECH_ROOT, TECH_MASONRY);
-        if (gotMasonry <= gotHunting)
-        { fail("Masonry hangs off a (0.9) dependency -- it must cost MORE than a (1.0) one at the same depth."); return 0; }
+        // Among SIBLINGS -- dependencies of the same technology -- the table's factors still
+        // decide who matters more, because that is what they are normalized against. Bronze
+        // Working is Mining (0.8) + Hunting (1.0), and both of those hang off the root, so
+        // measure() can reach either side cleanly. Coming in through Mining costs more.
+        int gotViaMining  = measure(TECH_MINING,  TECH_BRONZE_WORKING);
+        int gotViaHunting = measure(TECH_HUNTING, TECH_BRONZE_WORKING);
+        if (gotViaMining < 0 || gotViaHunting < 0 || gotViaMining <= gotViaHunting)
+        { fail("Mining is Bronze Working's (0.8) dependency against Hunting's (1.0): it must cost MORE to come in that way."); return 0; }
 
-        // Depth is what makes late technologies expensive: bias = TECH_BIAS_BASE ^ depth, so
-        // each extra hop multiplies the cost by roughly TECH_BIAS_BASE.
-        int gotWriting = measure(TECH_ALPHABET, TECH_WRITING);      // depth 2, factor 1.0
+        // Depth, on the other hand, is FREE now (TECH_BIAS_BASE 1.0 -> flat bias). Writing sits
+        // a layer deeper than Hunting, and like Hunting it has exactly one dependency, so it
+        // costs exactly the same -- which under the old exponential bias it did not.
+        int gotWriting = measure(TECH_ALPHABET, TECH_WRITING);      // depth 2, one dependency
         int expWriting = expected(TECH_ALPHABET, TECH_WRITING);
         if (gotWriting < 0 || abs(gotWriting - expWriting) > 1)
         {
@@ -251,17 +256,32 @@ int TestCase_060::check(int year)
                      gotWriting, expWriting);
             fail(buf); return 0;
         }
-        if (gotWriting <= gotHunting)
-        { fail("A depth-2 technology must cost more than a depth-1 one."); return 0; }
+        if (abs(gotWriting - gotHunting) > 1)
+        {
+            char buf[220];
+            snprintf(buf,sizeof(buf),
+                     "Writing (depth 2) cost %d and Hunting (depth 1) cost %d: with a flat bias and one "
+                     "dependency each they should cost the same.", gotWriting, gotHunting);
+            fail(buf); return 0;
+        }
 
-        // And the deepest technology in the table is dramatically more expensive still.
-        TechGraph probe = buildDefaultTechGraph();
-        if (probe.getBias(TECH_INDUSTRIALIZATION) <= probe.getBias(TECH_HUNTING) * 100.0f)
-        { fail("Industrialization (depth 12) should carry a vastly larger bias than a depth-1 technology."); return 0; }
+        // What DOES make a technology expensive is how many dependencies it has to share its
+        // fan-in with. Astronomy has six; coming in through any single one of them is a
+        // fraction of the whole, so it costs several times what a one-dependency technology
+        // does -- difficulty by breadth instead of by depth.
+        int gotAstronomy = measure(TECH_ALPHABET, TECH_ASTRONOMY);
+        if (gotAstronomy < 0 || gotAstronomy <= gotHunting * 4)
+        {
+            char buf[220];
+            snprintf(buf,sizeof(buf),
+                     "Astronomy (six dependencies) cost %d through one parent against Hunting's %d: "
+                     "a wide fan-in should cost several times a narrow one.", gotAstronomy, gotHunting);
+            fail(buf); return 0;
+        }
 
         // Sanity on the knobs themselves.
-        if (TECH_DEFAULT_WEIGHT <= 0.0f || TECH_BIAS_BASE <= 1.0f)
-        { fail("TECH_DEFAULT_WEIGHT must be positive and TECH_BIAS_BASE > 1, or depth would not cost anything."); return 0; }
+        if (TECH_DEFAULT_WEIGHT <= 0.0f || TECH_BIAS_BASE < 1.0f)
+        { fail("TECH_DEFAULT_WEIGHT must be positive and TECH_BIAS_BASE at least 1 (1.0 = flat, above = depth priced again)."); return 0; }
     }
 
     isdone = true;

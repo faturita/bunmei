@@ -21,12 +21,16 @@ Usage:
 written in place, since both files are hand-maintained around those arrays. `check`
 is the guard that makes that safe.
 
-`costs` is the balancing view. Firing a technology needs
+`costs` is the balancing view. A technology's incoming weights are CONVEX -- the table's
+factors are shares, normalized to sum to TECH_DEFAULT_WEIGHT (TechGraph::normalizeWeights)
+-- so firing one needs
 
-    science >= (logit(TECH_FIRING_THRESHOLD) + TECH_BIAS_BASE ^ depth) / weight
+    SUM(parent science * weight) >= logit(TECH_FIRING_THRESHOLD) + TECH_BIAS_BASE ^ depth
 
-and the three constants are read out of src/technologies.h, so the numbers printed are
-always the ones the game is actually running.
+which costs the same per parent for every technology when they are fed evenly, and
+(logit + bias)/max(weight) when everything goes into a single parent. The three constants
+are read out of src/technologies.h, so the numbers printed are always the ones the game is
+actually running.
 
 Exit status: 0 on success, 1 if `check` finds a mismatch.
 """
@@ -219,22 +223,30 @@ def costs(techs):
 
     print("TECH_DEFAULT_WEIGHT %.4f   TECH_BIAS_BASE %.2f   TECH_FIRING_THRESHOLD %.2f"
           % (w0, base, thr))
-    print("cost = ceil((logit(threshold) + TECH_BIAS_BASE^depth) / weight), "
-          "taking the cheapest parent\n")
-    print("%5s %10s %12s  %s" % ("depth", "bias", "cost", "technology"))
+    print("Weights are CONVEX: w(p,t) = TECH_DEFAULT_WEIGHT * factor(p,t) / SUM(factors of t),")
+    print("so a technology's whole fan-in is worth TECH_DEFAULT_WEIGHT. Two costs follow:")
+    print("  even  = (logit + bias) / TECH_DEFAULT_WEIGHT   -- SCIENCE in EACH parent, fed evenly")
+    print("  best  = (logit + bias) / max(w)                -- poured into one parent only\n")
+    print("%5s %10s %5s %8s %10s  %s" % ("depth", "bias", "deps", "even", "best", "technology"))
 
-    total = 0
+    total_best = 0
     for name, _, deps in techs:
         d = depth[name]
         bias = base ** d
         if not deps:
-            print("%5d %10.0f %12s  %s (root)" % (d, bias, "-", name))
+            print("%5d %10.2f %5s %8s %10s  %s (root)" % (d, bias, "-", "-", "-", name))
             continue
-        cost = min(math.ceil((logit + bias) / (f * w0)) for _, f in deps)
-        total += cost
-        print("%5d %10.0f %12d  %s" % (d, bias, cost, name))
+        share = sum(f for _, f in deps)
+        even = math.ceil((logit + bias) / w0)
+        best = math.ceil((logit + bias) / (max(f for _, f in deps) / share * w0))
+        total_best += best
+        print("%5d %10.2f %5d %8d %10d  %s" % (d, bias, len(deps), even, best, name))
 
-    print("\nTotal SCIENCE to research the whole tree (cheapest parent each): %d" % total)
+    print("\nFed evenly, EVERY technology fires at %d SCIENCE per parent (that is what convex"
+          % math.ceil((logit + base ** 0) / w0))
+    print("weights buy: depth is irrelevant, only the bias matters)." if abs(base - 1.0) < 1e-9
+          else "weights buy; the bias still climbs with depth at this base).")
+    print("Total SCIENCE to research the whole tree (best parent each): %d" % total_best)
     print("Deepest technology: %d hops." % max(depth.values()))
     return 0
 

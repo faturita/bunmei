@@ -8,7 +8,7 @@ Barracks::Barracks()
     perkCodes.push_back(VETERAN_CODE);
 }
 
-int Barracks::getSubType()
+int Barracks::getSubType() 
 {
     return BUILDING_BARRACKS;
 }

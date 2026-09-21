@@ -313,6 +313,10 @@ inline void endOfYear()
         }
 
         // Convert trade accordingly.  Trade is not accummulated
+        if (dee.verifyDep(cityContext(c->id), TRADE_SURPLUS_CODE))
+        {
+            c->resources[TRADE] *= 2;   // Double the trade if the city has the trade surplus perk
+        }
 
         c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
         c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);

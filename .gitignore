@@ -12,3 +12,4 @@ testcase
 simulate
 tmp/
 saves/
+tools/__pycache__/**

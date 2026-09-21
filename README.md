@@ -415,6 +415,7 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 
 # Features
 
+* Market: duplicates the amount of TRADE
 * Spheroid: Arriving to the south and north pole (0,-24) (0,23).
 * Allow to circumvent the world using the spheroid and the relative position of the center.
 * Ability to name landmarks, rivers, mountains and continents.

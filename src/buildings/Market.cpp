@@ -5,6 +5,7 @@ Market::Market()
 {
     strcpy(name,"Market");
     strncpy(this->assetname,"assets/assets/city/market.png",256);
+    perkCodes.push_back(TRADE_SURPLUS_CODE);
 }
 
 int Market::getSubType()

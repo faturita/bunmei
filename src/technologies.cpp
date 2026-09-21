@@ -56,9 +56,12 @@ int TechGraph::getRoot() const
 }
 
 // depth(root) = 0; depth(t) = 1 + max(depth(parents)) -- the LONGEST path, so a technology
-// sitting behind a long chain is priced as late-game even if it also has one shallow parent
-// (Military Tradition depends on Warrior Code, two hops out, but really arrives at hop 11).
-// Then bias = TECH_BIAS_BASE ^ depth.
+// sitting behind a long chain counts as late-game even if it also has one shallow parent
+// (Military Tradition depends on Literature, three hops out, but really arrives at hop 15).
+// Then bias = TECH_BIAS_BASE ^ depth, which at the current base of 1.0 is FLAT: depth is
+// computed and reported but prices nothing, because difficulty now comes from how many
+// dependencies a technology shares its fan-in with (normalizeWeights()). Raising the base
+// above 1.0 brings exponential depth-pricing back on top of that.
 //
 // `order` is insertion order and buildDefaultTechGraph adds every technology before any edge,
 // so it is not a topological order -- hence the repeat-until-stable pass rather than a single
@@ -96,6 +99,33 @@ void TechGraph::computeBiases()
 
     for (int id : order)
         techs[id].bias = powf(TECH_BIAS_BASE, (float)techs[id].depth);
+}
+
+// README.md's factors are RELATIVE: what a dependency is worth is its share of everything the
+// technology depends on. So each node's incoming weights are rescaled to sum to
+// TECH_DEFAULT_WEIGHT while keeping their proportions -- a convex combination.
+//
+// Two consequences worth remembering. A node with one parent always ends at exactly
+// TECH_DEFAULT_WEIGHT no matter what factor the table gave that edge, and a node with many
+// parents gives each of them a smaller share, so pouring SCIENCE into one parent of a
+// six-dependency technology moves it far less than into the only parent of a one-dependency
+// one. That, rather than depth, is what prices a technology now.
+void TechGraph::normalizeWeights()
+{
+    for (int id : order)
+    {
+        Tech& t = techs[id];
+
+        float sum = 0.0f;
+        for (const TechEdge& e : t.inputs)
+            sum += e.weight;
+
+        if (sum <= 0.0f)
+            continue;                      // the root, or a node whose edges are all zero
+
+        for (TechEdge& e : t.inputs)
+            e.weight = TECH_DEFAULT_WEIGHT * e.weight / sum;
+    }
 }
 
 int TechGraph::getDepth(int id) const
@@ -547,18 +577,18 @@ struct DefaultTechDep { int from; int to; float factor; };
 
 static const DefaultTechDep DEFAULT_DEPS[] = {
     { TECH_LANGUAGE, TECH_HUNTING, 1.0f },
-    { TECH_LANGUAGE, TECH_AGRICULTURE, 1.0f },
-    { TECH_LANGUAGE, TECH_FISHING, 1.0f },
+    { TECH_HUNTING, TECH_AGRICULTURE, 1.0f },
+    { TECH_HUNTING, TECH_FISHING, 1.0f },
     { TECH_LANGUAGE, TECH_MINING, 1.0f },
-    { TECH_LANGUAGE, TECH_MASONRY, 0.9f },
-    { TECH_LANGUAGE, TECH_THE_WHEEL, 1.0f },
-    { TECH_LANGUAGE, TECH_ARCHERY, 0.8f }, { TECH_HUNTING, TECH_ARCHERY, 1.0f },
-    { TECH_LANGUAGE, TECH_WARRIOR_CODE, 0.8f }, { TECH_HUNTING, TECH_WARRIOR_CODE, 1.0f },
-    { TECH_LANGUAGE, TECH_BRONZE_WORKING, 0.8f }, { TECH_HUNTING, TECH_BRONZE_WORKING, 1.0f },
-    { TECH_LANGUAGE, TECH_ANIMAL_HUSBANDRY, 0.8f }, { TECH_HUNTING, TECH_ANIMAL_HUSBANDRY, 1.0f },
-    { TECH_LANGUAGE, TECH_POTTERY, 1.0f }, { TECH_AGRICULTURE, TECH_POTTERY, 1.0f },
+    { TECH_MINING, TECH_MASONRY, 0.9f },
+    { TECH_AGRICULTURE, TECH_THE_WHEEL, 1.0f },
+    { TECH_FISHING, TECH_ARCHERY, 0.8f }, { TECH_HUNTING, TECH_ARCHERY, 1.0f },
+    { TECH_ARCHERY, TECH_WARRIOR_CODE, 0.8f }, { TECH_HUNTING, TECH_WARRIOR_CODE, 1.0f },
+    { TECH_MINING, TECH_BRONZE_WORKING, 0.8f }, { TECH_HUNTING, TECH_BRONZE_WORKING, 1.0f },
+    { TECH_AGRICULTURE, TECH_ANIMAL_HUSBANDRY, 0.8f }, { TECH_HUNTING, TECH_ANIMAL_HUSBANDRY, 1.0f },
+    { TECH_MASONRY, TECH_POTTERY, 1.0f }, { TECH_AGRICULTURE, TECH_POTTERY, 1.0f },
     { TECH_LANGUAGE, TECH_ALPHABET, 1.0f },
-    { TECH_LANGUAGE, TECH_CEREMONIAL_BURIAL, 1.0f },
+    { TECH_WARRIOR_CODE, TECH_CEREMONIAL_BURIAL, 1.0f },
     { TECH_ALPHABET, TECH_WRITING, 1.0f },
     { TECH_MASONRY, TECH_MATHEMATICS, 1.0f }, { TECH_ALPHABET, TECH_MATHEMATICS, 1.0f },
     { TECH_BRONZE_WORKING, TECH_IRON_WORKING, 1.0f },
@@ -629,7 +659,9 @@ TechGraph buildDefaultTechGraph()
     for (unsigned int i=0;i<sizeof(DEFAULT_DEPS)/sizeof(DEFAULT_DEPS[0]);i++)
         g.addEdge(DEFAULT_DEPS[i].from, DEFAULT_DEPS[i].to, DEFAULT_DEPS[i].factor);
 
-    // Depth (and therefore each node's threshold) only makes sense once every edge is wired.
+    // Both passes need the whole graph: a node's share of its dependencies is only known once
+    // all of them are wired, and so is its depth.
+    g.normalizeWeights();
     g.computeBiases();
 
     return g;

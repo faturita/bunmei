@@ -71,8 +71,9 @@
 
 
 // Dependency Trees (City Level)
-#define VETERAN_CODE            0x01      // Perk code for veteran units
-#define HALF_POPULATION_CODE    0x02     // Perk code for half population growth
+#define VETERAN_CODE            0x02      // Perk code for veteran units
+#define HALF_POPULATION_CODE    0x03     // Perk code for half population growth
+#define TRADE_SURPLUS_CODE      0x04    // Perk code for trade surplus
 #define STORAGE_EXPANSION_1     0x0a    // Perk code for storage expansion level 1
 #define STORAGE_EXPANSION_2     0x0b    // Perk code for storage expansion level 2
 
