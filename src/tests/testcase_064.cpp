@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -159,14 +160,18 @@ int TestCase_064::check(int year)
     // ---- read back, in the order gamekernel.cpp uses -------------------------------------
     loadMap(savename + ".map");
 
-    std::ifstream in(savename, std::ios::binary);
-    if (!in)
-    { fail("Could not reopen the savegame file for loadCities()."); return 0; }
+    // Through readSaveGame(), like the game does: the file starts with a general header
+    // (magic + payload length + MD5) and the payload with its own version header, so the
+    // data is read out of the verified payload instead of straight off the stream.
+    std::string savedata;
+    SaveGameInfo saveinfo;
+    if (!readSaveGame(savename.c_str(), savedata, saveinfo))
+    { fail("readSaveGame() rejected the file this test just wrote."); return 0; }
+    std::istringstream in(savedata, std::ios::binary);
 
     int loadedYear = 0;
     in.read(reinterpret_cast<char*>(&loadedYear), sizeof(loadedYear));
     loadCities(in);
-    in.close();
 
     if ((int)cities.size() != EXPECTED_COUNT)
     {

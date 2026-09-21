@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -176,20 +177,24 @@ int TestCase_041::check(int year)
         // BEFORE loadWorldModelling() reads the year field and calls loadCities().
         loadMap(savename + ".map");
 
-        std::ifstream in(savename, std::ios::binary);
-        if (!in)
+        // Through readSaveGame(), like the game does: the file now begins with a general
+        // header (magic + length + MD5) and its payload with a version header, so the data
+        // is read out of the verified payload rather than straight off the stream.
+        std::string savedata;
+        SaveGameInfo saveinfo;
+        if (!readSaveGame(savename.c_str(), savedata, saveinfo))
         {
             isdone = true;
             haspassed = false;
-            message = std::string("Could not reopen the savegame file for loadCities().");
+            message = std::string("readSaveGame() rejected the file this test just wrote.");
             return 0;
         }
+        std::istringstream in(savedata, std::ios::binary);
 
         int loadedYear = 0;
         in.read(reinterpret_cast<char*>(&loadedYear), sizeof(loadedYear));
 
         loadCities(in);
-        in.close();
 
         isdone = true;
 

@@ -1,4 +1,5 @@
 #include <fstream>
+#include <sstream>
 #include <array>
 
 #include "Faction.h"
@@ -830,13 +831,22 @@ void initWorldModelling()
 
 void loadWorldModelling()
 {
-    std::ifstream in(filegame, std::ios::binary);
-    if (!in) {
-        printf("Error opening savegame.dat for reading.\n");
-        return;
+    printf("Loading saved game from %s...\n", filegame);
+
+    // Verify BEFORE anything is applied: magic, payload length, MD5, and a format version
+    // this build speaks. A savegame that fails any of those is not loaded at all -- half a
+    // world restored from a corrupt file is worse than refusing, and there is nothing
+    // sensible to fall back to this deep into setup (the caller has already generated or
+    // loaded the map for this save).
+    std::string savedata;
+    SaveGameInfo saveinfo;
+    if (!readSaveGame(filegame, savedata, saveinfo))
+    {
+        printf("Refusing to load %s -- see above. Aborting rather than starting a half-restored game.\n", filegame);
+        exit(1);
     }
 
-    printf("Loading saved game from %s...\n", filegame);
+    std::istringstream in(savedata, std::ios::binary);
 
     // The map itself was already restored by initMap() (setupWorldModelling calls initMap()
     // before this function; initMap() loads saved_map.dat instead of generating a fresh world
@@ -864,6 +874,9 @@ void loadWorldModelling()
     loadDependencies(in);
     loadTechnologies(in);
 
+    // Last: unit status and cargo name the units they belong to, so every unit must exist.
+    loadUnitStatus(in);
+
     //initUnits();
 
     coordinator.a_f_id = factions[0]->id;
@@ -889,6 +902,4 @@ void loadWorldModelling()
 
     centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();
-
-    in.close();
 }

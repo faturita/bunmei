@@ -46,6 +46,7 @@
 #include <unordered_map>
 #include <algorithm>
 
+#include "version.h"
 #include "imageloader.h"
 #include "profiling.h"
 #include "commandline.h"
@@ -147,8 +148,7 @@ int  numCivs;
 
 void disclaimer()
 {
-    char version[]="1.0.0";
-    printf("Bunmei version %s\n", version);
+    printf("Bunmei version %s\n", BUNMEI::version);
 }
 
 void setupWorldModelling()
