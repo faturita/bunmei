@@ -260,6 +260,11 @@ inline void endOfYear()
 {
     year++;
 
+    // Fog of war, once a turn: catches a unit that appeared without moving -- produced in a
+    // city, unloaded from a ship, or restored from a savegame -- since the movement path
+    // only reveals for units that actually moved.
+    updateFogOfWar();
+
     std::unordered_map<int, int> salaries;
     for (auto& [k, u] : units)
     {
@@ -545,6 +550,9 @@ void switchFaction()
 {
     controller.reset();
     setUpFaction();  
+
+    // Whatever the units can see from where they start (a fresh world or a loaded one).
+    updateFogOfWar();
 
     // Autoplayer
     if (factions[coordinator.a_f_id]->autoPlayer)

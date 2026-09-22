@@ -521,10 +521,21 @@ void processMouse(int button, int state, int x, int y)
                     centermap(x,y);
                     if (goToMode)
                     {
-                        if (units.find(coordinator.a_u_id) != units.end())
+                        // Command pattern: sending a unit somewhere is a game action, so it
+                        // goes through the queue. goToMode itself is view state (this client
+                        // is waiting for a destination click) and stays here.
+                        auto goToUnit = units.find(coordinator.a_u_id);
+                        if (goToUnit != units.end() && goToUnit->second->faction == coordinator.a_f_id)
                         {
-                            coordinate co = getCurrentCenter();
-                            units[coordinator.a_u_id]->goTo(co.lat,co.lon);
+                            coordinate dest = getCurrentCenter();
+
+                            CommandOrder co;
+                            co.command = Command::SetUnitDestinationOrder;
+                            co.parameters.spawnid   = goToUnit->second->id;
+                            co.parameters.factionid = coordinator.a_f_id;
+                            co.parameters.latitude  = dest.lat;
+                            co.parameters.longitude = dest.lon;
+                            coordinator.push(co);
                         }
                         goToMode = false;
                     }

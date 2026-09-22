@@ -155,20 +155,6 @@ void centermapinmap(int lat, int lon)
 
 
 
-// Reveal the map around lat,lon (screen coordinates) for ONE faction: each faction has its
-// own fog of war (mapcell::visible is a per-faction vector).
-void unfog(int f_id, int lat, int lon)
-{
-    coordinate c = coordinate(lat,lon);
-    for(int llat=-1;llat<=1;llat++)
-        for (int llon=-1;llon<=1;llon++)
-        {
-            int lllat=c.lat+llat,lllon=c.lon+llon;
-            map(lllat,lllon).setVisible(f_id);
-        }
-}
-
-
 // These two functions perform the right mapping from model coordinates to opengl coordinates
 void placeColorBar(int x, int y, int sizex, int sizey, float r, float g, float b)
 {
@@ -577,7 +563,10 @@ void drawUnitsAndCities()
     for (auto& [k,u] : units)
     {
         coordinate c = map.to_screen(u->latitude,u->longitude);
-        unfog(u->faction,c.lat,c.lon);
+
+        // Drawing does NOT reveal anything any more: engine.cpp:revealAround() does it from
+        // the movement path, where it belongs. A renderer that uncovered the map meant the
+        // headless simulator never uncovered any of it.
 
         // Foreign units are hidden on tiles the active faction has not explored yet.
         if (!map(c.lat,c.lon).isVisible(coordinator.v_f_id))

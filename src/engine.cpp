@@ -127,6 +127,41 @@ void assignProductionRates(Map &mmp)
         }
 }
 
+// Fog of war: reveal the tiles around a unit for ITS faction. mapcell::visible is per-faction
+// and is saved with the map, so this is model state, not a drawing detail.
+//
+// It used to live in the RENDERER -- map.cpp:drawUnitsAndCities() called unfog() for every
+// unit on every frame, and nothing else ever revealed anything. Exploration therefore happened
+// as a side effect of drawing: the headless simulator uncovered no map at all, and in the game
+// a tile became visible because it was painted rather than because somebody walked there.
+//
+// REAL coordinates and map.peek(), not the screen-space map() the renderer used: this runs
+// from the movement path, where coordinates are real (see the REAL vs SCREEN note in
+// PROJECT.md). peek() wraps, so a unit at the map edge reveals across the seam.
+//
+// The radius is per unit, not a constant here -- see Unit::visionRange.
+void revealAround(Unit* unit)
+{
+    if (unit == nullptr) return;
+
+    // How far it sees is the unit's own business (Unit::visionRange): 1 for everything
+    // ordinary, more for a Scout.
+    const int r = unit->getVisionRange();
+
+    for (int dlat=-r; dlat<=r; dlat++)
+        for (int dlon=-r; dlon<=r; dlon++)
+            map.peek(unit->latitude+dlat, unit->longitude+dlon).setVisible(unit->faction);
+}
+
+// Every unit reveals its surroundings. Called once when a world is set up or loaded, and once
+// per turn, so a unit that appeared without moving (produced in a city, unloaded from a ship,
+// restored from a savegame) still sees where it stands.
+void updateFogOfWar()
+{
+    for (auto& [k, u] : units)
+        revealAround(u);
+}
+
 int getNextCityId()
 {
     int nextid = 0;
@@ -290,10 +325,19 @@ void chooseResearch(int factionId, bool force)
     controller.query.active  = true;
     controller.query.message = "Our scholars await your direction. What shall we study?";
     controller.query.options = options;
+    // The answer only PUSHES: what a faction researches is model state, so it is set in
+    // processCommandOrders() like every other change rather than from a UI callback. The
+    // index is resolved to a technology id here, where the list that produced it lives.
     controller.query.selected = [factionId, choices](int i)
     {
-        if (i >= 0 && i < (int)choices.size())
-            techtree.setResearchTarget(factionId, choices[i]);
+        if (i < 0 || i >= (int)choices.size())
+            return;
+
+        CommandOrder co;
+        co.command = Command::SetResearchTargetOrder;
+        co.parameters.factionid = factionId;
+        co.parameters.techid    = choices[i];
+        coordinator.push(co);
     };
 }
 
@@ -1094,6 +1138,11 @@ void moveUnit(Unit* unit, int lat, int lon)
                 (!forceBreak && attack(unit,lat,lon, forceBreak)) ||
                 (!forceBreak && moveForward(unit,lat,lon));
 
+            // Whatever the move turned out to be -- a step, a landing, boarding a ship,
+            // taking a city -- the unit is somewhere new, so it sees somewhere new.
+            if (handled)
+                revealAround(unit);
+
             if (!handled)
             {
                 // @NOTE: Here it means that for some reason the unit cannot move to the target tile.
@@ -1505,6 +1554,25 @@ void processCommandOrders()
         continue;
     }
 
+    if (co.command == Command::SetResearchTargetOrder)
+    {
+        // Addresses a FACTION -- before the unit guard below.
+        //
+        // setResearchTarget() only accepts a technology in that faction's Frontier (you
+        // cannot research what you do not know yet), so the rule already existed; what was
+        // missing was any way to reach it other than the selector dialog's own callback.
+        if (!knownFaction(co.parameters.factionid) || co.parameters.factionid >= techtree.factionCount())
+        {
+            printf("SetResearchTargetOrder: faction %d does not exist.\n", co.parameters.factionid);
+        }
+        else if (!techtree.setResearchTarget(co.parameters.factionid, co.parameters.techid))
+        {
+            printf("SetResearchTargetOrder: faction %d cannot research technology 0x%x right now.\n",
+                   co.parameters.factionid, co.parameters.techid);
+        }
+        continue;
+    }
+
     if (units.find(co.parameters.spawnid) == units.end())
     {
         continue;
@@ -1573,6 +1641,25 @@ void processCommandOrders()
         delete unit;
 
         coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);  //@FIXME: There could be the case that there are no more units.
+    }
+    else if (co.command == Command::SetUnitDestinationOrder)
+    {
+        // The unit-existence guard above already ran; ownership is the part still to check,
+        // for the same reason ActivateUnitOrder checks it -- a destination is an order given
+        // to somebody's army.
+        Unit *unit = units[co.parameters.spawnid];
+
+        if (unit->faction != co.parameters.factionid)
+        {
+            printf("Faction %d cannot send unit %d, which belongs to faction %d.\n",
+                   co.parameters.factionid, unit->id, unit->faction);
+        }
+        else
+        {
+            // goTo() normalizes the target through map.adjust(), so a destination off the
+            // edge of the map wraps rather than being stored out of range.
+            unit->goTo(co.parameters.latitude, co.parameters.longitude);
+        }
     }
     else if (co.command == Command::ActivateUnitOrder)
     {

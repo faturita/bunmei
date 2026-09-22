@@ -10,6 +10,7 @@ Unit::Unit()
 {
     strcpy(name,"Unit");
     moves = 1;
+    visionRange = 1;      // one tile around itself, which is what every unit saw before
     target = coordinate(0,0);
 }
 
@@ -60,6 +61,11 @@ void Unit::draw()
 int Unit::getUnitMoves()
 {
     return moves;
+}
+
+int Unit::getVisionRange()
+{
+    return visionRange;
 }
 
 const char* Unit::getAssetName()

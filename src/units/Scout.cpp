@@ -11,6 +11,7 @@ Scout::Scout()
     strcpy(name,"Scout");
     strcpy(assetname,"assets/assets/units/scout.png");
     moves = 3;
+    visionRange = 2;      // scouting is the point of it: it sees twice as far as anything else
     dw = 0;
     aw = 0;
 }

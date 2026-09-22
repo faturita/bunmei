@@ -170,6 +170,7 @@ int TestCase_059::check(int year)
 
     controller.query.selected(0);                 // the player picks the first option
     controller.query.active = false;
+    processCommandOrders();   // the selector pushes Command::SetResearchTargetOrder now
     if (techtree.getResearchTarget(0) != TECH_LANGUAGE)
     { fail("Answering the selector should set that faction's research target."); return 0; }
 
@@ -273,6 +274,7 @@ int TestCase_059::check(int year)
         int wanted = (int)frontier.size() - 1;
         controller.query.selected(wanted);
         controller.query.active = false;
+        processCommandOrders();   // ...and again here
         if (techtree.getResearchTarget(0) != frontier[wanted])
         { fail("Answering the post-discovery prompt should switch the research target."); return 0; }
 

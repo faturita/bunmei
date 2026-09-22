@@ -43,6 +43,11 @@ class Unit : public Buildable
     protected:
         int moves;
 
+        // How far this unit sees: the radius, in tiles, of the square it clears from the fog
+        // of war for its own faction (engine.cpp:revealAround). 1 is the ordinary unit's
+        // one-tile ring; a Scout sees further. Set in each unit's constructor, same as moves.
+        int visionRange;
+
         bool autoMode = false;
 
         float e[5] = {1.0,1.0,1.0,1.0,1.0};    // @FIXME: Currently not used.
@@ -94,6 +99,7 @@ class Unit : public Buildable
     char name[256];
 
     int getUnitMoves();
+    int getVisionRange();
     const char* getAssetName();
     // Overlay asset paths for the unit's current status (fortified/sentried/roading/...),
     // in the same order Unit::draw() paints them on the map.  Single source of truth so

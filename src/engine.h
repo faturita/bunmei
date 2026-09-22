@@ -19,6 +19,13 @@ enum class LandEntry { BLOCKED, ENTER, ENTER_AND_CLAIM };
 // Idempotent. See the note on the definition.
 void assignProductionRates(Map &mmp);
 
+// Fog of war (mapcell::visible, per faction, saved with the map): reveal what one unit can
+// see, or what every unit can see. Call the second after setting up or loading a world and
+// once per turn; the movement path calls the first itself. See the note on the definition --
+// this used to be done by the renderer.
+void revealAround(Unit* unit);
+void updateFogOfWar();
+
 int getNextCityId();
 int getNextUnitId();
 int nextUnitId(int faction);

@@ -249,6 +249,11 @@ void lose()
 inline void endOfYear()
 {
     year++;
+    // Fog of war, once a turn: catches a unit that appeared without moving -- produced in a
+    // city, unloaded from a ship, or restored from a savegame -- since the movement path
+    // only reveals for units that actually moved.
+    updateFogOfWar();
+
     for (auto& [k, u] : units)
     {
         // Units in movement debt (negative moves) recover one year of moves at a time
@@ -485,6 +490,9 @@ void update(int value)
         endOfYear();
         coordinator.a_f_id = 0;     // Restart the turn from the first faction.
         setUpFaction();
+
+    // Whatever the units can see from where they start.
+    updateFogOfWar();
 
         // Autoplayer
         if (factions[coordinator.a_f_id]->autoPlayer)

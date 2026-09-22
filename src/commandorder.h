@@ -135,7 +135,21 @@ enum class Command {
     //
     // The handler still refuses an id the city cannot currently build, which is what makes
     // accepting one from a caller safe.
-    ChangeProductionOrder=36
+    ChangeProductionOrder=36,
+    // Sends a unit (parameters.spawnid) to a destination (parameters.latitude/longitude, REAL
+    // map coordinates): sets the automated-movement target the AI pathfinder then walks, i.e.
+    // Unit::goTo(). Not MoveUnitTo, which is a single STEP onto an adjacent tile -- this is
+    // "head there over however many turns it takes".
+    //
+    // The handler checks the unit belongs to parameters.factionid, the same as
+    // ActivateUnitOrder: a destination is an order to somebody's army.
+    SetUnitDestinationOrder=37,
+    // Sets which technology a faction is researching (parameters.techid, for
+    // parameters.factionid). Pushed by the research selector dialog, and available to an
+    // AI or a remote player, which is the point -- TechTree::setResearchTarget() already
+    // refuses a technology outside that faction's Frontier, but nothing could reach it except
+    // the dialog's own callback.
+    SetResearchTargetOrder=38
 };
 
 // parameters.scope for RegisterDependencyOrder. Deliberately NOT the dee.h context ids: those
@@ -189,6 +203,9 @@ struct commandparameters
 
     // A DiplomaticStatus (diplomacy.h) -- SetDiplomacyOrder.
     int status;
+
+    // A codes.h TECH_* technology -- SetResearchTargetOrder.
+    int techid;
 
     // On/off -- SetAutoPlayerOrder.
     bool enabled;
