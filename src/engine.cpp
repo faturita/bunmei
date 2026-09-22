@@ -23,6 +23,7 @@
 #include "buildings/Collosseum.h"
 #include "buildings/Market.h"
 #include "buildings/Factory.h"
+#include "buildings/Observatory.h"
 
 #include "units/Unit.h"
 #include "units/Settler.h"
@@ -325,6 +326,7 @@ void populateCityBuildables(City* city)
         buildable.push_back(new HorsearcherFactory());
         buildable.push_back(new FactoryFactory());
         buildable.push_back(new GalleonFactory());
+        buildable.push_back(new ObservatoryFactory());
     }
 
 

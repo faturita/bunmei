@@ -328,6 +328,11 @@ inline void endOfYear()
 
         c->resources[TRADE]=0;
 
+        if (dee.verifyDep(cityContext(c->id), SCIENCE_SURPLUS_CODE))
+        {
+            c->resources[SCIENCE] *= 2;   // Double the science if the city has the science surplus perk
+        }
+
         // Production from building and costs deductions.
         operateCityBuildings(c);
 

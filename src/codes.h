@@ -76,5 +76,6 @@
 #define TRADE_SURPLUS_CODE      0x04    // Perk code for trade surplus
 #define STORAGE_EXPANSION_1     0x0a    // Perk code for storage expansion level 1
 #define STORAGE_EXPANSION_2     0x0b    // Perk code for storage expansion level 2
+#define SCIENCE_SURPLUS_CODE    0x0c    // Perk code for science surplus
 
 #endif // CODES_H

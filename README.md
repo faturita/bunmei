@@ -148,10 +148,10 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Theatre          | Music              | 0x08 | - |
 | Stable           | Horseback Riding   | 0x09 | - |
 | Warehouse        | Pottery.           | 0x0a | - |
-| Observatory      | Astronomy          | | |
-| Monument.        | Mysticism.         | | |
-| Lighthouse.      | Map Making.        | | |
-| Library.         | Writing.           | | |
+| Observatory      | Astronomy          | 0x0c | |
+| Monument         | Mysticism.         | | |
+| Lighthouse       | Map Making.        | | |
+| Library          | Writing.           | | |
 | Harbor           |                    | | |
 | Grocer           | Trade |||
 | Forge            |.       |||
@@ -184,6 +184,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | TRADE_SURPLUS_CODE            | 0x04         |  Trade output in the city increases by 100%.|
 | STORAGE_EXPANSION_1           | 0x0a         |  Storage is increased by 100%.|
 | STORAGE_EXPANSION_2           | 0x0b         |  Storage is increased by 100%.|
+| SCIENCE_SURPLUS_CODE          | 0x0c         |  Duplicates science output in the city.|
 
 ## Diplomacy and Wars
 
