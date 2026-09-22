@@ -491,9 +491,6 @@ void update(int value)
         coordinator.a_f_id = 0;     // Restart the turn from the first faction.
         setUpFaction();
 
-    // Whatever the units can see from where they start.
-    updateFogOfWar();
-
         // Autoplayer
         if (factions[coordinator.a_f_id]->autoPlayer)
         {
@@ -583,6 +580,10 @@ int main(int argc, char *argv[]) {
     initUnits();
 
     setUpFaction();
+
+    // Whatever the starting units can see. Here, where the world has just been built -- not
+    // in the per-turn path, where endOfYear() already does it.
+    updateFogOfWar();
 
     // At this point everything is set up.
 

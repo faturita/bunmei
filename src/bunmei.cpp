@@ -155,6 +155,14 @@ void setupWorldModelling()
     else
         initWorldModelling();
 
+    // Whatever the starting units can see, revealed BEFORE the first frame: the world now
+    // exists and its units are placed. This has to happen here and not in switchFaction() --
+    // that only runs when the turn passes to a faction, so year -4000 rendered completely
+    // black until the player pressed space, which is exactly what happened when the fog rule
+    // moved out of the renderer (the renderer used to reveal on the first frame as a side
+    // effect of drawing).
+    updateFogOfWar();
+
     if (nofog)
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for (int lon=map.minlon;lon<map.maxlon;lon++)
@@ -550,9 +558,6 @@ void switchFaction()
 {
     controller.reset();
     setUpFaction();  
-
-    // Whatever the units can see from where they start (a fresh world or a loaded one).
-    updateFogOfWar();
 
     // Autoplayer
     if (factions[coordinator.a_f_id]->autoPlayer)

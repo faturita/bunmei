@@ -214,6 +214,35 @@ int TestCase_074::check(int year)
         { fail("Moving did not reveal the ground ahead -- revealAround() must run on the movement path."); return 0; }
     }
 
+    // ---- the very first frame must not be black -------------------------------------------
+    // @Issue (reported live): year -4000 rendered completely black and nothing could be done
+    // until the player pressed space, after which the units appeared. The fog reveal that
+    // used to happen as a side effect of the FIRST DRAW had moved into the model, but its
+    // setup call landed in switchFaction() -- which only runs when the turn passes to a
+    // faction -- so at world-setup time nothing had revealed anything yet. It belongs in the
+    // world-setup path, before a single frame is drawn.
+    //
+    // Checked as the invariant rather than the call site: after setup and before ANY turn has
+    // passed, a faction can see the ground its own starting units stand on.
+    {
+        for(int lat=map.minlat;lat<map.maxlat;lat++)
+            for (int lon=map.minlon;lon<map.maxlon;lon++)
+                map.set(lat,lon).visible.clear();
+
+        // Exactly what setupWorldModelling()/main() do once the world exists -- no endOfYear(),
+        // no switchFaction(), no processCommandOrders(): just a world that has been built.
+        updateFogOfWar();
+
+        for (auto& [k,u] : units)
+            if (!map.peek(u->latitude,u->longitude).isVisible(u->faction))
+            {
+                char buf[220];
+                snprintf(buf,sizeof(buf),"Unit %d cannot see its own tile before the first turn -- the map would "
+                                         "render black until something ended the year.", u->id);
+                fail(buf); return 0;
+            }
+    }
+
     // ================= 2) the GoTo destination click ====================================
     {
         scout->resetGoTo();
