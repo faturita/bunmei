@@ -175,8 +175,15 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Semiconductor Fab| Electronics | | |
 | Gigafactory.     | Robotics | | | 
 
+* City perks for the dependency tree
 
-
+| Perk |  Code |  Description |
+|---|---|---|
+| VETERAN_CODE                  | 0x02         |  Units created in the city have attack and defense increased by 100%.|
+| HALF_POPULATION_CODE          | 0x03         |  The amount of food required for population growth is reduced by half.|
+| TRADE_SURPLUS_CODE            | 0x04         |  Trade output in the city increases by 100%.|
+| STORAGE_EXPANSION_1           | 0x0a         |  Storage is increased by 100%.|
+| STORAGE_EXPANSION_2           | 0x0b         |  Storage is increased by 100%.|
 
 ## Diplomacy and Wars
 
