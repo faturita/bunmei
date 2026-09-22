@@ -63,7 +63,38 @@ enum class Command {
     // endOfYear() converts into COINS, SCIENCE, CULTURE and LUXURY respectively (Faction::rates).
     // parameters.factionid says whose, parameters.rates carries the four values. Pushed by the
     // /fundamental teletype command.
-    SetFundamentalRatesOrder=28
+    SetFundamentalRatesOrder=28,
+    // Releases ONE surplus working tile from a city (parameters.cityid), via
+    // City::deAssigntWorkingTile() -- which drops the first worked tile it finds while the
+    // city is working more than pop+1 of them, and does nothing when it is not. That is the
+    // whole contract: it takes no tile, because it is not "stop working tile X" (that is
+    // AssignWorkTileOrder, whose toggle already deassigns a NAMED tile) but "shed the one
+    // tile this city is no longer entitled to", which is what a shrinking population needs.
+    //
+    // Exists so nothing has to reach into the City to do it: the AI and a remote player both
+    // drive the game exclusively through commands, so every state change a turn can make
+    // needs to be expressible as one. endOfYear() (bunmei.cpp/simulate.cpp) and
+    // engine.cpp's own population path still call the method directly -- they run outside
+    // the command queue, and deferring them by a frame would change when a tile is freed --
+    // so this is the entry point for everything else.
+    DeAssignWorkTileOrder=29,
+    // Work ONE named tile / stop working ONE named tile. parameters.cityid is the city;
+    // parameters.latitude/longitude are the tile's offset RELATIVE to the city (-3..3), same
+    // convention as AssignWorkTileOrder and unlike every other command's absolute coordinates.
+    //
+    // These are explicit where AssignWorkTileOrder is a TOGGLE, and that is the whole reason
+    // they exist: a toggle requires the sender to already know the tile's current state, which
+    // a UI click does and neither the AI nor a remote player reliably does -- two toggles
+    // racing on the same tile cancel out, and a stale view flips the wrong way. Each of these
+    // states an intended outcome and does NOTHING if it already holds:
+    //   AssignTileOrder   -- no-op if the tile is already worked, if the city has no
+    //                        assignment left (numberOfWorkingTiles() == pop+1), if the tile is
+    //                        out of range or the centre, or if another faction/city holds it.
+    //   DeAssignTileOrder -- no-op if the city is not working that tile, or it is out of range
+    //                        or the centre. Never limited by the allowance.
+    // So they are idempotent: sending either one twice has the same effect as sending it once.
+    AssignTileOrder=30,
+    DeAssignTileOrder=31
 };
 
 struct commandparameters

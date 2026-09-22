@@ -1249,6 +1249,38 @@ void processCommandOrders()
             cityIt->second->assignWorkingTile(coordinate(co.parameters.latitude, co.parameters.longitude));
         continue;
     }
+    if (co.command == Command::AssignTileOrder || co.command == Command::DeAssignTileOrder)
+    {
+        // Addresses a CITY (parameters.cityid), not the active unit, same as the tile
+        // commands above -- must run before the active-unit guard below. Both are no-ops
+        // when the outcome they ask for already holds (City::assignTile/deAssignTile), so
+        // nothing here needs to know the tile's current state.
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (cityIt != cities.end())
+        {
+            coordinate tile(co.parameters.latitude, co.parameters.longitude);
+            City* city = cityIt->second;
+
+            bool changed = (co.command == Command::AssignTileOrder)
+                         ? city->assignTile(tile)
+                         : city->deAssignTile(tile);
+
+            printf("%s tile (%d,%d) of city %s: %s\n",
+                   co.command == Command::AssignTileOrder ? "Assign" : "Deassign",
+                   tile.lat, tile.lon, city->name, changed ? "done" : "no change");
+        }
+        continue;
+    }
+    if (co.command == Command::DeAssignWorkTileOrder)
+    {
+        // Addresses a CITY (parameters.cityid), not the active unit, same as the tile
+        // commands above -- must run before the active-unit guard below. No tile is named:
+        // the city itself picks which surplus tile to give up (see the enum comment).
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (cityIt != cities.end())
+            cityIt->second->deAssigntWorkingTile();
+        continue;
+    }
     if (co.command == Command::PopulateBuildableOrder)
     {
         // Addresses a CITY (parameters.cityid), not the active unit, same as the tile

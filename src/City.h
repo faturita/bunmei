@@ -53,9 +53,20 @@ public:
 
     bool workingOn(int lat, int lon);
     void assignWorkingTile();
+    // TOGGLE: assigns the tile if it is free, releases it if this city already works it.
+    // Right for a UI click; prefer assignTile/deAssignTile when the caller knows what it
+    // wants (the AI, a remote player).
     void assignWorkingTile(coordinate c);
+    // Gives up one tile the city is over its allowance on; nothing if it is within it.
     void deAssigntWorkingTile();
     void reAssignWorkingTiles(int new_f_id);
+
+    // How many tiles this city may work in total, the centre included (pop+1).
+    int  workingTileAllowance();
+    // Explicit, non-toggling counterparts to assignWorkingTile(coordinate). Each does
+    // nothing and returns false when its outcome already holds -- see City.cpp.
+    bool assignTile(coordinate c);
+    bool deAssignTile(coordinate c);
     bool isCapitalCity();
     void setCapitalCity();
     int getProductionRate(int r_id);

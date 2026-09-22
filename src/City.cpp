@@ -126,18 +126,77 @@ void City::reAssignWorkingTiles(int new_f_id)
         }       
 }
 
+// Gives up ONE tile the city is no longer entitled to work, and nothing when it is inside its
+// pop+1 allowance. Which tile is not chosen by anything -- it is the first one the scan finds.
+//
+// The guard used to read `lat!=0 && lon!=0`, which skips every tile on the centre ROW OR
+// COLUMN rather than just the centre: (1,0), (0,1), (2,0), (0,-3) and nine others could never
+// be released, so a shrinking city whose surplus happened to sit on an axis kept working more
+// than pop+1 forever. Only the centre (0,0) -- the city's own tile, always worked -- is
+// exempt.
 void City::deAssigntWorkingTile()
 {
     for(int lat=-3;lat<=3;lat++)
         for(int lon=-3;lon<=3;lon++)
         {
-            if (workingOn(lat,lon) && lat!=0 && lon!=0 && numberOfWorkingTiles()>(pop+1))
+            if (workingOn(lat,lon) && !(lat==0 && lon==0) && numberOfWorkingTiles()>(pop+1))
             {
                 map->peek(latitude+lat, longitude+lon).releaseCityOwnership();
 
-                return;   
+                return;
             }
-        }    
+        }
+}
+
+// The city's working-tile allowance: the centre plus one per population point. numberOfWorkingTiles()
+// counts the centre, so this is the number to compare it against directly.
+int City::workingTileAllowance()
+{
+    return pop + 1;
+}
+
+// ---- explicit, non-toggling tile assignment ------------------------------------------------
+// assignWorkingTile(coordinate) is a TOGGLE: it assigns or releases depending on what the
+// tile currently is, which is right for a UI click but wrong for anything that has to state
+// its intent -- the AI, and a remote player whose view of the city may be a turn stale. These
+// two say exactly what they want and do nothing if it is already so.
+
+// Puts this city's workforce on one specific tile. Does NOTHING (returns false) when the tile
+// is already worked, when the city has no assignment left (numberOfWorkingTiles() has reached
+// its allowance), when the tile is out of the 7x7 range, when it is the centre (always worked,
+// never assignable) or when another faction or city holds it.
+bool City::assignTile(coordinate c)
+{
+    if (c.lat < -3 || c.lat > 3 || c.lon < -3 || c.lon > 3)
+        return false;
+    if (c.lat == 0 && c.lon == 0)
+        return false;                                   // the city's own tile
+    if (workingOn(c.lat, c.lon))
+        return false;                                   // already assigned
+    if (numberOfWorkingTiles() >= workingTileAllowance())
+        return false;                                   // no assignment left
+    if (occupied(c.lat, c.lon))
+        return false;                                   // someone else's land
+
+    map->peek(latitude+c.lat, longitude+c.lon).setCityOwnership(faction, id);
+    return true;
+}
+
+// Takes this city's workforce off one specific tile. Does NOTHING (returns false) when the
+// tile is not currently worked by this city, when it is out of range, or when it is the
+// centre. Unlike assigning, this is never limited by the allowance -- giving up a tile can
+// only ever bring the city further inside it.
+bool City::deAssignTile(coordinate c)
+{
+    if (c.lat < -3 || c.lat > 3 || c.lon < -3 || c.lon > 3)
+        return false;
+    if (c.lat == 0 && c.lon == 0)
+        return false;                                   // the city's own tile
+    if (!workingOn(c.lat, c.lon))
+        return false;                                   // not assigned: nothing to give up
+
+    map->peek(latitude+c.lat, longitude+c.lon).releaseCityOwnership();
+    return true;
 }
 
 void City::assignWorkingTile()
