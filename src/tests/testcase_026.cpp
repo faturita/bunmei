@@ -180,6 +180,7 @@ int TestCase_026::check(int year)
 
     // Row 0 (lat=5), offset 0: must select the FIRST stationed unit.
     clickOnCityScreen(5, 0, 0, 0);
+    processCommandOrders();   // the Units box pushes Command::ActivateUnitOrder now
     if (coordinator.a_u_id != stationed[0]->id)
     {
         isdone = true;
@@ -194,6 +195,7 @@ int TestCase_026::check(int year)
     drawCityScreen(c.lat, c.lon, city);   // clamp pass, same as a real frame would do
 
     clickOnCityScreen(5, 0, 0, 0);
+    processCommandOrders();   // the Units box pushes Command::ActivateUnitOrder now
     if (coordinator.a_u_id != stationed[1]->id)
     {
         isdone = true;
@@ -211,6 +213,7 @@ int TestCase_026::check(int year)
     }
 
     clickOnCityScreen(9, 0, 0, 0);
+    processCommandOrders();   // the Units box pushes Command::ActivateUnitOrder now
     if (coordinator.a_u_id != stationed[NUMWARRIORS-1]->id)
     {
         isdone = true;
@@ -227,6 +230,7 @@ int TestCase_026::check(int year)
     }
 
     clickOnCityScreen(5, 0, 0, 0);
+    processCommandOrders();   // the Units box pushes Command::ActivateUnitOrder now
 
     isdone = true;
     haspassed = (coordinator.a_u_id == stationed[0]->id);

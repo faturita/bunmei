@@ -16,6 +16,7 @@ int Granary::getSubType()
 // --------------------------------------------------------
 GranaryFactory::GranaryFactory()
 {
+    id = BUILDABLE_GRANARY;
     strncpy(this->name,"Granary",256);
     addDependencyCode(TECH_POTTERY);
 }

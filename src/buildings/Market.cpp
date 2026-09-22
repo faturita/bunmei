@@ -16,6 +16,7 @@ int Market::getSubType()
 // --------------------------------------------------------
 MarketFactory::MarketFactory()
 {
+    id = BUILDABLE_MARKET;
     strncpy(this->name,"Market",256);
     addDependencyCode(TECH_CURRENCY);
 }

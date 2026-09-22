@@ -48,6 +48,7 @@ Settler* SettlerFactory::create()
 
 SettlerFactory::SettlerFactory()
 {
+    id = BUILDABLE_SETTLER;
     strncpy(this->name,"Settler",256);  
 }
 

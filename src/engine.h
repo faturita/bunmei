@@ -36,6 +36,14 @@ City* factionTreasury(int faction_id);
 int cityTradeConversionRate(City* city, int r_id);
 Unit* getDefender(int lat, int lon, int &numberofdefenders, int f_id);
 
+// The factory for one BuildableId (buildable.h), or nullptr if no such buildable exists.
+// The registry it looks in is the single list of what the game can build; a factory is
+// stateless, so the pointer is shared rather than copied.
+BuildableFactory* buildableFactoryById(int id);
+
+// Every registered factory, in no particular order.
+std::vector<BuildableFactory*> allBuildableFactories();
+
 // Fills city->buildable with everything the city can currently build (based on the faction
 // type -- this is all, for now). Does NOT clear the list first; callers that want a fresh
 // list (e.g. Command::PopulateBuildableOrder) must clear() before calling.

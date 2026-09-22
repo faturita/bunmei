@@ -134,6 +134,7 @@ int Trireme::getSubType()
 
 TriremeFactory::TriremeFactory()
 {
+    id = BUILDABLE_TRIREME;
     strncpy(this->name,"Trireme",256);
     addDependencyCode(TECH_MAP_MAKING);
 }

@@ -37,6 +37,7 @@ Warelephant* WarelephantFactory::create()
 
 WarelephantFactory::WarelephantFactory()
 {
+    id = BUILDABLE_WARELEPHANT;
     strncpy(this->name,"Warelephant",256);
     addDependencyCode(TECH_ANIMAL_HUSBANDRY);
 }

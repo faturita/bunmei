@@ -36,6 +36,7 @@ Spy* SpyFactory::create()
 
 SpyFactory::SpyFactory()
 {
+    id = BUILDABLE_SPY;
     strncpy(this->name,"Spy",256);  
 }
 

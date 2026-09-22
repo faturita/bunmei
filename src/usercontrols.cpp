@@ -109,13 +109,29 @@ void handleKeypress(unsigned char key, int x, int y) {
             } else
             if (controller.str.find("/autoplayer")!=std::string::npos)
             {
-                if (controller.str.find("on")!=std::string::npos)
+                // /autoplayer on|off -- hands the calling faction to the AI, or takes it back.
+                // Goes through a CommandOrder like every other action; the handler checks the
+                // faction exists again, because this side is only the local caller.
+                //
+                // "off" is tested first: "/autoplayer off" contains "on" as a substring of
+                // "off" is false, but find("on") would also match a filename or a stray word
+                // later on the line -- order plus an explicit token read keeps it honest.
+                std::istringstream iss(controller.str);
+                std::string cmd, token;
+                iss >> cmd >> token;
+
+                if ((token == "on" || token == "off") &&
+                    coordinator.a_f_id >= 0 && coordinator.a_f_id < (int)factions.size())
                 {
-                    factions[coordinator.a_f_id]->autoPlayer = true;
-                } else
-                if (controller.str.find("off")!=std::string::npos)
+                    CommandOrder co;
+                    co.command = Command::SetAutoPlayerOrder;
+                    co.parameters.factionid = coordinator.a_f_id;
+                    co.parameters.enabled   = (token == "on");
+                    coordinator.push(co);
+                }
+                else
                 {
-                    factions[coordinator.a_f_id]->autoPlayer  = false;
+                    message(year, coordinator.a_f_id, "Usage: /autoplayer on|off");
                 }
             } else
             if (controller.str.find("/enable")!=std::string::npos)
@@ -123,30 +139,58 @@ void handleKeypress(unsigned char key, int x, int y) {
                 // /enable world 0x01
                 // /enable faction 0x03      (faction is the active/controlling one, coordinator.a_f_id)
                 // /enable city Kattegate 0x01
+                //
+                // Parsed and validated here, then pushed: the command carries a DEP_SCOPE_*
+                // and the ids, never a pre-encoded dee context. The handler checks the scope,
+                // the code and the faction/city again -- this side only knows what the local
+                // player typed.
                 std::istringstream iss(controller.str);
                 std::string cmd, scope, token;
                 iss >> cmd >> scope;
 
-                if (scope == "world")
+                CommandOrder co;
+                co.command = Command::RegisterDependencyOrder;
+                co.parameters.factionid = coordinator.a_f_id;
+                co.parameters.cityid    = 0;
+                co.parameters.codeid    = 0;
+                co.parameters.scope     = -1;
+
+                std::string cityname;
+                if (scope == "city")
+                    iss >> cityname;
+                iss >> token;
+
+                // A malformed code must not push anything: stol throws on garbage, and an
+                // unparsed token would otherwise register code 0 somewhere.
+                bool parsed = false;
+                if (!token.empty())
                 {
-                    iss >> token;
-                    int codeId = (int)std::stol(token, nullptr, 16);
-                    dee.regDep(worldContext(), codeId);
-                    message(year, coordinator.a_f_id, "Enabled code 0x%x for the WORLD.", codeId);
+                    try
+                    {
+                        co.parameters.codeid = (int)std::stol(token, nullptr, 16);
+                        parsed = co.parameters.codeid != 0;
+                    }
+                    catch (const std::exception&) { parsed = false; }
+                }
+
+                if (!parsed)
+                {
+                    message(year, coordinator.a_f_id, "Usage: /enable world|faction|city [<cityname>] <hexcode>");
+                }
+                else if (scope == "world")
+                {
+                    co.parameters.scope = DEP_SCOPE_WORLD;
+                    coordinator.push(co);
                 }
                 else if (scope == "faction")
                 {
-                    iss >> token;
-                    int codeId = (int)std::stol(token, nullptr, 16);
-                    dee.regDep(factionContext(coordinator.a_f_id), codeId);
-                    message(year, coordinator.a_f_id, "Enabled code 0x%x for faction %s.", codeId, factions[coordinator.a_f_id]->name);
+                    co.parameters.scope = DEP_SCOPE_FACTION;
+                    coordinator.push(co);
                 }
                 else if (scope == "city")
                 {
-                    std::string cityname;
-                    iss >> cityname >> token;
-                    int codeId = (int)std::stol(token, nullptr, 16);
-
+                    // Resolve the NAME to an id here -- the command addresses a city by id,
+                    // like every other city order, so the name never leaves this function.
                     City* target = nullptr;
                     for (auto& [k,c] : cities)
                     {
@@ -159,13 +203,18 @@ void handleKeypress(unsigned char key, int x, int y) {
 
                     if (target != nullptr)
                     {
-                        dee.regDep(cityContext(target->id), codeId);
-                        message(year, coordinator.a_f_id, "Enabled code 0x%x for city %s.", codeId, target->name);
+                        co.parameters.scope  = DEP_SCOPE_CITY;
+                        co.parameters.cityid = target->id;
+                        coordinator.push(co);
                     }
                     else
                     {
                         message(year, coordinator.a_f_id, "City '%s' not found.", cityname.c_str());
                     }
+                }
+                else
+                {
+                    message(year, coordinator.a_f_id, "Usage: /enable world|faction|city [<cityname>] <hexcode>");
                 }
             }
 
@@ -232,30 +281,39 @@ void handleKeypress(unsigned char key, int x, int y) {
                 break;
             }
 
+            // Guardrail before anything is offered: the same three things the handler will
+            // re-check. Cheaper to refuse here than to raise a dialog whose answer gets
+            // thrown away on the other side.
+            if (activeFactionId < 0 || activeFactionId >= (int)factions.size() ||
+                targetFactionId  < 0 || targetFactionId  >= (int)factions.size() ||
+                activeFactionId == targetFactionId)
+            {
+                printf("Cannot negotiate with faction %d.\n", targetFactionId);
+                break;
+            }
+
             controller.query.active = true;
             char msg[128];
             snprintf(msg, sizeof(msg), "Make peace with %s ?", factions[targetFactionId]->name);
-            factions[targetFactionId]->song();
+            // Faction::song defaults to nullptr and only initFactions() fills it in, so this
+            // has to be guarded the same way gamekernel.cpp:819 guards its own call -- a
+            // faction without a song (a test world, a scenario) crashed the key outright.
+            if (factions[targetFactionId]->song) factions[targetFactionId]->song();
             controller.query.message = msg;
             controller.query.options = {"Yes.", "No."};
+            // The answer only PUSHES: the relation between two factions is shared state, so
+            // it is set in one place (processCommandOrders) rather than from a UI callback.
+            // The ids were validated above -- both exist and differ -- and the handler checks
+            // all of that again, since a remote caller's word is not evidence.
             controller.query.selected = [targetFactionId, activeFactionId](int i)
             {
-                if (i == 0)
-                {
-                    diplomacy[activeFactionId][targetFactionId].makePeace();
-                    char msg[128];
-                    snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
-                    message(year, activeFactionId, msg);
-                    message(year, targetFactionId, msg);
-                    peace();
-                } else {
-                    diplomacy[activeFactionId][targetFactionId].makeWar();
-                    char msg[128];
-                    snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[activeFactionId]->name, factions[targetFactionId]->name);
-                    message(year, activeFactionId, msg);
-                    message(year, targetFactionId, msg);
-                    war();
-                }
+                CommandOrder co;
+                co.command = Command::SetDiplomacyOrder;
+                co.parameters.factionid       = activeFactionId;
+                co.parameters.targetfactionid = targetFactionId;
+                co.parameters.status          = (i == 0) ? PEACE : FOE;
+                coordinator.push(co);
+
                 printf("Selected option %d\n", i);
             };
         }
@@ -519,7 +577,20 @@ void processMouse(int button, int state, int x, int y)
                                 if (coordinator.a_f_id == u->faction && (u->availablemoves>0 || u->isWorking()))
                                 {
                                     printf("Unit %s %d %d,%d\n",u->name, u->id, u->latitude, u->longitude);
-                                    activateUnit(u);
+
+                                    // Command pattern: selecting a unit is a game action, so
+                                    // it goes through the queue like every other one rather
+                                    // than calling engine.cpp:activateUnit() from here --
+                                    // the AI and a remote player have no other way in. The
+                                    // test above stays as the LOCAL hint that produces the
+                                    // "not your unit" message; the handler re-checks
+                                    // ownership itself, because that is the half that has to
+                                    // hold when the caller is across a network.
+                                    CommandOrder co;
+                                    co.command = Command::ActivateUnitOrder;
+                                    co.parameters.spawnid   = u->id;
+                                    co.parameters.factionid = coordinator.a_f_id;
+                                    coordinator.push(co);
                                     break;
                                 } else {
                                     printf("This is not your unit\n"); //@FIXME debug message

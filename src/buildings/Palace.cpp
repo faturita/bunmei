@@ -20,6 +20,7 @@ Buildable* PalaceFactory::create()
 
 PalaceFactory::PalaceFactory()
 {
+    id = BUILDABLE_PALACE;
     strncpy(this->name,"Palace",256);
 }
 

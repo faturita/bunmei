@@ -17,6 +17,7 @@ int Depot::getSubType()
 // --------------------------------------------------------
 DepotFactory::DepotFactory()
 {
+    id = BUILDABLE_DEPOT;
     strncpy(this->name,"Depot",256);
     addDependencyCode(TECH_POTTERY);
 }

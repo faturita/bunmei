@@ -101,7 +101,6 @@ void drawBoundingBox(int clo,int cla, int startleft, int starttop, int endright,
 // @FIXME: This is super ugly, but it works for now.
 // @FIXME: Improve this please.....
 bool changeIsActive = false;
-int selection = -1;
 int selectionOffset = 0;
 
 // Scroll offset for the "Units" box, same mechanism as selectionOffset above (0 = top of
@@ -153,8 +152,28 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
             // icon is only ~8px tall) but still lands in that column must NOT fall through to
             // selecting whatever item happens to share that row, or the production queue gets
             // silently changed instead of the list just scrolling.
-            selection = lat2 - 10 + selectionOffset*(-1);
-            printf("Selection %d\n",selection);
+            //
+            // The row is resolved to a buildable HERE and pushed as a command. It used to set
+            // a `selection` index that drawCityScreen() then acted on -- so the production
+            // queue was changed from inside a RENDER pass, and only if the screen happened to
+            // be drawn. The scroll offset is view state and lives on this side; what the
+            // command carries is the resulting BuildableId, the one thing that means the same
+            // to the city screen, an AI and a remote player alike.
+            int idx = (lat2 - 10) - selectionOffset;
+            printf("Selection %d\n", idx);
+
+            auto changeCityIt = cities.find(controller.cityid);
+            if (changeCityIt != cities.end() &&
+                idx >= 0 && idx < (int)changeCityIt->second->buildable.size())
+            {
+                CommandOrder co;
+                co.command = Command::ChangeProductionOrder;
+                co.parameters.cityid = controller.cityid;
+                co.parameters.selectedbuildableid = changeCityIt->second->buildable[idx]->getId();
+                coordinator.push(co);
+
+                changeIsActive = false;
+            }
         }
     }
 
@@ -210,7 +229,14 @@ void clickOnCityScreen(int lat, int lon, int lat2, int lon2)
         int idx = loc - unitsOffset;
         if (idx >= 0 && idx < (int)stationed.size())
         {
-            activateUnit(stationed[idx]);
+            // Same Command::ActivateUnitOrder the map click uses (usercontrols.cpp): a city
+            // screen opens only for its owner, so this unit is always the player's, but the
+            // handler re-checks that anyway.
+            CommandOrder aco;
+            aco.command = Command::ActivateUnitOrder;
+            aco.parameters.spawnid   = stationed[idx]->id;
+            aco.parameters.factionid = stationed[idx]->faction;
+            coordinator.push(aco);
 
             // Cargo slot icons (drawCityScreen's own comment on this box has the lon2
             // derivation): slot s sits at lon2 == s-4, one per capacity() slot -- slot 0 at
@@ -742,13 +768,8 @@ void drawCityScreen(int cla, int clo, City *city)
             //printf("First element: %d offset %d\n", i, selectionOffset);
             BuildableFactory *bf = *it;
             placeWord(clo + (4),cla + (5),4,8,bf->name, (loc)*8);
-            if (selection>=0 && selection == i)
-            {
-                while (!city->productionQueue.empty()) city->productionQueue.pop();
-                city->productionQueue.push(city->buildable[i]);
-                changeIsActive = false;
-                selection = -1;
-            }
+            // Draws the list and nothing else: picking an item is clickOnCityScreen's job,
+            // and it pushes a Command::ChangeProductionOrder rather than touching the queue.
             i++;
             if (loc==slots-1) break;
         }

@@ -58,7 +58,7 @@ public:
     // wants (the AI, a remote player).
     void assignWorkingTile(coordinate c);
     // Gives up one tile the city is over its allowance on; nothing if it is within it.
-    void deAssigntWorkingTile();
+    void deAssignWorkingTile();
     void reAssignWorkingTiles(int new_f_id);
 
     // How many tiles this city may work in total, the centre included (pop+1).

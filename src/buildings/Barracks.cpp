@@ -17,6 +17,7 @@ int Barracks::getSubType()
 
 BarracksFactory::BarracksFactory()
 {
+    id = BUILDABLE_BARRACKS;
     strncpy(this->name,"Barracks",256);
     addDependencyCode(TECH_WARRIOR_CODE);
 }

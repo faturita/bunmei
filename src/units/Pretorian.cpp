@@ -37,6 +37,7 @@ Pretorian* PretorianFactory::create()
 
 PretorianFactory::PretorianFactory()
 {
+    id = BUILDABLE_PRETORIAN;
     strncpy(this->name,"Pretorian",256);
     addDependencyCode(TECH_IRON_WORKING);
 }

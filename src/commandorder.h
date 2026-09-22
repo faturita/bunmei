@@ -65,7 +65,7 @@ enum class Command {
     // /fundamental teletype command.
     SetFundamentalRatesOrder=28,
     // Releases ONE surplus working tile from a city (parameters.cityid), via
-    // City::deAssigntWorkingTile() -- which drops the first worked tile it finds while the
+    // City::deAssignWorkingTile() -- which drops the first worked tile it finds while the
     // city is working more than pop+1 of them, and does nothing when it is not. That is the
     // whole contract: it takes no tile, because it is not "stop working tile X" (that is
     // AssignWorkTileOrder, whose toggle already deassigns a NAMED tile) but "shed the one
@@ -94,8 +94,56 @@ enum class Command {
     //                        or the centre. Never limited by the allowance.
     // So they are idempotent: sending either one twice has the same effect as sending it once.
     AssignTileOrder=30,
-    DeAssignTileOrder=31
+    DeAssignTileOrder=31,
+    // Makes parameters.spawnid the active/selectable unit and wakes it out of whatever
+    // passive state it was in: a fortified unit packs up, a sentried one wakes, and a
+    // working one has its improvement INTERRUPTED (Unit::completed(), no finalize -- a later
+    // order starts that effort over). engine.cpp:activateUnit() is the shared body.
+    //
+    // parameters.factionid is the faction claiming the unit, and the handler checks the unit
+    // actually belongs to it: selecting a unit is the one action a remote client could
+    // otherwise use to reach into somebody else's army, and the caller's own check is only a
+    // local convenience (it cannot be trusted once the caller is across a network).
+    ActivateUnitOrder=32,
+    // Turns AI control of a faction on or off (Faction::autoPlayer). parameters.factionid is
+    // whose, parameters.enabled is the new value. Pushed by the /autoplayer teletype command.
+    SetAutoPlayerOrder=33,
+    // Sets the relation between TWO factions (parameters.factionid and
+    // parameters.targetfactionid) to parameters.status, a DiplomaticStatus (diplomacy.h).
+    // The table is undirected, so one entry covers both directions.
+    //
+    // This is the one command that changes state belonging to somebody else as much as to the
+    // sender, which is why the handler re-validates everything the caller checked: both
+    // factions must exist, they must not be the same faction, and the status must be a real
+    // one. Pushed by the peace/war dialog (usercontrols.cpp).
+    SetDiplomacyOrder=34,
+    // Registers a codes.h dependency code (parameters.codeid) in the Dependency Evaluation
+    // Engine at parameters.scope -- DEP_SCOPE_WORLD, DEP_SCOPE_FACTION (parameters.factionid)
+    // or DEP_SCOPE_CITY (parameters.cityid). Pushed by the /enable teletype cheat, which is
+    // the only thing that grants capabilities out of band; routing it through the queue makes
+    // it replayable and auditable like every other state change.
+    RegisterDependencyOrder=35,
+    // Sets what a city builds next: clears its productionQueue and queues
+    // parameters.selectedbuildableid, in the city parameters.cityid.
+    //
+    // By BuildableId (buildable.h), which is what the city screen, an AI or a remote player
+    // each resolve their own selection to. Not by the row index the Change list was clicked
+    // at -- that is a property of a rendered list (its scroll offset, and whatever the
+    // buildable set happened to be when it was drawn), so two sides that disagree about that
+    // list would silently queue the wrong thing. Not by name either: a name is display text
+    // that can change for presentation reasons, while an id is the thing's identity.
+    //
+    // The handler still refuses an id the city cannot currently build, which is what makes
+    // accepting one from a caller safe.
+    ChangeProductionOrder=36
 };
+
+// parameters.scope for RegisterDependencyOrder. Deliberately NOT the dee.h context ids: those
+// are an encoding (worldContext()/factionContext(id)/cityContext(id)) that the handler builds,
+// so a command never carries a pre-encoded context it could get wrong.
+#define DEP_SCOPE_WORLD   0
+#define DEP_SCOPE_FACTION 1
+#define DEP_SCOPE_CITY    2
 
 struct commandparameters
 {
@@ -122,7 +170,10 @@ struct commandparameters
 
     int latitude;
     int longitude;
-    char buf[20];
+
+    // The BuildableId (buildable.h) a ChangeProductionOrder wants queued, looked up in the
+    // city's own buildable list. (Replaces a dead `char buf[20]` that nothing read.)
+    int selectedbuildableid;
 
     // Commodity/MfgGood id (resources.h) -- for LoadCargoOrder/UnloadCargoOrder. Kept
     // separate from latitude/longitude, which those two commands don't use.
@@ -131,6 +182,20 @@ struct commandparameters
     // The four TRADE conversion shares (COINS, SCIENCE, CULTURE, LUXURY) -- for
     // SetFundamentalRatesOrder only. Same order and meaning as Faction::rates.
     float rates[4];
+
+    // The OTHER faction -- for a command addressing a PAIR of them (SetDiplomacyOrder), where
+    // factionid is the one issuing it.
+    int targetfactionid;
+
+    // A DiplomaticStatus (diplomacy.h) -- SetDiplomacyOrder.
+    int status;
+
+    // On/off -- SetAutoPlayerOrder.
+    bool enabled;
+
+    // DEP_SCOPE_* above, and the codes.h code to register -- RegisterDependencyOrder.
+    int scope;
+    int codeid;
 };
 
 struct CommandOrder

@@ -196,6 +196,7 @@ int TestCase_025::check(int year)
     // cityscreenui.cpp drawCityScreen/clickOnCityScreen) directly: this is the click
     // handler itself, the same call processMouse's view==2 case makes.
     clickOnCityScreen(5, 0, 0, 0);
+    processCommandOrders();   // the Units box pushes Command::ActivateUnitOrder now
 
     controller.view = 1;
     isdone = true;

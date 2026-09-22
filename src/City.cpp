@@ -134,7 +134,7 @@ void City::reAssignWorkingTiles(int new_f_id)
 // be released, so a shrinking city whose surplus happened to sit on an axis kept working more
 // than pop+1 forever. Only the centre (0,0) -- the city's own tile, always worked -- is
 // exempt.
-void City::deAssigntWorkingTile()
+void City::deAssignWorkingTile()
 {
     for(int lat=-3;lat<=3;lat++)
         for(int lon=-3;lon<=3;lon++)

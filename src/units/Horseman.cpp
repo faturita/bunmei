@@ -37,6 +37,7 @@ Horseman* HorsemanFactory::create()
 
 HorsemanFactory::HorsemanFactory()
 {
+    id = BUILDABLE_HORSEMAN;
     strncpy(this->name,"Horseman",256);
     addDependencyCode(TECH_HORSEBACK_RIDING);
 }

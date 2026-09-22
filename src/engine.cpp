@@ -298,37 +298,74 @@ void chooseResearch(int factionId, bool force)
 }
 
 // Go through all the things a city can build and check all the dependencies.
-void populateCityBuildables(City* city)
+// Every buildable the game knows, keyed by its BuildableId (buildable.h). Built once, on
+// first use: a factory is stateless, so one instance each is all anyone needs -- city->buildable
+// holds pointers INTO this registry rather than copies.
+//
+// This is the single list of what exists. Before it there were two hardcoded lists that had
+// already drifted (populateCityBuildables offered 24 of these, savegame.cpp's loadCities
+// pushed a different 11), and nothing tied a factory to a stable number at all.
+static std::unordered_map<int, BuildableFactory*>& buildableRegistry()
 {
-    static std::vector<BuildableFactory*> buildable; // Add all the buildables things of the game.
-    if (buildable.empty())
+    static std::unordered_map<int, BuildableFactory*> registry;
+
+    if (registry.empty())
     {
-        buildable.push_back(new BarracksFactory());
-        buildable.push_back(new PalaceFactory());
-        buildable.push_back(new ScoutFactory());
-        buildable.push_back(new SettlerFactory());
-        buildable.push_back(new WorkerFactory());
-        buildable.push_back(new GranaryFactory());
-        buildable.push_back(new WagonFactory());
-        buildable.push_back(new CollosseumFactory());
-        buildable.push_back(new MarketFactory());
-        buildable.push_back(new WarriorFactory());
-        buildable.push_back(new ArcherFactory());
-        buildable.push_back(new SpearmanFactory());
-        buildable.push_back(new SwordmanFactory());
-        buildable.push_back(new PretorianFactory());
-        buildable.push_back(new AxemanFactory());
-        buildable.push_back(new HorsemanFactory());
-        buildable.push_back(new ChariotFactory());
-        buildable.push_back(new WarelephantFactory());
-        buildable.push_back(new TriremeFactory());
-        buildable.push_back(new GalleyFactory());
-        buildable.push_back(new HorsearcherFactory());
-        buildable.push_back(new FactoryFactory());
-        buildable.push_back(new GalleonFactory());
-        buildable.push_back(new ObservatoryFactory());
+        BuildableFactory* all[] = {
+            // Units
+            new SettlerFactory(),   new WorkerFactory(),      new WarriorFactory(),
+            new ScoutFactory(),     new ArcherFactory(),      new SpearmanFactory(),
+            new SwordmanFactory(),  new AxemanFactory(),      new PretorianFactory(),
+            new HorsemanFactory(),  new HorsearcherFactory(), new ChariotFactory(),
+            new WarelephantFactory(), new WagonFactory(),     new TriremeFactory(),
+            new GalleyFactory(),    new GalleonFactory(),
+            // Buildings
+            new PalaceFactory(),    new BarracksFactory(),    new GranaryFactory(),
+            new MarketFactory(),    new CollosseumFactory(),  new FactoryFactory(),
+            new ObservatoryFactory()
+        };
+
+        for (BuildableFactory* bf : all)
+        {
+            // A factory that forgot to set its id in its constructor, or that collides with
+            // one already registered, is a build-time mistake -- say so loudly rather than
+            // silently shadowing an entry and making a command target the wrong thing.
+            if (bf->getId() == BUILDABLE_NONE)
+            {
+                printf("BUILDABLE REGISTRY: '%s' has no BuildableId -- its constructor must set one.\n", bf->name);
+                continue;
+            }
+            if (registry.find(bf->getId()) != registry.end())
+            {
+                printf("BUILDABLE REGISTRY: id %d is claimed by both '%s' and '%s'.\n",
+                       bf->getId(), registry[bf->getId()]->name, bf->name);
+                continue;
+            }
+            registry[bf->getId()] = bf;
+        }
     }
 
+    return registry;
+}
+
+BuildableFactory* buildableFactoryById(int id)
+{
+    auto& registry = buildableRegistry();
+    auto it = registry.find(id);
+    return it == registry.end() ? nullptr : it->second;
+}
+
+std::vector<BuildableFactory*> allBuildableFactories()
+{
+    std::vector<BuildableFactory*> out;
+    for (auto& [id, bf] : buildableRegistry())
+        out.push_back(bf);
+    return out;
+}
+
+void populateCityBuildables(City* city)
+{
+    std::vector<BuildableFactory*> buildable = allBuildableFactories();
 
     for (auto& buildableFactory : buildable)
     {
@@ -530,7 +567,7 @@ void reSetCities()
         {
             map.set(c->latitude+0, c->longitude+0).setCityOwnership(c->faction, c->id);
         }
-        c->deAssigntWorkingTile();
+        c->deAssignWorkingTile();
 
         // @NOTE: Faction->coins are DELETED every time so effective coins remain in cities.
         factions[c->faction]->coins += c->resources[COINS];
@@ -1278,7 +1315,49 @@ void processCommandOrders()
         // the city itself picks which surplus tile to give up (see the enum comment).
         auto cityIt = cities.find(co.parameters.cityid);
         if (cityIt != cities.end())
-            cityIt->second->deAssigntWorkingTile();
+            cityIt->second->deAssignWorkingTile();
+        continue;
+    }
+    if (co.command == Command::ChangeProductionOrder)
+    {
+        // Addresses a CITY (parameters.cityid), not the active unit -- before the unit guard.
+        //
+        // The city's OWN buildable list is the authority on what it may build: a name that is
+        // not in it is refused outright, which is the check that makes a name safe to accept
+        // from a caller. Nothing else here trusts the sender.
+        auto cityIt = cities.find(co.parameters.cityid);
+        if (cityIt == cities.end())
+        {
+            printf("ChangeProductionOrder: city %d does not exist.\n", co.parameters.cityid);
+            continue;
+        }
+
+        City* city = cityIt->second;
+
+        // The city's OWN buildable list is the authority: an id the registry knows but this
+        // city cannot currently build (wrong tech, a building it already has) is refused just
+        // the same as an id that does not exist at all.
+        BuildableFactory* chosen = nullptr;
+        for (BuildableFactory* bf : city->buildable)
+            if (bf->getId() == co.parameters.selectedbuildableid)
+            {
+                chosen = bf;
+                break;
+            }
+
+        if (chosen == nullptr)
+        {
+            printf("ChangeProductionOrder: %s cannot build buildable id %d.\n",
+                   city->name, co.parameters.selectedbuildableid);
+            continue;
+        }
+
+        // One thing at a time: the queue holds what is being built now, so changing it
+        // replaces rather than appends.
+        while (!city->productionQueue.empty()) city->productionQueue.pop();
+        city->productionQueue.push(chosen);
+
+        message(year, city->faction, "%s is now building %s.", city->name, chosen->name);
         continue;
     }
     if (co.command == Command::PopulateBuildableOrder)
@@ -1310,6 +1389,118 @@ void processCommandOrders()
             message(year, co.parameters.factionid,
                     "%s fundamental rates set to coins %.2f, science %.2f, culture %.2f, luxury %.2f.",
                     f->name, f->rates[0], f->rates[1], f->rates[2], f->rates[3]);
+        }
+        continue;
+    }
+
+    // A faction id is only usable once it is known to be one. Every faction-addressed
+    // handler below re-checks its own inputs even when the pusher already did: the pusher is
+    // the local UI today and a remote client tomorrow, and only this side is the authority.
+    auto knownFaction = [&](int f) { return f >= 0 && f < (int)factions.size(); };
+
+    if (co.command == Command::SetAutoPlayerOrder)
+    {
+        // Addresses a FACTION, not the active unit -- before the unit guard below.
+        if (knownFaction(co.parameters.factionid))
+        {
+            Faction* f = factions[co.parameters.factionid];
+            f->autoPlayer = co.parameters.enabled;
+            message(year, co.parameters.factionid, "%s is now played by %s.",
+                    f->name, f->autoPlayer ? "the computer" : "a human");
+        }
+        else
+        {
+            printf("SetAutoPlayerOrder: faction %d does not exist.\n", co.parameters.factionid);
+        }
+        continue;
+    }
+
+    if (co.command == Command::SetDiplomacyOrder)
+    {
+        // Addresses TWO factions. This changes state that belongs to the other faction as
+        // much as to the sender, so everything the caller checked is checked again here.
+        const int a = co.parameters.factionid;
+        const int b = co.parameters.targetfactionid;
+        const int status = co.parameters.status;
+
+        if (!knownFaction(a) || !knownFaction(b))
+        {
+            printf("SetDiplomacyOrder: faction %d or %d does not exist.\n", a, b);
+        }
+        else if (a == b)
+        {
+            printf("SetDiplomacyOrder: a faction cannot set a relation with itself (%d).\n", a);
+        }
+        else if (status < NO_CONTACT || status > VASSALAGE)
+        {
+            printf("SetDiplomacyOrder: %d is not a diplomatic status.\n", status);
+        }
+        else
+        {
+            // The table is undirected: one entry covers both directions, so setting it once
+            // is setting it for both factions.
+            diplomacy[a][b].setStatus(status);
+
+            char msg[128];
+            if (status == PEACE)
+                snprintf(msg, sizeof(msg), "%s have declared peace with %s.", factions[a]->name, factions[b]->name);
+            else if (status == FOE)
+                snprintf(msg, sizeof(msg), "%s are at WAR with %s.", factions[a]->name, factions[b]->name);
+            else
+                snprintf(msg, sizeof(msg), "%s and %s are now at diplomatic status %d.", factions[a]->name, factions[b]->name, status);
+
+            message(year, a, msg);
+            message(year, b, msg);
+
+            if (status == PEACE) peace();
+            else if (status == FOE) war();
+        }
+        continue;
+    }
+
+    if (co.command == Command::RegisterDependencyOrder)
+    {
+        // The command carries a SCOPE, never a pre-encoded dee context id -- the encoding is
+        // built here, so a caller cannot hand in a context that means something else.
+        if (co.parameters.codeid == 0)
+        {
+            printf("RegisterDependencyOrder: code 0 registers nothing.\n");
+        }
+        else if (co.parameters.scope == DEP_SCOPE_WORLD)
+        {
+            dee.regDep(worldContext(), co.parameters.codeid);
+            message(year, co.parameters.factionid, "Enabled code 0x%x for the WORLD.", co.parameters.codeid);
+        }
+        else if (co.parameters.scope == DEP_SCOPE_FACTION)
+        {
+            if (knownFaction(co.parameters.factionid))
+            {
+                dee.regDep(factionContext(co.parameters.factionid), co.parameters.codeid);
+                message(year, co.parameters.factionid, "Enabled code 0x%x for faction %s.",
+                        co.parameters.codeid, factions[co.parameters.factionid]->name);
+            }
+            else
+            {
+                printf("RegisterDependencyOrder: faction %d does not exist.\n", co.parameters.factionid);
+            }
+        }
+        else if (co.parameters.scope == DEP_SCOPE_CITY)
+        {
+            auto cityIt = cities.find(co.parameters.cityid);
+            if (cityIt != cities.end())
+            {
+                dee.regDep(cityContext(cityIt->second->id), co.parameters.codeid);
+                message(year, co.parameters.factionid, "Enabled code 0x%x for city %s.",
+                        co.parameters.codeid, cityIt->second->name);
+            }
+            else
+            {
+                printf("RegisterDependencyOrder: city %d does not exist.\n", co.parameters.cityid);
+            }
+        }
+        else
+        {
+            printf("RegisterDependencyOrder: unknown scope %d.\n", co.parameters.scope);
         }
         continue;
     }
@@ -1382,6 +1573,30 @@ void processCommandOrders()
         delete unit;
 
         coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);  //@FIXME: There could be the case that there are no more units.
+    }
+    else if (co.command == Command::ActivateUnitOrder)
+    {
+        // The unit-existence guard above already ran, so it is here rather than with the
+        // city/faction commands. What it still has to establish is OWNERSHIP: a unit is only
+        // selectable by the faction that owns it, and by a faction whose turn it is.
+        Unit *unit = units[co.parameters.spawnid];
+
+        if (unit->faction != co.parameters.factionid)
+        {
+            printf("Faction %d cannot activate unit %d, which belongs to faction %d.\n",
+                   co.parameters.factionid, unit->id, unit->faction);
+        }
+        else if (unit->availablemoves <= 0 && !unit->isWorking())
+        {
+            // A working unit's availablemoves is zeroed every turn by processWork(), so it
+            // has to stay selectable on that alone -- same as a fortified or sentried one,
+            // whose moves also just sit at whatever they were.
+            printf("Unit %d has nothing left to do this turn.\n", unit->id);
+        }
+        else
+        {
+            activateUnit(unit);
+        }
     }
     else if (co.command == Command::FortifyUnitOrder)
     {

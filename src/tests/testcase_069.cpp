@@ -26,7 +26,7 @@
 
 #include "testcase_069.h"
 
-// @Task: new Command::DeAssignWorkTileOrder, running City::deAssigntWorkingTile() through
+// @Task: new Command::DeAssignWorkTileOrder, running City::deAssignWorkingTile() through
 // processCommandOrders() like every other city order.
 //
 // The reason it exists is the point of the test: the AI and (later) a remote player drive the
@@ -215,7 +215,7 @@ int TestCase_069::check(int year)
     }
 
     // ---- 4) a surplus that sits entirely on the centre row/column ------------------------
-    // The guard in deAssigntWorkingTile() used to be `lat!=0 && lon!=0`, which skips every
+    // The guard in deAssignWorkingTile() used to be `lat!=0 && lon!=0`, which skips every
     // tile on the centre ROW OR COLUMN, not just the centre -- so a city whose surplus
     // happened to lie on an axis could never shed anything and stayed over its allowance
     // forever, with the order looking like a silent no-op. Worked tiles here are ONLY axis
@@ -273,7 +273,7 @@ int TestCase_069::check(int year)
 
 std::string TestCase_069::title()
 {
-    return std::string("New Command::DeAssignWorkTileOrder runs City::deAssigntWorkingTile() through processCommandOrders(), addressed by city id with no active unit -- so the AI and a remote player can shed a city's surplus working tile through the command queue instead of reaching into the City. Releases exactly one tile per order while the city is over pop+1, nothing once it is not, and (guard fix) works when the whole surplus sits on the centre row or column.");
+    return std::string("New Command::DeAssignWorkTileOrder runs City::deAssignWorkingTile() through processCommandOrders(), addressed by city id with no active unit -- so the AI and a remote player can shed a city's surplus working tile through the command queue instead of reaching into the City. Releases exactly one tile per order while the city is over pop+1, nothing once it is not, and (guard fix) works when the whole surplus sits on the centre row or column.");
 }
 
 bool TestCase_069::done()   { return isdone; }

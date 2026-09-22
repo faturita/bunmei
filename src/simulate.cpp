@@ -364,7 +364,7 @@ inline void endOfYear()
             if (c->pop>1)
             {
                 c->pop--;
-                c->deAssigntWorkingTile();
+                c->deAssignWorkingTile();
             } else if (c->pop == 1)
             {
                 // The city is abandoned.
@@ -384,7 +384,7 @@ inline void endOfYear()
         message(year, c->faction, "%s has been abandoned.",c->name);
 
         c->pop = 0;
-        c->deAssigntWorkingTile();
+        c->deAssignWorkingTile();
         map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
         cities.erase(c->id);
         delete c;

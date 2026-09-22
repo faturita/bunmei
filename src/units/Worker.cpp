@@ -41,6 +41,7 @@ Worker* WorkerFactory::create()
 
 WorkerFactory::WorkerFactory()
 {
+    id = BUILDABLE_WORKER;
     strncpy(this->name,"Worker",256);  
 }
 

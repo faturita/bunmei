@@ -702,22 +702,17 @@ void loadCities(std::istream& in)
             c->buildings.push_back(building);
         }
 
-        City* city = c;
-        city->buildable.push_back(new BarracksFactory());
-        city->buildable.push_back(new PalaceFactory());
-        city->buildable.push_back(new SettlerFactory());
-        city->buildable.push_back(new GranaryFactory());
-        city->buildable.push_back(new CollosseumFactory());
-        city->buildable.push_back(new WarriorFactory());
-        city->buildable.push_back(new ArcherFactory());
-        city->buildable.push_back(new SpearmanFactory());
-        city->buildable.push_back(new SwordmanFactory());
-        city->buildable.push_back(new AxemanFactory());
-        city->buildable.push_back(new WorkerFactory());
-        city->buildable.push_back(new HorsemanFactory());
-        city->buildable.push_back(new TriremeFactory());
-        city->buildable.push_back(new GalleyFactory());
-        city->buildable.push_back(new HorsearcherFactory());
+        // The buildable list is NOT restored here. It used to be a hardcoded 15 entries,
+        // freshly allocated per city and per load, which (a) leaked, (b) had already drifted
+        // from the real set, and (c) bypassed the dependency gating entirely -- a loaded city
+        // could build things its faction had never researched. It is also too early to
+        // compute: loadDependencies() has not run yet, so the DEE does not know what this
+        // faction knows.
+        //
+        // A freshly founded city starts with an empty list too and is filled by
+        // Command::PopulateBuildableOrder when the Change screen is first opened, so a loaded
+        // city simply behaves the same way.
+        c->buildable.clear();
     }    
 }
 

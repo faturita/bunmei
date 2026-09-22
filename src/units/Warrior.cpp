@@ -34,6 +34,7 @@ Warrior* WarriorFactory::create()
 
 WarriorFactory::WarriorFactory()
 {
+    id = BUILDABLE_WARRIOR;
     strncpy(this->name,"Warrior",256);  
 }
 

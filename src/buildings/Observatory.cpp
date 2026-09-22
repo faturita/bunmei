@@ -16,6 +16,7 @@ int Observatory::getSubType()
 // --------------------------------------------------------
 ObservatoryFactory::ObservatoryFactory()
 {
+    id = BUILDABLE_OBSERVATORY;
     strncpy(this->name,"Observatory",256);
     addDependencyCode(TECH_ASTRONOMY);
 }

@@ -36,6 +36,7 @@ Spearman* SpearmanFactory::create()
 
 SpearmanFactory::SpearmanFactory()
 {
+    id = BUILDABLE_SPEARMAN;
     strncpy(this->name,"Spearman",256);
     addDependencyCode(TECH_WARRIOR_CODE);
 }

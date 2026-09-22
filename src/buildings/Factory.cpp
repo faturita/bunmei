@@ -38,6 +38,7 @@ int Factory::getConsumptionRate(int r_id)
 // --------------------------------------------------------
 FactoryFactory::FactoryFactory()
 {
+    id = BUILDABLE_FACTORY;
     strncpy(this->name,"Factory",256);
     addDependencyCode(TECH_INDUSTRIALIZATION);
 }

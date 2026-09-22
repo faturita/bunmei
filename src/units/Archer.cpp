@@ -36,6 +36,7 @@ Archer* ArcherFactory::create()
 
 ArcherFactory::ArcherFactory()
 {
+    id = BUILDABLE_ARCHER;
     strncpy(this->name,"Archer",256);
     addDependencyCode(TECH_ARCHERY);
 }

@@ -134,6 +134,7 @@ int Galleon::getSubType()
 
 GalleonFactory::GalleonFactory()
 {
+    id = BUILDABLE_GALLEON;
     strncpy(this->name,"Galleon",256);
     addDependencyCode(TECH_SHIP_BUILDING);
 }

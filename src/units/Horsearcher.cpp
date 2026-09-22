@@ -38,6 +38,7 @@ Horsearcher* HorsearcherFactory::create()
 
 HorsearcherFactory::HorsearcherFactory()
 {
+    id = BUILDABLE_HORSEARCHER;
     strncpy(this->name,"Horsearcher",256);
     addDependencyCode(TECH_ANIMAL_HUSBANDRY);
     addDependencyCode(TECH_HORSEBACK_RIDING);

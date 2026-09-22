@@ -138,11 +138,6 @@ bool autoEndOfTurn;
 bool switchVisibleFaction;
 bool nofog;
 int  selectedFaction;
-
-// -civs N: how many of the defined civilizations to load, clamped to
-// [MIN_CIVS, NUMBER_OF_FACTION_DEFINITIONS] in initFactions() (gamekernel.cpp) -- the upper
-// bound tracks the FACTION_DEFINITIONS table automatically. -1 (unset) means "no cap, load
-// every defined civ" -- same sentinel convention as selectedFaction above.
 int  numCivs;
 
 
@@ -434,7 +429,7 @@ inline void endOfYear()
             if (c->pop>1)
             {
                 c->pop--;
-                c->deAssigntWorkingTile();
+                c->deAssignWorkingTile();
             } else if (c->pop == 1)
             {
                 // The city is abandoned.
@@ -454,7 +449,7 @@ inline void endOfYear()
         message(year, c->faction, "%s has been abandoned.",c->name);
 
         c->pop = 0;
-        c->deAssigntWorkingTile();
+        c->deAssignWorkingTile();
         map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
         cities.erase(c->id);
         delete c;
@@ -570,6 +565,19 @@ void switchFaction()
        
 }
 
+// @NOTE: TEST update function to see what are the actions that needs to be migrated to commands.
+void update_test(int value)
+{
+    // Derive the control to the correct object
+    if (controller.isInterrupted())
+    {
+        exit(0);
+    }
+
+    glutPostRedisplay();
+    // @NOTE: update time should be adapted to real FPS (lower is faster).
+    glutTimerFunc(20, worldStep, 0);  
+}
 
 
 // Update GAME Model

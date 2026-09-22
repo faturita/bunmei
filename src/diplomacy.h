@@ -58,6 +58,16 @@ struct Diplomacy
         status = FOE;
         statusFlags(status, landSeizure, openBorders);
     }
+
+    // The general form of the two above: move to any DiplomaticStatus and re-derive the
+    // landSeizure/openBorders flags from the DefCon table, so they can never drift from the
+    // status. What Command::SetDiplomacyOrder uses -- the caller names a status rather than
+    // picking from a fixed pair of verbs.
+    void setStatus(int newstatus)
+    {
+        status = newstatus;
+        statusFlags(status, landSeizure, openBorders);
+    }
 };
 
 // A (faction,faction) relation table where diplomacy[f1][f2] and diplomacy[f2][f1] are

@@ -32,6 +32,7 @@ Galley* GalleyFactory::create()
 
 GalleyFactory::GalleyFactory()
 {
+    id = BUILDABLE_GALLEY;
     strncpy(this->name,"Galley",256);
     // README.md:126 requires "Map Making + Horseback Riding".
     addDependencyCode(TECH_MAP_MAKING);

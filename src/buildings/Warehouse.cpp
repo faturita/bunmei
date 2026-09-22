@@ -16,6 +16,7 @@ int Warehouse::getSubType()
 // --------------------------------------------------------
 WarehouseFactory::WarehouseFactory()
 {
+    id = BUILDABLE_WAREHOUSE;
     strncpy(this->name,"Warehouse",256);
     addDependencyCode(TECH_POTTERY);
 }

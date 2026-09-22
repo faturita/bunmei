@@ -37,6 +37,7 @@ Chariot* ChariotFactory::create()
 
 ChariotFactory::ChariotFactory()
 {
+    id = BUILDABLE_CHARIOT;
     strncpy(this->name,"Chariot",256);
     addDependencyCode(TECH_THE_WHEEL);
 }

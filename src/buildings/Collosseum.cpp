@@ -16,6 +16,7 @@ int Collosseum::getSubType()
 
 CollosseumFactory::CollosseumFactory()
 {
+    id = BUILDABLE_COLLOSSEUM;
     strncpy(this->name,"Collosseum",256);
     addDependencyCode(TECH_WRITING);
 }

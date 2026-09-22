@@ -37,6 +37,7 @@ Scout* ScoutFactory::create()
 
 ScoutFactory::ScoutFactory()
 {
+    id = BUILDABLE_SCOUT;
     strncpy(this->name,"Scout",256);  
     addDependencyCode(TECH_ANIMAL_HUSBANDRY);
 }

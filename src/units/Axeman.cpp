@@ -38,6 +38,7 @@ Axeman* AxemanFactory::create()
 
 AxemanFactory::AxemanFactory()
 {
+    id = BUILDABLE_AXEMAN;
     strncpy(this->name,"Axeman",256);
     addDependencyCode(TECH_IRON_WORKING);
 }

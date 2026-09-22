@@ -37,6 +37,7 @@ Swordman* SwordmanFactory::create()
 
 SwordmanFactory::SwordmanFactory()
 {
+    id = BUILDABLE_SWORDMAN;
     strncpy(this->name,"Swordman",256);
     addDependencyCode(TECH_IRON_WORKING);
 }

@@ -135,6 +135,7 @@ int Wagon::getSubType()
 
 WagonFactory::WagonFactory()
 {
+    id = BUILDABLE_WAGON;
     strncpy(this->name,"Wagon",256);
     addDependencyCode(TECH_THE_WHEEL); 
 }
