@@ -363,15 +363,6 @@ The discovery of a technology or other achievements enable unit productions or r
 
 ## Government and Society
 
-This is a very tricky part that I still need to decide
-
-* How to avoid building a lot of cities, penalizing a high number of cities.
-* How to handle population growth, happiness, culture, population education
-** Schools and university can turn peasants into scientist or something like that
-* How to handle Religion and indentured servants.
-* How to handle poverty, wealth and government style.
-* This will allow to make sense to buy luxury products (I have defined many).
-
 | Government | Historical archetype |
 |---|---|
 | **Tribalism** | Kinship societies, clans, and tribal confederations |
@@ -386,15 +377,64 @@ This is a very tricky part that I still need to decide
 | **Renminism** | Chinese-style one-party state combined with a market economy and strong state direction |
 | **Technofeudalism** | Future society dominated by technology platforms, AI, and concentrated economic power |
 
-Each unhappy citizen reduces a percentage of the shields.  Effectively if all of them are unhappy there’s no production in the city. 
+So these government type affect economy, society, production and so on.
 
-Luxuries items present in the city increase happiness. 
+### Slaves
 
-So citizens are unhappy if they are poor.  
+There is a unit called 'Sklave' (in german) which represents slaves captured from capturing enemy units.  They can be added into a city and put to work on tiles without consuming food (free labor).
 
-Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
+### Religion
 
-The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
+Religion is an amazing aspect of the society.
+
+| Religion | Origin / Tradition |
+
+|---|---|
+
+| **Dingir** | Ancient Mesopotamian polytheism |
+| **Hinduism** | Ancient India |
+| **Buddhism** | Ancient India |
+| **Judaism** | Ancient Levant |
+| **Christianity** | Roman/Levantine world |
+| **Islam** | Arabia |
+| **Confucianism** | Ancient China |
+
+Religion monuments derive luxury points.
+Culture is spread easily within the same religion boundaries.
+Diplomacy is easier and follow the path of religion
+
+### Culture
+
+Culture is generated on each city and works like the heat diffusion.  So cities are heat sources and the tiles work spreading 
+the culture and getting cold.  But the model allows several different types of heat to spread and depending on the heat type
+that will determine the tile natural ownership.
+
+So if normalized temperature[faction] > 0.5, then tile.f_id = faction.  The faction owns the tile even if there is no army there.   Armies naturally override that.
+
+If a city->temperature[faction] > 0.5 and city->unhappy > 0.5 the city flips to the faction.
+If a city->poverty > 0.3 -> Depete storages
+     city->poverty > 0.5 -> Buildings destroyed randomly
+     city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
+
+
+### Prosperity
+
+Three type of population on each city
+
+Indigent → Content → Wealthy
+
+Luxury points 'heat' the city 'prosperity' bar which has two values, the subsistant and affluence.  Subsistant is always lower than affluence.   These thresholds determine how many pop elements belong to each class.
+
+If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
+
+
+* How to avoid settling a lot of cities, penalizing a high number of cities >> I can use culture to merge two cities into one.
+* How to handle population growth, happiness, culture, population education >> Luxuries will represent pop economic development
+* How to handle Religion and slaves >> Slaves are free labor that can join cities without consuming food.
+* How to handle poverty, wealth and government style >> Indigent - Content - Wealthy
+* This will allow to make sense to buy luxury products (I have defined many) >> Luxury products on tiles will now produce luxury resources (and/or culture).
+* Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
+* The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
 
 ## Combat
 
@@ -404,22 +444,10 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 
 # Working issues
 
-* Ui for investing in science.
-* <strike>Allow GoTo with naval units.</strike>
-* <strike>Replace controllingid with activeid.</strike>
 * Iterate on improving the AI: focus more on production on cities and build defensive units.
-* <strike>Show units in cityscreen.</strike>
-* <strike>Add a way in which fortified units can be selected.</strike>
 * Units can be stacked together and named.
-* Sentry is clearly used only for ships and I think that is Ok.
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
-* <strike>Paint land ownership.  This can be easily done using the png tile that shows red on each city based on the f_owner_id value.</strike>
-* The f_owner_id value can be used as temperature on a heat diffusion model.  The heat can be increased by culture.  When a unit visit a tile, it own the tile, but when the unit left, the sourrounding heat will be transferred by the gaussian smoothing operation.
-* Add the spheroid concept into map: by doing this we can make sense of the maps locations on the south and north (what if the offset procedure can be extended vertically as well?)
 * Add a world edit testcase to create customized maps.
-* <strike>Improve the way we can center into cities: this will help to fix the issue with the city screen.</strike>
-* Handle what happens when a trireme lands into a occupied land, a city land, or a land with enemy units (amphibious attack?).
-* <strike>Show attack unit versus defending units.</strike>
 
 # Features
 
