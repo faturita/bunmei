@@ -115,7 +115,7 @@ void assignProductionRates(Map &mmp)
         {
             mapcell &cell = mmp.set(lat,lon);
 
-            std::array<int,6> rates = tileBaseProductionRates(productionrates, cell.code, cell.bioma, cell.resource);
+            std::array<int,CORE_RESOURCE_COUNT> rates = tileBaseProductionRates(productionrates, cell.code, cell.bioma, cell.resource);
 
             // The vector is sized on the first pass and overwritten on any later one, so
             // re-assigning an already-populated map (after a load) is safe and idempotent.
@@ -271,6 +271,7 @@ int cityTradeConversionRate(City* city, int r_id)
         case COINS:   rateIndex = 0; break;
         case SCIENCE: rateIndex = 1; break;
         case CULTURE: rateIndex = 2; break;
+        case LUXURY:  rateIndex = 3; break;
         default: return 0;                  // every other resource comes off the tiles
     }
 
@@ -1432,7 +1433,7 @@ void processCommandOrders()
         if (co.parameters.factionid >= 0 && co.parameters.factionid < (int)factions.size())
         {
             Faction* f = factions[co.parameters.factionid];
-            for (int i=0;i<4;i++)
+            for (int i=0;i<FUNDAMENTAL_RATES;i++)
                 f->rates[i] = co.parameters.rates[i];
 
             message(year, co.parameters.factionid,

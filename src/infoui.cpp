@@ -74,10 +74,13 @@ void drawInfoScreen()
     drawString(60,-70,1,str,0.3f,0.1f,0.1f,0.1f);
 
     int col_name = 60;
-    int col_res[6] = {380, 500, 620, 740, 860, 980};
+    // One column per core resource, sized from the list rather than written out -- LUXURY's
+    // arrival otherwise leaves the last resource with no column and the loop below reading
+    // one resource short. 120px apart, the last at 1100 of SCREEN_WIDTH 1200.
+    int col_res[CORE_RESOURCE_COUNT] = {380, 500, 620, 740, 860, 980, 1100};
 
     int y = -160;
-    for(int i=0;i<6;i++)
+    for(int i=0;i<CORE_RESOURCE_COUNT;i++)
         placeMark(col_res[i], y, 20,20, coreresources[ALL_CORE_RESOURCES[i]].c_str());
 
     y -= 40;
@@ -86,7 +89,7 @@ void drawInfoScreen()
     {
         drawString(col_name, y, 1, city->name, 0.15f,0.1f,0.1f,0.1f);
 
-        for(int i=0;i<6;i++)
+        for(int i=0;i<CORE_RESOURCE_COUNT;i++)
         {
             sprintf(str, "%d", city->getProductionRate(ALL_CORE_RESOURCES[i]));
             drawString(col_res[i]-10, y, 1, str, 0.15f,0.1f,0.1f,0.1f);

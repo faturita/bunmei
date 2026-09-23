@@ -5,13 +5,24 @@
 #include <vector>
 #include "shippable.h"
 
+// How many FUNDAMENTAL RATES a faction has: the shares of a city's TRADE that endOfYear()
+// converts into COINS, SCIENCE, CULTURE and LUXURY (Faction::rates, the /fundamental command).
+//
+// This is NOT the number of core resources, and confusing the two is how LUXURY's arrival
+// wrote past the end of `float rates[4]` -- straight onto the Faction::song function pointer
+// that sits after it. TRADE is the SOURCE of the conversion and FOOD/SHIELDS are not
+// converted at all, so adding a core resource does not by itself add a rate. Every array and
+// loop that touches rates uses this.
+#define FUNDAMENTAL_RATES 4
+
 enum CORE_RESOURCES {
     FOOD        = 0x00,
     SHIELDS     = 1,
     TRADE       = 2,
     COINS       = 3,
     SCIENCE     = 4,
-    CULTURE     = 5
+    CULTURE     = 5,
+    LUXURY      = 6
 };
 
 enum COMMODITIES
@@ -113,7 +124,13 @@ class MfgGood : public ShippableResource {
 };
 
 // @FIXME: Hardcode the list of resources, commodiies and manufactured goods.  This should be loaded from a file.
-const int ALL_CORE_RESOURCES[] = {FOOD,SHIELDS,TRADE,COINS,SCIENCE,CULTURE};
+const int ALL_CORE_RESOURCES[] = {FOOD,SHIELDS,TRADE,COINS,SCIENCE,CULTURE, LUXURY};
+
+// How many core resources there are, derived from the list above rather than written out, so
+// a table sized by it cannot silently fall behind the enum. (It did: adding LUXURY left the
+// production tables 6 wide, which quietly meant no tile could ever yield it.) Distinct from
+// FUNDAMENTAL_RATES, which counts the TRADE conversion targets, not the resources.
+const int CORE_RESOURCE_COUNT = (int)(sizeof(ALL_CORE_RESOURCES)/sizeof(ALL_CORE_RESOURCES[0]));
 
 const int ALL_COMMODITIES[] = {copper, iron, silver, marble, furs, traan, gems, meat, horses, elephants, silk, wine, spices, gunpowder, sugar, tobacco, cotton, carbon, uranium, oil, litium, aluminium, helium_3};
 

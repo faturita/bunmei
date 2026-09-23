@@ -24,7 +24,7 @@ City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
 
     resources.clear();          // Core resources, commodities and manufactured goods -- one stockpile.
 
-    for (int i=0;i<6;i++)
+    for (int i=0;i<CORE_RESOURCE_COUNT;i++)
     {
         resources[ALL_CORE_RESOURCES[i]] = 0;
     }

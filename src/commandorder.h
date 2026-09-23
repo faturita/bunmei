@@ -1,6 +1,8 @@
 #ifndef COMMANDORDER_H
 #define COMMANDORDER_H
 
+#include "resources.h"    // FUNDAMENTAL_RATES
+
 enum class Command {
     None=0,
     BuildCityOrder=1,
@@ -195,7 +197,7 @@ struct commandparameters
 
     // The four TRADE conversion shares (COINS, SCIENCE, CULTURE, LUXURY) -- for
     // SetFundamentalRatesOrder only. Same order and meaning as Faction::rates.
-    float rates[4];
+    float rates[FUNDAMENTAL_RATES];
 
     // The OTHER faction -- for a command addressing a PAIR of them (SetDiplomacyOrder), where
     // factionid is the one issuing it.

@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "resources.h"    // FUNDAMENTAL_RATES
+
 class Faction {
     protected:
         bool doneThisTurn;
@@ -22,7 +24,7 @@ class Faction {
 
         int p=0;
 
-        float rates[4];
+        float rates[FUNDAMENTAL_RATES];
 
         void (*song)() = nullptr; // Pointer to a function that plays the faction's song.
 

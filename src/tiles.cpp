@@ -508,32 +508,42 @@ void initProductionRates(ProductionRates &rates)
         { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
         { MOUNTAINS,      CARBON,    {{SHIELDS,2}} },
         { ARCTIC,         SEAL,      {{FOOD,3}} },
-        { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2}} },
-        { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1}} },
+        // The luxury products: README.md -- "Luxury products on tiles will now produce luxury
+        // resources (and/or culture)". LUXURY behaves exactly like CULTURE here and
+        // everywhere else -- yielded by a worked tile, accumulated by the city each year
+        // (endOfYear sums getProductionRate over ALL_CORE_RESOURCES), uncapped (capResources
+        // only caps commodities and mfg goods), and also fed by the TRADE conversion at the
+        // faction's fourth fundamental rate.
+        //
+        // The magnitudes mirror each resource's existing CULTURE yield, which is the one
+        // defensible starting point rather than an invented number; tune freely.
+        { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2},{LUXURY,2}} },
+        { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1},{LUXURY,1}} },
     };
 
     // [resource][Irrigation, Mine, Road, Railroad][factor, additive]
-    static const float IMPROVEMENT_FACTORS[6][4][2] = {
+    static const float IMPROVEMENT_FACTORS[CORE_RESOURCE_COUNT][4][2] = {
         {{2.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}},   // FOOD
         {{1.0f, 0.0f}, {2.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f}},   // SHIELDS
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // TRADE
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // COINS
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // SCIENCE
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}}    // CULTURE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // CULTURE
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}}    // LUXURY
     };
 
-    for (int r=0;r<6;r++)
+    for (int r=0;r<CORE_RESOURCE_COUNT;r++)
         for (int i=0;i<4;i++)
             for (int k=0;k<2;k++)
                 rates.improvement[r][i][k] = IMPROVEMENT_FACTORS[r][i][k];
 }
 
-std::array<int,6> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource)
+std::array<int,CORE_RESOURCE_COUNT> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource)
 {
     const int context = (code == OCEAN) ? OCEAN_CONTEXT : (bioma & 0xf0);
 
     auto baseit = rates.base.find(context);
-    std::array<int,6> out = (baseit != rates.base.end()) ? baseit->second : rates.defaultland;
+    std::array<int,CORE_RESOURCE_COUNT> out = (baseit != rates.base.end()) ? baseit->second : rates.defaultland;
 
     for (const ResourceRateOverride &ov : rates.overrides)
     {
@@ -541,7 +551,7 @@ std::array<int,6> tileBaseProductionRates(const ProductionRates &rates, int code
         if (ov.context != context && !(ov.context == ANY_LAND_BIOMA && code == LAND)) continue;
 
         for (const auto &kv : ov.rates)
-            if (kv.first >= 0 && kv.first < 6)
+            if (kv.first >= 0 && kv.first < CORE_RESOURCE_COUNT)
                 out[kv.first] = kv.second;
     }
 

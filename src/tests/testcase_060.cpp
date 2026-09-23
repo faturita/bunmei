@@ -244,9 +244,11 @@ int TestCase_060::check(int year)
         if (gotViaMining < 0 || gotViaHunting < 0 || gotViaMining <= gotViaHunting)
         { fail("Mining is Bronze Working's (0.8) dependency against Hunting's (1.0): it must cost MORE to come in that way."); return 0; }
 
-        // Depth, on the other hand, is FREE now (TECH_BIAS_BASE 1.0 -> flat bias). Writing sits
-        // a layer deeper than Hunting, and like Hunting it has exactly one dependency, so it
-        // costs exactly the same -- which under the old exponential bias it did not.
+        // What depth costs is TECH_BIAS_BASE's business, so this asserts the RULE rather than
+        // one setting of the knob -- pinning the value is what made this test go stale when
+        // the base moved off 1.0. Writing sits a layer deeper than Hunting and has exactly one
+        // dependency, like Hunting, so the only thing between their costs is bias^depth:
+        // equal at base 1.0 (flat), dearer with depth above it.
         int gotWriting = measure(TECH_ALPHABET, TECH_WRITING);      // depth 2, one dependency
         int expWriting = expected(TECH_ALPHABET, TECH_WRITING);
         if (gotWriting < 0 || abs(gotWriting - expWriting) > 1)
@@ -256,12 +258,25 @@ int TestCase_060::check(int year)
                      gotWriting, expWriting);
             fail(buf); return 0;
         }
-        if (abs(gotWriting - gotHunting) > 1)
+        const bool flatBias = fabs(TECH_BIAS_BASE - 1.0f) < 0.0001f;
+        const bool sameCost = abs(gotWriting - gotHunting) <= 1;
+
+        if (flatBias && !sameCost)
         {
-            char buf[220];
+            char buf[240];
             snprintf(buf,sizeof(buf),
-                     "Writing (depth 2) cost %d and Hunting (depth 1) cost %d: with a flat bias and one "
-                     "dependency each they should cost the same.", gotWriting, gotHunting);
+                     "Writing (depth 2) cost %d and Hunting (depth 1) cost %d: at TECH_BIAS_BASE %.2f the "
+                     "bias is flat, so one dependency each means the same cost.",
+                     gotWriting, gotHunting, TECH_BIAS_BASE);
+            fail(buf); return 0;
+        }
+        if (!flatBias && gotWriting <= gotHunting)
+        {
+            char buf[240];
+            snprintf(buf,sizeof(buf),
+                     "Writing (depth 2) cost %d and Hunting (depth 1) cost %d: above TECH_BIAS_BASE 1.0 "
+                     "(it is %.2f) each extra hop must cost MORE.",
+                     gotWriting, gotHunting, TECH_BIAS_BASE);
             fail(buf); return 0;
         }
 

@@ -301,8 +301,8 @@ inline void endOfYear()
 
         c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
         c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
-        //c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0])
         c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
+        c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[3]);
 
         c->resources[TRADE]=0;
 

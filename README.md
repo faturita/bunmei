@@ -132,7 +132,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Cavalry         | Military Tradition | Horses + Guns | - |
 | Cannon          | Metallurgy | Iron |
 
-
+Units should strip population from the building city, they could rejoin back the city.  Fortify them help them to recover their numbers.
 
 ## Cities
 
@@ -388,9 +388,7 @@ There is a unit called 'Sklave' (in german) which represents slaves captured fro
 Religion is an amazing aspect of the society.
 
 | Religion | Origin / Tradition |
-
 |---|---|
-
 | **Dingir** | Ancient Mesopotamian polytheism |
 | **Hinduism** | Ancient India |
 | **Buddhism** | Ancient India |
@@ -411,11 +409,12 @@ that will determine the tile natural ownership.
 
 So if normalized temperature[faction] > 0.5, then tile.f_id = faction.  The faction owns the tile even if there is no army there.   Armies naturally override that.
 
+```
 If a city->temperature[faction] > 0.5 and city->unhappy > 0.5 the city flips to the faction.
 If a city->poverty > 0.3 -> Depete storages
-     city->poverty > 0.5 -> Buildings destroyed randomly
-     city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
-
+    city->poverty > 0.5 -> Buildings destroyed randomly
+    city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
+```
 
 ### Prosperity
 
@@ -428,6 +427,8 @@ Luxury points 'heat' the city 'prosperity' bar which has two values, the subsist
 If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
 
 
+**Remaining Questions** 
+
 * How to avoid settling a lot of cities, penalizing a high number of cities >> I can use culture to merge two cities into one.
 * How to handle population growth, happiness, culture, population education >> Luxuries will represent pop economic development
 * How to handle Religion and slaves >> Slaves are free labor that can join cities without consuming food.
@@ -435,6 +436,44 @@ If indigent is higher, cities can revolt (create a new faction) or they can flip
 * This will allow to make sense to buy luxury products (I have defined many) >> Luxury products on tiles will now produce luxury resources (and/or culture).
 * Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
 * The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
+
+Civ Table
+
+| Government | Slavery | 
+|---|---|
+| **Tribalism** | Allowed  |
+| **Despotism** | Allowed  |
+| **Monarchy** |  Allowed  |
+| **Republic** |  Allowed  |
+| **Democracy** | Disabled |
+| **Theocracy** | Allowed (from different religion) |
+| **Communism** | Disabled |
+| **Liberal** |   Disabled |
+| **Fascism** |   Allowed  |
+| **Renminism** | Disabled |
+| **Technofeudalism** | Disabled |
+
+** Tribalism **
+* Slavery allowed
+* Can break treatis
+* Treasury from the capital city only
+* Cities are more independence in terms of their own money
+
+
+**Despotism**
+* Slavery allowed
+* Can break treatis
+* Treasury shared across cities.
+
+**Monarchy**
+* Slavery allowed
+* Can break treatis
+* Treasury shared across cities.
+
+...
+
+So, each government type cleans all the perks that established in terms of global, faction, city and set their new perks.  So the perks in the end force running paths in the code that alter the behaviour of the game.  By doing this I can have a lot of flexibility in terms of what is happening with each government type.
+
 
 ## Combat
 

@@ -644,13 +644,13 @@ struct FactionDefinition
     int id;
     const char* name;
     int red, green, blue;
-    float rates[4];
+    float rates[FUNDAMENTAL_RATES];
     bool autoPlayer;
     void (*song)();
 };
 
 static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0,  "Vikings",     255, 0,   0,   {0.5, 0.5, 0, 0}, true, vikings     },
+    { 0,  "Vikings",     255, 0,   0,   {0.5, 0, 0, 0.5}, true, vikings     },
     { 1,  "Romans",      255, 255, 255, {0.5, 0.5, 0, 0}, true, romans      },
     { 2,  "Greeks",      0,   0,   255, {0.5, 0.5, 0, 0}, true, greeks      },
     { 3,  "Chinese",     0,   255, 255, {0.5, 0.5, 0, 0}, true, chinese     },
@@ -709,7 +709,7 @@ void initFactions()
         faction->red = def.red;
         faction->green = def.green;
         faction->blue = def.blue;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < FUNDAMENTAL_RATES; i++)
             faction->rates[i] = def.rates[i];
         faction->autoPlayer = def.autoPlayer;
         printf ("selected faaction: %d, def.id: %d, autoPlayer: %d\n", selectedFaction, def.id, (selectedFaction != def.id));

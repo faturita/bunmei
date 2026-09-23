@@ -42,6 +42,7 @@ void initCoreResources()
     coreresources[COINS] = "assets/assets/city/gold.png";
     coreresources[SCIENCE] = "assets/assets/city/bulb.png";
     coreresources[CULTURE] = "assets/assets/city/culture.png";
+    coreresources[LUXURY] = "assets/assets/city/luxury.png";
 }
 
 

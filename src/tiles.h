@@ -145,19 +145,20 @@ struct ProductionRates
     ProductionRates();
 
     // Base rate per terrain/bioma, before any special resource. Array order matches
-    // RESOURCE_TYPES (resources.h): FOOD, SHIELDS, TRADE, COINS, SCIENCE, CULTURE. Bioma
+    // CORE_RESOURCES (resources.h) and is sized from it, so it cannot fall behind the enum.
+    // Bioma
     // variants share their base bioma's rate (looked up by bioma & 0xf0, same convention as
     // MovementCost). A LAND bioma with no entry here (undecorated land, jungle, tundra, ...)
     // falls back to `defaultland`.
-    std::unordered_map<int, std::array<int,6>> base;
-    std::array<int,6>                          defaultland;
+    std::unordered_map<int, std::array<int,CORE_RESOURCE_COUNT>> base;
+    std::array<int,CORE_RESOURCE_COUNT>         defaultland;
     std::vector<ResourceRateOverride>          overrides;
 
     // [RESOURCE_TYPES index][improvement][factor, additive], improvements in IMPROVEMENT_TYPES
     // bit order: Irrigation, Mine, Road, Railroad. Applied on top of the base+override rate
     // for every improvement present on the tile. This lived as a 192-byte member of EVERY
     // mapcell, identical in all of them.
-    float improvement[6][4][2];
+    float improvement[CORE_RESOURCE_COUNT][4][2];
 };
 
 extern ProductionRates productionrates;
@@ -169,7 +170,7 @@ void initProductionRates(ProductionRates &rates);
 // This is what assignProductionRates() writes into each cell. Improvements are NOT included
 // -- they are a live multiplier applied by mapcell::getResourceProductionRate(), so building
 // a road changes the yield without anything having to be re-assigned.
-std::array<int,6> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource);
+std::array<int,CORE_RESOURCE_COUNT> tileBaseProductionRates(const ProductionRates &rates, int code, int bioma, int resource);
 
 typedef std::unordered_map<int, std::string> Tiles;
 typedef std::unordered_map<int, std::vector<int>> Commodities;

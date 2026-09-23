@@ -90,7 +90,7 @@ void handleKeypress(unsigned char key, int x, int y) {
                 std::string cmd, list;
                 iss >> cmd >> list;
 
-                float parsed[4];
+                float parsed[FUNDAMENTAL_RATES];
                 int n = sscanf(list.c_str(), "%f,%f,%f,%f", &parsed[0], &parsed[1], &parsed[2], &parsed[3]);
 
                 if (n == 4)
