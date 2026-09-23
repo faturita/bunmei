@@ -508,17 +508,12 @@ void initProductionRates(ProductionRates &rates)
         { DESERT,         OASIS,     {{FOOD,3},{TRADE,1}} },
         { MOUNTAINS,      CARBON,    {{SHIELDS,2}} },
         { ARCTIC,         SEAL,      {{FOOD,3}} },
-        // The luxury products: README.md -- "Luxury products on tiles will now produce luxury
-        // resources (and/or culture)". LUXURY behaves exactly like CULTURE here and
-        // everywhere else -- yielded by a worked tile, accumulated by the city each year
-        // (endOfYear sums getProductionRate over ALL_CORE_RESOURCES), uncapped (capResources
-        // only caps commodities and mfg goods), and also fed by the TRADE conversion at the
-        // faction's fourth fundamental rate.
-        //
-        // The magnitudes mirror each resource's existing CULTURE yield, which is the one
-        // defensible starting point rather than an invented number; tune freely.
         { ANY_LAND_BIOMA, GEMS,      {{CULTURE,2},{LUXURY,2}} },
         { ANY_LAND_BIOMA, GOLD,      {{COINS,2},{CULTURE,1},{LUXURY,1}} },
+        { ANY_LAND_BIOMA, SILVER,    {{LUXURY,1}} },
+        { ANY_LAND_BIOMA, SILK,      {{LUXURY,1}} },
+        { ANY_LAND_BIOMA, SPICES,    {{LUXURY,1}} },
+        { ANY_LAND_BIOMA, GRAPES,    {{CULTURE,1}} },
     };
 
     // [resource][Irrigation, Mine, Road, Railroad][factor, additive]
@@ -529,7 +524,7 @@ void initProductionRates(ProductionRates &rates)
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {2.0f, 1.0f}},   // COINS
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // SCIENCE
         {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}},   // CULTURE
-        {{1.0f, 0.0f}, {1.0f, 0.0f}, {2.0f, 0.0f}, {3.0f, 1.0f}}    // LUXURY
+        {{1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 0.0f}}    // LUXURY
     };
 
     for (int r=0;r<CORE_RESOURCE_COUNT;r++)

@@ -224,8 +224,9 @@ There are six basic core resources: food, shields, trade, coins, science, and cu
 | Coins      | 
 | Science    | 
 | Culture    | 
+| Luxury     |
 
-Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science and Culture by the fundamental tax rate.  Coins are accumulated by the government on each city, Science goes for research funding and culture promotes borders and happiness.
+Food allows population survive and growth.  Shields power production.  Trade represent commercial activities and it can be converted into Coins, Science, Culture and Luxury by the fundamental tax rate.  Coins are accumulated by the government on each city, Science goes for research funding and Culture promotes borders and landownership.  Luxury empowers population wealth and is a measure of how much power you can grab from your population to do stuff.
 
 Special resources can appear on the map.  They can change tile production but at the same time they allow the production of commodities which can be accumulated in the city.  Cities can access special resources inside city tiles, without having to work on them,  and also can access other nearby special resources as long as the LoS is established and the faction owns the special resource tile.
 
@@ -385,9 +386,9 @@ There is a unit called 'Sklave' (in german) which represents slaves captured fro
 
 ### Religion
 
-Religion is an amazing aspect of the society.
+Religion is an amazing aspect of society.
 
-| Religion | Origin / Tradition |
+| Religion | Origin / Tradition | Tech |
 |---|---|
 | **Dingir** | Ancient Mesopotamian polytheism |
 | **Hinduism** | Ancient India |
@@ -437,41 +438,53 @@ If indigent is higher, cities can revolt (create a new faction) or they can flip
 * Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
 * The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
 
-Civ Table
 
-| Government | Slavery | 
-|---|---|
-| **Tribalism** | Allowed  |
-| **Despotism** | Allowed  |
-| **Monarchy** |  Allowed  |
-| **Republic** |  Allowed  |
-| **Democracy** | Disabled |
-| **Theocracy** | Allowed (from different religion) |
-| **Communism** | Disabled |
-| **Liberal** |   Disabled |
-| **Fascism** |   Allowed  |
-| **Renminism** | Disabled |
-| **Technofeudalism** | Disabled |
-
-** Tribalism **
+**Tribalism**
 * Slavery allowed
-* Can break treatis
+* Can break treaties
 * Treasury from the capital city only
 * Cities are more independence in terms of their own money
 
 
 **Despotism**
 * Slavery allowed
-* Can break treatis
+* Can break treaties
 * Treasury shared across cities.
 
 **Monarchy**
 * Slavery allowed
-* Can break treatis
+* Can break treaties
 * Treasury shared across cities.
 
-...
+**Republic**
+* Slavery allowed
+* AI Took control of a congress that decides on war aspects and other issues
+* Treasure is managed by the AI
 
+**Democracy**
+* Slavery not allowed
+* Easier split into new factions
+* Can break treaties
+* Treasure shared across cities
+
+**Theocracy**
+* Slavery allowed for other religions
+* Can break treaties
+
+**Communism**
+* Slavery not allowed
+
+**Liberal** 
+* Slavery not allowed
+
+**Fascism**
+* Slavery  allowed
+
+**Renminism**
+* Slavery not allowed
+
+**Technofeudalism** 
+* Slavery not allowed
 So, each government type cleans all the perks that established in terms of global, faction, city and set their new perks.  So the perks in the end force running paths in the code that alter the behaviour of the game.  By doing this I can have a lot of flexibility in terms of what is happening with each government type.
 
 
