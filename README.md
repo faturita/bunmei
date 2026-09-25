@@ -504,7 +504,6 @@ If indigent is higher, cities can revolt (create a new faction) or they can flip
 * Social: no wealthy people on cities, only on capital.  Tiles work depend on the amount of money, not on the population.
 
 
-
 So, each government type cleans all the perks that established in terms of global, faction, city and set their new perks.  So the perks in the end force running paths in the code that alter the behaviour of the game.  By doing this I can have a lot of flexibility in terms of what is happening with each government type.
 
 
@@ -512,55 +511,57 @@ So, each government type cleans all the perks that established in terms of globa
 
 Experience is important ;).  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  
 
-Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance (on the winning side). Loosers die. So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a hc number (and this make sense with workers, settlers and sklaves).
+Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance (on the winning side). Loosers die. So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers back.   So units have a hc number (and this make sense with workers, settlers and sklaves).
 
+- Similar to Dupuy's QJM (product of multipliers) and Sub-linear Lanchester/Helmbold (not power law, not linear on number of soldiers).
 - There should be some very small stochasticity in the outcome.
-- Winner wins and live and execute whatever it needs to execute.  Looser dies.
-- After a battle the 'hc' of the winner is reduced some amount (outcome of the model)
+- Winner wins and live and execute whatever it needs to execute (capture a city, moving into a tile, etc[).  Looser dies.
+- After a battle the 'hc' of the winner is reduced some amount (outcome of the model).
 - After a battle, the 'xp' of the winner increases.
-- If the win was tight like 6.4 vs 6.2 then the amount of 'xp' increases.
-- For instance, Defending from high ground (mountains, hills) gives a boots to the defender.
+- If the win was tight like 6.4 vs 6.2 then the amount of 'xp' increases more.
+- Terrain affects the outcome. For instance, defending from high ground (mountains, hills) gives a boots to the defender.
 - e.g., a 'Horseman' should receive a bonus while attacking on plains.
-- e.g. a 'Horseman' should be penalized when defending a city (not attacking)
+- e.g. a 'Horseman' should be penalized when defending a city (not attacking).
 - It should be impossible for a 'Phalanx' beat a 'Tank'.  There should be a way to map that in the numbers without having to force it.  Only by using tuned constant numbers.
-- A 'Legion' has legion.hc = 6000, a 'Marine' regiment (still I do not have this unit but I could). marine.hc = 10000
-- A unit will recover their original headcount (will try to) by 'Fortify'.  It will need LoS access to a city with available population (or in the city).
+- A 'Legion' has legion.hc = 6000, a 'Marine' regiment, marine.hc = 10000.
+- A unit will recover their original headcount (will try to) by 'Fortify'.  It will need LoS access to a city with available population (or to be inside the city itself where the recovery should be faster, depending on the distance to the city).
 - A defending unit can be fortified on the defending tile.  This gives a boost in defense and also helps the unit recover hc.
-- A city can have structures like a 'Fortress' that increase their defense values.
+- A city can have structures like a 'Walls' and 'Fortress' that increase their defense values.
 
 So, the model looks like this:
 
-Units -> 
-variables: 
-- headcount (hc \in [300,10000]) clamped at 300.
-- experience (xp \in [0,100]) 
-- morale (m \in [0,1])
-- ff ([0,1])
+**Unit Variables**
+- Headcount (hc \in [300,10000]) clamped at 300.
+- Experience (xp \in [0,100]) 
+- Morale (m \in [0,1])
+- Fortification level ff \in [0,1]
 
-Morale will be determined from the faction culture temperature on each tile.
+Headcount is determined from the amount of soldiers that the unit has.  It goes up on Fortification, goes down on battles.
+Experience comes from fighting.  It always goes up.  Help to create good units. Units created in cities with barracks get an initial boost.
+Morale will be determined from the faction culture-temperature on each tile.
+Fortifiation comes from a unit Fortifying.  Defensive units have a bigger weighting factor and some units has zero.
 
-Each unit type has fixed per type:
-- aw, dw: attack weight and defense weight.  Positive integers, NOT capped: warrior 1,
-  phalanx 2, chariot 4, legion 5, musketeer 10, ... mechanized infantry 100 or whatever the
+**Unit Weights (Fixed per Unit type)**
+- (aw, dw): attack weight and defense weight.  Positive integers, NOT capped: 'Warrior' 1,
+  'Phalanx' 2, 'Chariot' 4, 'Legion' 5, 'Musketeer' 10, ... mechanized infantry 100 or whatever the
   era needs.  The ladder keeps climbing, roughly doubling per era, and that is what makes a
-  Phalanx unable to beat a Tank: no special case, just the constants.
+  Phalanx unlikely to beat a Tank: no special case, just the constants.
 - tw[role][bioma]: (-1,1] terrain penalization/reward
 - cw[role]: (-1,1]  city weight for the unit
+- fw (-1,1] fortification weight for the unit.  Horseman for instance is zero.
 
 So when a combat arises:
 
 terrain = (bioma & 0xf0) defending unit's tile, base bioma.  It comes from the land of the defender.
 cf  = it comes from the city. Between [0,1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
-
 Ra = random between [0.97;1.03]
 Rb = random between [0.97;1.03]
+inCity ∈ {0,1} : the defense is on a city
 
 So each unit calculates
 
 Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + tw[ATTACK][terrain]) (1 + cw[ATTACK] inCity) Ra
-Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] inCity) (1 + inCity cf) (1+ff) Rb
-
-inCity ∈ {0,1} : the defense is on a city
+Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] inCity) (1 + inCity cf) (1+ fw ff) Rb
 
 with each unit using its own hc, xp, m, ff and its own weights.
 
@@ -572,11 +573,12 @@ D = | Sa - Sd| / (Sa + Sd + e)
 
 e = 0.0001
 
-So, close to zero, it was a tight victory, then the value is 1, a crushing victory.
+So, a tie victory pushes D close to zero, and a crushing victory moves it towards 1.
 
-looser dies and is deleted.
+Looser dies and is deleted.
+Winner: winning unit
 
-winner: winning unit
+Finally, winner variables are updated:
 
 winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
 winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
