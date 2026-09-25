@@ -510,11 +510,9 @@ So, each government type cleans all the perks that established in terms of globa
 
 ## Combat
 
-The key to combat is experience.  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  
+Experience is important ;).  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  
 
-Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a hc number (and this make sense with workers, settlers and sklaves).
-
-
+Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance (on the winning side). Loosers die. So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a hc number (and this make sense with workers, settlers and sklaves).
 
 - There should be some very small stochasticity in the outcome.
 - Winner wins and live and execute whatever it needs to execute.  Looser dies.
@@ -527,10 +525,17 @@ Terrain and city have additional weights that depend on the terrain itself and o
 - It should be impossible for a 'Phalanx' beat a 'Tank'.  There should be a way to map that in the numbers without having to force it.  Only by using tuned constant numbers.
 - A 'Legion' has legion.hc = 6000, a 'Marine' regiment (still I do not have this unit but I could). marine.hc = 10000
 - A unit will recover their original headcount (will try to) by 'Fortify'.  It will need LoS access to a city with available population (or in the city).
+- A defending unit can be fortified on the defending tile.  This gives a boost in defense and also helps the unit recover hc.
+- A city can have structures like a 'Fortress' that increase their defense values.
 
 So, the model looks like this:
 
-Units -> variables: headcount (hc \in [0,10000]), experience (xp \in [0,100]) and morale (m \in [0,1])
+Units -> 
+variables: 
+- headcount (hc \in [300,10000]) clamped at 300.
+- experience (xp \in [0,100]) 
+- morale (m \in [0,1])
+- ff ([0,1])
 
 Morale will be determined from the faction culture temperature on each tile.
 
@@ -539,56 +544,43 @@ Each unit type has fixed per type:
   phalanx 2, chariot 4, legion 5, musketeer 10, ... mechanized infantry 100 or whatever the
   era needs.  The ladder keeps climbing, roughly doubling per era, and that is what makes a
   Phalanx unable to beat a Tank: no special case, just the constants.
-- tw[role][bioma]: terrain weight, a SIGNED PERCENT, default 0.  Indexed by the role the unit
-  is playing in this battle (attacking or deioma (bioma & 0xf0,
-  same masking as movement cost and improvement effort).
-- cw[role]: city weight, a SIGNED PERCENT, d only.
-
-The terrain that counts is always the DEFENDing fought over -- but
-each unit reads its OWN row for its OWN role.  That is what lets a mountain help the defender
-and hinder the attacker at the same time, wh cannot express.
+- tw[role][bioma]: (-1,1] terrain penalization/reward
+- cw[role]: (-1,1]  city weight for the unit
 
 So when a combat arises:
 
-terrain = defending unit's tile, base bioma.  It comes from the land of the defender.
-atCity  = it comes from the city. Between [0;1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
+terrain = (bioma & 0xf0) defending unit's tile, base bioma.  It comes from the land of the defender.
+cf  = it comes from the city. Between [0,1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
 
 Ra = random between [0.97;1.03]
 Rb = random between [0.97;1.03]
 
 So each unit calculates
 
-Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + cw[ATTACK] atCity) Ra
-Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] atCity) Rb
+Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + tw[ATTACK][terrain]) (1 + cw[ATTACK] inCity) Ra
+Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] inCity) (1 + inCity cf) (1+ff) Rb
 
-with each unit using its own hc, xp, m and its own weights.
+inCity ∈ {0,1} : the defense is on a city
+
+with each unit using its own hc, xp, m, ff and its own weights.
 
 And,
 
 win = arg max (Sa, Sd)         -- on an exact tie the DEFENDER holds
 
-D = | Sa - Sd| / (Sa + Sd)
+D = | Sa - Sd| / (Sa + Sd + e)
+
+e = 0.0001
 
 So, close to zero, it was a tight victory, then the value is 1, a crushing victory.
 
 looser dies and is deleted.
 
-winner.hc -= hc * (0.03 + 0.2 * (1 - D))
-winner.xp += 40 * (0.03 + 0.2 * (1 - D))
+winner: winning unit
 
-Both outcomes are driven by the same "how clfight costs the winner
-up to 23% of its men and teaches it up to 9 xp, a massacre costs 3% and teaches 1.
-xp is clamped to 100 afterwards.  A winner led as well.
+winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
+winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
 
-Each requirement is then one line of data pe
-
-  horseman.tw[ATTACK][PLAINS]    = +50    #
-  horseman.cw[DEFEND]            = -40    # penalised defending a city
-  phalanx .tw[DEFEND][MOUNTAINS] = +50    # ender
-  legion  .tw[ATTACK][MOUNTAINS] = -25    # and hinders the attacker, set independently
-
-A bioma with no entry gives 0.
-Weights must stay above -99% so that (1 + w)
 
 # Working issues
 
@@ -614,7 +606,7 @@ Weights must stay above -99% so that (1 + w)
 * Same for workers, their strength is derived from the size of the group.
 * **Units**: members determine a stepped factor for the fighting equation.  The shape of this function depends on the unit.
 * **Units**: the **personnel** factor is stepped.
-* Hence, in battles, people die.  The stochastic factor determines how many casualties each unit have on each battle.
+* Hence, in battles, people die.  The stochastic factor determines how many casualties the winning unit lost.
 * Units require access to population to recover from battles.
 * Units also require **Line Of Sight** to the capital city, by having a continuos line of access (or free land in the middle).  
 * Roads keep ownership.  This allows to increase the line of sight regardless of culture.
