@@ -566,30 +566,32 @@ Fortifiation comes from a unit Fortifying.  Defensive units have a bigger weight
 **Combat outcome calculation**
 So when a combat arises, each unit calculates:
 
+```
 Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + tw[ATTACK][terrain]) (1 + cw[ATTACK] inCity) Ra
 Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] inCity) (1 + inCity cf) (1+ fw ff) Rb
+```
 
 with each unit using its own hc, xp, m, ff and its own weights.
 
 And,
 
- win = arg max (Sa, Sd)         -- on an exact tie the DEFENDER holds
+```
+win = arg max (Sa, Sd)
+D = | Sa - Sd| / (Sa + Sd + e)
+e = 0.0001
+```
 
- D = | Sa - Sd| / (Sa + Sd + e)
-
- e = 0.0001
-
-So, a tie victory pushes D close to zero, and a crushing victory moves it towards 1.
+On an exact tile, defender holds.  So, a tie victory pushes D close to zero, and a crushing victory moves it towards 1.
 
 >> Looser dies and is deleted.
 >> Winner: winning unit
 
 Finally, winner variables are updated:
 
-
- winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
- winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
-
+```
+winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
+winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
+```
 
 # Working issues
 
