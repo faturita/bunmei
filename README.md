@@ -132,7 +132,7 @@ Latitud determines the relation to the equator, increasing towards south. Longit
 | Cavalry         | Military Tradition | Horses + Guns | - |
 | Cannon          | Metallurgy | Iron |
 
-Units should strip population from the building city, they could rejoin back the city.  Fortify them help them to recover their numbers.
+Units should strip population from their city, and they could rejoin the city back.  Fortify them help them to recover their headcounts (soldiers) from a nearby city with LoS.  So all the units have a headcount field which determines the amount of soldiers or the amount of population that the unit has. So every unit can join back a city and increase city population according to the growth rate rule of population.
 
 ## Cities
 
@@ -155,21 +155,21 @@ Units should strip population from the building city, they could rejoin back the
 | Harbor           |                    | | |
 | Grocer           | Trade |||
 | Forge            |.       |||
-| Factory          | Industrialization       |||
+| Factory          | Industrialization       || iron/copper→tools|
 | Depot            |        | 0x0b | 100 Tools |
-| CourtHouse       |        |||
+| CourtHouse       |        | Reduces the value for Subsistant on the city||
 | Cathedral.       |.       |||
-| Castle.          |        |||
-| Fort             |.       | | |
-| Fortress.        |.       | | |
-| Bank             | |||
-| Aqueduct         | |||
-| Rolling House    | |||
-| Processing Plant | |||
-| Armory           | Gunpowder | | |
-| Textile Mill.    | Industrialization | | |
-| Steelworks.      | Steel.    | | |
-| Assembly Plant   | Automobiles | | |
+| Castle.          |        | Defensive units have a boost in their terrain defense value||
+| Fort             |.       | Allow reducing the number of moves of enemy units| |
+| Fortress.        |.       | Allow firing and stopping enemy units that come around the sea city | |
+| Bank             | Duplicates trade output in the city|||
+| Aqueduct         | Allow irrigation on the city tile without nearby water and from there allows to irrigate neighbouring tiles|||
+| Rolling House    | || tobacco→cigars|
+| Processing Plant | || sugar→rum |
+| Armory           | Gunpowder | | tools→guns |
+| Textile Mill.    | Industrialization | | cotton/furs→textiles |
+| Steelworks.      | Steel.    | | iron→steel |
+| Assembly Plant   | Automobiles | | steel→automobile |
 | Oil Refinery.    | Plastics | | |
 | Pharma.          | Medicine | | |
 | Semiconductor Fab| Electronics | | |
@@ -285,8 +285,8 @@ Some buildings take commodities and convert them into manufactured goods.  These
 | Automobiles| Combustion        | Assembly Plant | Steel + Oil |
 | Plastics   | Plastics          | Oil Refinery | Oil           |
 | Pharmaceuticals | Medicine     | Pharma       | Spices / Game / Doe / Sugar |
-| Electronics | Electronics.     | Semiconductor Fab | Aluminium / Litium / Silver|
-| Robots |  Robotics.          | Gigafactory  | Electronics + Steel |
+| Electronics | Electronics      | Semiconductor Fab | Aluminium / Litium / Silver|
+| Robots |  Robotics           | Gigafactory  | Electronics + Steel |
 
 Perhaps I can add Laudanum ??? 
 
@@ -423,7 +423,7 @@ Three type of population on each city
 
 Indigent → Content → Wealthy
 
-Luxury points 'heat' the city 'prosperity' bar which has two values, the subsistant and affluence.  Subsistant is always lower than affluence.   These thresholds determine how many pop elements belong to each class.
+Luxury points 'heat' the city 'prosperity' bar which has two values, the 'Subsistant' and 'Affluence'.  Subsistant is always lower than affluence.   These thresholds determine how many pop elements belong to each class.
 
 If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
 
@@ -438,61 +438,157 @@ If indigent is higher, cities can revolt (create a new faction) or they can flip
 * Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
 * The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
 
-
 **Tribalism**
 * Slavery allowed
 * Can break treaties
 * Treasury from the capital city only
 * Cities are more independence in terms of their own money
+* Religion: all allowed
 
 
 **Despotism**
-* Slavery allowed
-* Can break treaties
-* Treasury shared across cities.
+* Slavery: allowed
+* Diplomacy: can break treaties
+* Economic: treasure shared across cities.
 
 **Monarchy**
-* Slavery allowed
-* Can break treaties
-* Treasury shared across cities.
+* Slavery: allowed
+* Diplomacy: can break treaties
+* Economic: treasure shared across cities.
 
 **Republic**
-* Slavery allowed
-* AI Took control of a congress that decides on war aspects and other issues
-* Treasure is managed by the AI
+* Slavery: allowed
+* Diplomacy: Congress decides.
+* Economic: cities handle their own money
 
 **Democracy**
-* Slavery not allowed
-* Easier split into new factions
-* Can break treaties
-* Treasure shared across cities
+* Slavery: not allowed
+* Diplomacy: Congress decides.
+* Economic: cities handle their own money
+* Social: cities revolt easily.
 
 **Theocracy**
-* Slavery allowed for other religions
-* Can break treaties
+* Slavery: allowed for other religion.  If a city has 100% the state religion, slaves are converted.
+* Diplomacy: Congress decides.
+* Economic: cities handle their own money
+* Social: cities with the same religion cannot revolt.  Content is higher.
 
 **Communism**
-* Slavery not allowed
+* Slavery: not allowed.
+* Diplomacy: 
+* Economic: treasure is centralized in the capital city.  The rest of the cities share what they have.
+* Social: cities do not revolt at all.
 
 **Liberal** 
-* Slavery not allowed
+* Slavery: not allowed.  All slaves are converted into citizens.
+* Diplomacy: depends on city prosperity.
+* Economic: cities handle their own money
+* Social: cities can revolt super easily.  Luxuries are super important.
 
 **Fascism**
-* Slavery  allowed
+* Slavery: allowed.  
+* Diplomacy: no restriction
+* Economic: treasure is centrlaized in the capital city.  No money on cities.
+* Social: cities can revolt super easily.  Luxuries are super important.
 
 **Renminism**
-* Slavery not allowed
+* Slavery: not allowed.  
+* Diplomacy: no restriction
+* Economic: treasure is centrlaized in the capital city.  No money on cities.
+* Social: cities super hard to revolt.
 
 **Technofeudalism** 
-* Slavery not allowed
+* Slavery: not allowed.  
+* Diplomacy: no restriction
+* Economic: treasure is centrlaized in the capital city.  No money on cities.
+* Social: no wealthy people on cities, only on capital.  Tiles work depend on the amount of money, not on the population.
+
+
+
 So, each government type cleans all the perks that established in terms of global, faction, city and set their new perks.  So the perks in the end force running paths in the code that alter the behaviour of the game.  By doing this I can have a lot of flexibility in terms of what is happening with each government type.
 
 
 ## Combat
 
-The key to combat is experience.  Units can get experience by training.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  Terrain and city are bilinear with additional weights that depend on the terrain itself and on the city.  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die (this is the stochastic component) according to the power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a pop number (and this make sense with workers and settlers).
+The key to combat is experience.  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  
+
+Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance.  So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers !   So units have a hc number (and this make sense with workers, settlers and sklaves).
 
 
+
+- There should be some very small stochasticity in the outcome.
+- Winner wins and live and execute whatever it needs to execute.  Looser dies.
+- After a battle the 'hc' of the winner is reduced some amount (outcome of the model)
+- After a battle, the 'xp' of the winner increases.
+- If the win was tight like 6.4 vs 6.2 then the amount of 'xp' increases.
+- For instance, Defending from high ground (mountains, hills) gives a boots to the defender.
+- e.g., a 'Horseman' should receive a bonus while attacking on plains.
+- e.g. a 'Horseman' should be penalized when defending a city (not attacking)
+- It should be impossible for a 'Phalanx' beat a 'Tank'.  There should be a way to map that in the numbers without having to force it.  Only by using tuned constant numbers.
+- A 'Legion' has legion.hc = 6000, a 'Marine' regiment (still I do not have this unit but I could). marine.hc = 10000
+- A unit will recover their original headcount (will try to) by 'Fortify'.  It will need LoS access to a city with available population (or in the city).
+
+So, the model looks like this:
+
+Units -> variables: headcount (hc \in [0,10000]), experience (xp \in [0,100]) and morale (m \in [0,1])
+
+Morale will be determined from the faction culture temperature on each tile.
+
+Each unit type has fixed per type:
+- aw, dw: attack weight and defense weight.  Positive integers, NOT capped: warrior 1,
+  phalanx 2, chariot 4, legion 5, musketeer 10, ... mechanized infantry 100 or whatever the
+  era needs.  The ladder keeps climbing, roughly doubling per era, and that is what makes a
+  Phalanx unable to beat a Tank: no special case, just the constants.
+- tw[role][bioma]: terrain weight, a SIGNED PERCENT, default 0.  Indexed by the role the unit
+  is playing in this battle (attacking or deioma (bioma & 0xf0,
+  same masking as movement cost and improvement effort).
+- cw[role]: city weight, a SIGNED PERCENT, d only.
+
+The terrain that counts is always the DEFENDing fought over -- but
+each unit reads its OWN row for its OWN role.  That is what lets a mountain help the defender
+and hinder the attacker at the same time, wh cannot express.
+
+So when a combat arises:
+
+terrain = defending unit's tile, base bioma.  It comes from the land of the defender.
+atCity  = it comes from the city. Between [0;1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
+
+Ra = random between [0.97;1.03]
+Rb = random between [0.97;1.03]
+
+So each unit calculates
+
+Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + cw[ATTACK] atCity) Ra
+Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] atCity) Rb
+
+with each unit using its own hc, xp, m and its own weights.
+
+And,
+
+win = arg max (Sa, Sd)         -- on an exact tie the DEFENDER holds
+
+D = | Sa - Sd| / (Sa + Sd)
+
+So, close to zero, it was a tight victory, then the value is 1, a crushing victory.
+
+looser dies and is deleted.
+
+winner.hc -= hc * (0.03 + 0.2 * (1 - D))
+winner.xp += 40 * (0.03 + 0.2 * (1 - D))
+
+Both outcomes are driven by the same "how clfight costs the winner
+up to 23% of its men and teaches it up to 9 xp, a massacre costs 3% and teaches 1.
+xp is clamped to 100 afterwards.  A winner led as well.
+
+Each requirement is then one line of data pe
+
+  horseman.tw[ATTACK][PLAINS]    = +50    #
+  horseman.cw[DEFEND]            = -40    # penalised defending a city
+  phalanx .tw[DEFEND][MOUNTAINS] = +50    # ender
+  legion  .tw[ATTACK][MOUNTAINS] = -25    # and hinders the attacker, set independently
+
+A bioma with no entry gives 0.
+Weights must stay above -99% so that (1 + w)
 
 # Working issues
 
@@ -501,7 +597,7 @@ The key to combat is experience.  Units can get experience by training.  Terrain
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
 * Add a world edit testcase to create customized maps.
 
-# Features
+# Feature
 
 * Market: duplicates the amount of TRADE
 * Spheroid: Arriving to the south and north pole (0,-24) (0,23).

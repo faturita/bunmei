@@ -3,8 +3,11 @@
 
 #include "mapio.h"
 
+class Unit;
+
 void initMap();
 void initFactions();
+void initUnits();          // the starting units for every faction
 void initResources();
 
 void initWorldModelling();

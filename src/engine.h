@@ -17,6 +17,17 @@ enum class LandEntry { BLOCKED, ENTER, ENTER_AND_CLAIM };
 // Fills every tile's base production rates from the productionrates tables (tiles.h). Call it
 // on a freshly generated map and again after loading one -- loadMap() does the latter itself.
 // Idempotent. See the note on the definition.
+// One turn of the world: every unit refreshed, every city grown/fed/producing, trade
+// converted, research advanced, fog updated, then every faction made ready again. Lives here
+// because engine.cpp is the one file all three builds link (game, simulator, testcases) --
+// there is exactly one endOfYear now, where the game and the simulator used to keep copies
+// that had drifted apart.
+void endOfYear();
+
+// First contact: a unit meeting a human faction's units offers peace through the selector.
+// A no-op when the other side is an autoPlayer, which is every faction in the simulator.
+void checkUnitMeetings(Unit* u);
+
 void assignProductionRates(Map &mmp);
 
 // Fog of war (mapcell::visible, per faction, saved with the map): reveal what one unit can

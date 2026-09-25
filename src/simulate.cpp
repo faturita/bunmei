@@ -1,4 +1,5 @@
 #include <sys/stat.h>
+#include "gamekernel.h"     // initMap/initFactions/initUnits: the REAL ones, shared with the game
 #include "mapmodel.h"
 #include "tiles.h"
 #include "resources.h"
@@ -41,7 +42,7 @@
 typedef std::unordered_map<int, City*> Cities;
 typedef std::unordered_map<int, Unit*> Units;
 
-Tiles tiles;
+extern Tiles tiles;
 std::unordered_map<int,std::queue<std::string>> citynames;
 
 Factions factions;
@@ -50,7 +51,9 @@ Cities cities;
 // Global, like the three above: engine.cpp (activateUnit) needs an extern Coordinator, and
 // Unit.cpp (goTo) needs an extern Map -- both unreachable dead code in this stripped build,
 // but their SYMBOLS still have to resolve at link time.
-Map map;
+// `map`, `tiles` and `improvements` are map.cpp's -- simulate links it now, so it no
+// longer declares its own copies (that was a duplicate symbol).
+extern Map map;
 Coordinator coordinator;
 // engine.cpp:engageTrade() references `controller` to open the commerce screen -- dead code
 // in this headless build (no Transport ever trades here), but the symbol must resolve.
@@ -58,7 +61,7 @@ Controller controller;
 DependencyEvaluationEngine dee;
 TechTree techtree;
 DiplomacyTable diplomacy;
-std::unordered_map<int, Improvement*> improvements;
+extern std::unordered_map<int, Improvement*> improvements;
 
 std::vector<Message> messages;
 
@@ -84,149 +87,65 @@ int mapsize;
 
 void built() {} 
 
-void initMap()
-{
-    for(int lat=map.minlat;lat<map.maxlat;lat++)
-        for (int lon=map.minlon;lon<map.maxlon;lon++)
-        {
-            map.set(lat,lon) = mapcell(LAND);
-        }    
-}
-
-void initFactions()
-{
-    Faction *faction = new Faction();
-    faction->id = 0;
-    faction->autoPlayer = true;
-    strcpy(faction->name,"Vikings");
-    faction->red = 255;
-    faction->green = 0;
-    faction->blue = 0;
-    faction->rates[0] = 0.5;
-    faction->rates[1] = 0.5;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    
-    factions.push_back(faction);
-
-    faction = new Faction();
-    faction->id = 1;
-    faction->autoPlayer = true;
-    strcpy(faction->name,"Romans");
-    faction->red = 255;
-    faction->green = 255;
-    faction->blue = 255;
-    faction->rates[0] = 0.5;
-    faction->rates[1] = 0.5;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-
-    factions.push_back(faction);
 
 
-    faction = new Faction();
-    faction->id = 2;
-    faction->autoPlayer = true;
-    strcpy(faction->name,"Greeks");
-    faction->red = 0;
-    faction->green = 0;
-    faction->blue = 255;
-    faction->rates[0] = 0.5;
-    faction->rates[1] = 0.5;
-    faction->rates[2] = 0;
-    faction->rates[3] = 0;
-    factions.push_back(faction);
-
-    for (auto& f: factions)
-    {
-        std::vector<coordinate> list;
-        for(int lat=map.minlat;lat<map.maxlat;lat++)
-            for(int lon=map.minlon;lon<map.maxlon;lon++)
-            {
-                if (map.set(lat,lon).code==LAND)
-                {
-                    list.push_back(coordinate(lat,lon));
-                }
-            }
-    }
-}
-
-void initUnits()
-{
-    // Mirrors gamekernel.cpp:initUnits() -- one distinct random LAND tile per faction, no
-    // two civilizations on the same tile (ai.cpp:pickFactionStartTiles).
-    std::vector<coordinate> starts = pickFactionStartTiles((int)factions.size());
-
-    int fi = 0;
-    for (auto& f: factions)
-    {
-        coordinate c = fi < (int)starts.size() ? starts[fi] : coordinate(0,0);
-        fi++;
-
-        Settler *settler = new Settler();
-        settler->longitude = c.lon;
-        settler->latitude = c.lat;
-        settler->id = getNextUnitId();
-        settler->faction = f->id;
-        settler->availablemoves = settler->getUnitMoves();
-
-        units[settler->id] = settler;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
-
-
-        Warrior *warrior = new Warrior();
-        warrior->longitude = c.lon;
-        warrior->latitude = c.lat;
-        warrior->id = getNextUnitId();
-        warrior->faction = f->id;
-        warrior->availablemoves = warrior->getUnitMoves();
-
-
-        units[warrior->id] = warrior;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
-
-        Settler *settler2 = new Settler();
-        settler2->longitude = c.lon;
-        settler2->latitude = c.lat;
-        settler2->id = getNextUnitId();
-        settler2->faction = f->id;
-        settler2->availablemoves = settler2->getUnitMoves();
-
-
-        units[settler2->id] = settler2;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
-    }    
-}
 
 // assignProductionRates() now lives in engine.cpp, shared. The copy that used to be here was
 // an older hand-written if/else chain that had DRIFTED from gamekernel.cpp's table -- it gave
 // grassland FOOD 3 where the table says 1, and plain land 2 where it says 1 -- so the
 // simulator and the game were quietly modelling different worlds. Both read the one table now.
 
-void placeThisUnit(float flat, float flon, int size, const char* filename, int red, int green, int blue)
-{
+// ---------------------------------------------------------------------------------------
+// The graphics/sound boundary, and the whole of it.
+//
+// Everything above this point is the REAL game: simulate links gamekernel.cpp, engine.cpp,
+// map.cpp, savegame.cpp and the rest, and runs the same world generation, the same turn and
+// the same rules the windowed game does. What it does not have is a screen or speakers, so
+// the handful of symbols that need one are defined here as empty bodies.
+//
+// Deliberately LINK-TIME stubs rather than an interface with virtual calls: the simulator
+// pays nothing for the ones it never calls, and -- the point -- the real game pays nothing
+// either, where these are on the per-frame path. Adding a vtable here to satisfy a headless
+// build would tax every draw in the game to solve a problem the linker already solves.
+//
+// If one of these ever needs to DO something headless (say, a text renderer that logs), it
+// stops being a stub and gets a real implementation here.
 
-}
+// -- openglutils.cpp: the drawing primitives everything else is built on ------------------
+void drawBox(float x, float y, int sizex, int sizey, float r, float g, float b) {}
+void drawString(float x, float y, float z, char* str, float scale) {}
+void placeMark(float x, float y, int size, const char* modelName) {}
+void placeMark(float x, float y, int sizex, int sizey, const char* modelName) {}
+void placeMark(float x, float y, int sizex, int sizey, unsigned int texture) {}
+void preloadCityTexture(const char* name, const char* filename, int red, int green, int blue) {}
+void preloadUnitTexture(const char* name, const char* filename, int red, int green, int blue) {}
 
-void place(int x, int y, int sizex, int sizey, const char* modelName)
-{
+// -- cityscreenui.cpp / commerceui.cpp: whole screens -------------------------------------
+void drawCityScreen(int cla, int clo, City *city) {}
+void openCommerceScreen() {}
+void initCoreResources() {}
 
-}
+// -- sounds.cpp: one anthem per faction (FactionDefinition::song) --------------------------
+void vikings() {}   void romans() {}      void greeks() {}     void chinese() {}
+void egyptians() {} void babylonians() {} void english() {}    void mongols() {}
+void russians() {}  void zulus() {}       void germans() {}    void french() {}
+void aztec() {}     void americans() {}   void indians() {}    void incan() {}
+void japanese() {}  void spanish() {}
 
-void placeWord(float x, float y, int sizex, int sizey, const char* word, int yoffset)
-{
+// -- globals the windowed build owns (bunmei.cpp) -----------------------------------------
+// The window has no size here; nothing headless reads these, but gamekernel.cpp's faction
+// setup and map.cpp's projection both reference them.
+int REAL_SCREEN_WIDTH  = 0;
+int REAL_SCREEN_HEIGHT = 0;
 
-}
+// How many civilizations to create, and which one a human would be playing. The simulator
+// makes every faction an autoPlayer after initFactions() regardless (see main), so
+// selectedFaction stays -1: nobody is at a keyboard.
+int numCivs = 0;
+int selectedFaction = -1;
 
-void placeThisTile(int lat, int lon, int size, const char* filename)
-{
-
-}
-
-void placeThisCity(int lat, int lon, int red, int green, int blue)
-{
-
-}
+// openglutils.cpp: text laid out on the tile grid.
+void placeWord(float x, float y, int sizex, int sizey, const char* word, int yoffset) {}
 
 void blocked()
 {}
@@ -246,191 +165,10 @@ void march()
 void lose()
 {}
 
-inline void endOfYear()
-{
-    year++;
-    // Fog of war, once a turn: catches a unit that appeared without moving -- produced in a
-    // city, unloaded from a ship, or restored from a savegame -- since the movement path
-    // only reveals for units that actually moved.
-    updateFogOfWar();
-
-    for (auto& [k, u] : units)
-    {
-        // Units in movement debt (negative moves) recover one year of moves at a time
-        // instead of getting the full refresh: crossing a tile that costs more than the
-        // unit's moves-per-turn takes several turns.
-        if (u->availablemoves < 0)
-            u->availablemoves += u->getUnitMoves();
-        else
-            u->availablemoves = u->getUnitMoves();
-
-        if (u->hasPendingMove() && u->availablemoves >= 0)
-            completePendingMove(u);
-
-        //checkUnitMeetings(u);
-
-    }
-
-    std::vector<int> todelete;
-    for (auto& [k, c] : cities) 
-    {
-        // Pick two food items per one population and gather the rest.
-        // If granary is present the amount of food that is required to increase the population is half.
-
-        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[FOOD]);
-        // Go through all the map locations and gather all the resources.
-        for(int r_id : ALL_CORE_RESOURCES)
-        {
-            c->resources[r_id] += c->getProductionRate(r_id);
-        }
-
-        // Commodities: gathered from every special resource within range regardless of
-        // whether the tile is worked (see City::getCommodityProductionRate).
-        for(int commodity_id : ALL_COMMODITIES)
-        {
-            c->resources[commodity_id] += c->getCommodityProductionRate(commodity_id);
-        }
-
-        // Reduce the number of resources according to what is required now.
-        for(int r_id : ALL_CORE_RESOURCES)
-        {
-            c->resources[r_id] -= c->getConsumptionRate(r_id);
-        }
-
-        // Convert trade accordingly.  Trade is not accummulated
-
-        c->resources[COINS] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[0]);
-        c->resources[SCIENCE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[1]);
-        c->resources[CULTURE] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[2]);
-        c->resources[LUXURY] += (int)((float)c->resources[TRADE] * factions[c->faction]->rates[3]);
-
-        c->resources[TRADE]=0;
-
-
-        // Peek the production queue.
-        if (c->productionQueue.size()>0)
-        {
-            BuildableFactory *bf = c->productionQueue.front();
-
-            // Ask the factory which resource ids it might need, hand it what the city has,
-            // and let its fullfillment() rule return the exact (id, amount) list to deduct
-            // (empty == cannot afford it yet). Mirrors bunmei.cpp:endOfYear().
-            std::vector<int> requiredResources = bf->getRequiredResources();
-            std::unordered_map<int, Resource*> availableResources;
-            for (int r_id : requiredResources)
-                availableResources[r_id] = new Resource{r_id, c->resources[r_id]};
-
-            std::vector<Resource*> consumedResources = bf->fullfillment(availableResources);
-            if (consumedResources.size() > 0)
-            {
-                for (Resource* r : consumedResources)
-                    c->resources[r->id] -= r->amount;
-
-                // Access the production queue from the city, build the latest thing in the queue and move forward with the next one
-                c->productionQueue.pop();
-                Buildable *b = bf->create();
-
-                if (b->getType() == BuildableType::UNIT)
-                {
-                    Unit *unit = (Unit*)b;
-                    unit->longitude = c->longitude;
-                    unit->latitude = c->latitude;
-                    unit->id = getNextUnitId();
-                    unit->faction = c->faction;
-                    unit->availablemoves = unit->getUnitMoves();
-
-                    units[unit->id] = unit;
-                }
-                else
-                {
-                    Building *building = (Building*)b;
-                    building->faction = c->faction;
-                    c->buildings.push_back(building);
-
-                    message(year, c->faction, "City %s has built %s.",c->name,building->name);
-                    built();                
-                }
-
-            }
-        }
-        
-        // Balance city population according to available resources.
-        if (c->resources[FOOD]>100*c->pop)
-        {
-            c->resources[FOOD] = 0;
-            c->pop++;
-
-            c->assignWorkingTile();
-        } else
-        if (c->resources[FOOD]<0)
-        {
-            c->resources[FOOD] = 0;
-
-            if (c->pop>1)
-            {
-                c->pop--;
-                c->deAssignWorkingTile();
-            } else if (c->pop == 1)
-            {
-                // The city is abandoned.
-                todelete.push_back(c->id);
-
-                // @FIXME: When a city is captured with pop 1 it should be burned.
-            }
-
-        }
-
-    }
-
-    for(auto& cid:todelete)
-    {
-        City* c = cities[cid];
-        // The city is abandoned.
-        message(year, c->faction, "%s has been abandoned.",c->name);
-
-        c->pop = 0;
-        c->deAssignWorkingTile();
-        map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
-        cities.erase(c->id);
-        delete c;
-
-        // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
-    }
-
-    // ---- Research (mirrors bunmei.cpp:endOfYear()) --------------------------------------
-    // Pool each faction's SCIENCE for the year, clear the cities' counters, and step its tech
-    // graph. Every faction here is an autoPlayer, so chooseResearch() always rolls a random
-    // Frontier technology -- there is no selector dialog in the headless simulator.
-    std::unordered_map<int,int> sciencePerFaction;
-    for (auto& [k, c] : cities)
-    {
-        sciencePerFaction[c->faction] += c->resources[SCIENCE];
-        c->resources[SCIENCE] = 0;
-    }
-
-    for(auto& f:factions)
-    {
-        chooseResearch(f->id);
-
-        std::vector<int> discovered = techtree.advance(f->id, sciencePerFaction[f->id], dee);
-        for (int id : discovered)
-        {
-            const Tech* t = techtree.graph(f->id).getTech(id);
-            message(year, f->id, "Our scholars have discovered %s.", t != nullptr ? t->name.c_str() : "something");
-        }
-
-        // Every discovery widens the Frontier, so the faction decides again where ALL of its
-        // science goes from here: the player is re-prompted, the AI rerolls. Science handed to
-        // advance() before that is answered is banked by TechTree, not lost.
-        if (!discovered.empty())
-            chooseResearch(f->id, true);
-    }
-
-    for(auto& f:factions)
-    {
-        f->ready();
-    }
-}
+// endOfYear() lives in gamekernel.cpp now, shared with the game. The copy that used to sit
+// here had drifted badly -- no unit salaries, first contact commented out, no TRADE_SURPLUS
+// or SCIENCE_SURPLUS perks, and no operateCityBuildings() -- so the simulator was modelling a
+// materially different economy from the one it was supposed to be simulating.
 
 void update(int value)
 {
