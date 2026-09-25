@@ -509,7 +509,7 @@ So, each government type cleans all the perks that established in terms of globa
 
 ## Combat
 
-Experience is important ;).  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain and city weights.  
+Experience is important ;).  Units can get experience by combat.  Terrain plays a very important role.  Units have attack,defense, terrain, city and fortification weights.  
 
 Terrain and city have additional weights that depend on the terrain itself and on the city (buildings).  Each unit have headcounts or soldiers that determine their size.  Each battle, soldiers inevitable die according to the stochastic power balance (on the winning side). Loosers die. So the unit is weakened in discrete steps.  A Roman Legion had 6k soldiers. Other units have also a number that represent how many soldiers the unit have. The unit needs to gather population from somewhere to increase their numbers back.   So units have a hc number (and this make sense with workers, settlers and sklaves).
 
@@ -550,15 +550,21 @@ Fortifiation comes from a unit Fortifying.  Defensive units have a bigger weight
 - cw[role]: (-1,1]  city weight for the unit
 - fw (-1,1] fortification weight for the unit.  Horseman for instance is zero.
 
-So when a combat arises:
+**City variables**
+- InCity: inCity ∈ {0,1} : the defense is on a city. 1 if defending from a city, 0 otherwise.
+- (cf): city factor: calculated from the presence of defensive buildings. Between [0,1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
 
-terrain = (bioma & 0xf0) defending unit's tile, base bioma.  It comes from the land of the defender.
-cf  = it comes from the city. Between [0,1] depending on city buildings (For instance 'Fortress' has a value of 0.90)
-Ra = random between [0.97;1.03]
-Rb = random between [0.97;1.03]
-inCity ∈ {0,1} : the defense is on a city
 
-So each unit calculates
+**Terrain variables**
+- terrain: calculated from (bioma & 0xf0) from the defending unit's tile.
+
+**Stochastic variables**
+- Ra = random between [0.97;1.03]
+- Rb = random between [0.97;1.03]
+
+
+**Combat outcome calculation**
+So when a combat arises, each unit calculates:
 
 Sa = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) aw (1 + tw[ATTACK][terrain]) (1 + cw[ATTACK] inCity) Ra
 Sd = (hc)^(0.65) (1 + 0.01 xp) (0.5 + m) dw (1 + tw[DEFEND][terrain]) (1 + cw[DEFEND] inCity) (1 + inCity cf) (1+ fw ff) Rb
@@ -567,21 +573,22 @@ with each unit using its own hc, xp, m, ff and its own weights.
 
 And,
 
-win = arg max (Sa, Sd)         -- on an exact tie the DEFENDER holds
+ win = arg max (Sa, Sd)         -- on an exact tie the DEFENDER holds
 
-D = | Sa - Sd| / (Sa + Sd + e)
+ D = | Sa - Sd| / (Sa + Sd + e)
 
-e = 0.0001
+ e = 0.0001
 
 So, a tie victory pushes D close to zero, and a crushing victory moves it towards 1.
 
-Looser dies and is deleted.
-Winner: winning unit
+>> Looser dies and is deleted.
+>> Winner: winning unit
 
 Finally, winner variables are updated:
 
-winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
-winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
+
+ winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
+ winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
 
 
 # Working issues
