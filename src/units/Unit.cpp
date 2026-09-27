@@ -432,3 +432,8 @@ int Unit::getSize()
     return size;
 }
 
+int Unit::getHeadCount()
+{
+    return hc;
+}
+

@@ -144,6 +144,21 @@ void City::reduceHeadCount(int amount)
         resources[FOOD] = 0;
 }
 
+// The mirror of reduceHeadCount(): the people go into the food stored towards the next
+// population point, and every thresshold they fill becomes a population point (with its
+// working tile), so the headcount grows by exactly `amount`.
+void City::increaseHeadCount(int amount)
+{
+    resources[FOOD] += amount;
+
+    while (resources[FOOD] >= getPopulationThresshold(pop))
+    {
+        resources[FOOD] -= getPopulationThresshold(pop);
+        increaseCityPop();
+        assignWorkingTile();
+    }
+}
+
 void City::setName(const char* name)
 {
     strncpy(this->name,name,256);

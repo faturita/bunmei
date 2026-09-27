@@ -413,14 +413,14 @@ There is a unit called 'Sklave' (in german) which represents slaves captured fro
 Religion is an amazing aspect of society.
 
 | Religion | Origin / Tradition | Tech |
-|---|---|
-| **Dingir** | Ancient Mesopotamian polytheism |
-| **Hinduism** | Ancient India |
-| **Buddhism** | Ancient India |
-| **Judaism** | Ancient Levant |
-| **Christianity** | Roman/Levantine world |
-| **Islam** | Arabia |
-| **Confucianism** | Ancient China |
+|---|---|---|
+| **Dingir** | Ancient Mesopotamian polytheism | Ceremonial Burial |
+| **Hinduism** | Ancient India | Polytheism |
+| **Buddhism** | Ancient India | Mysticism |
+| **Judaism** | Ancient Levant | Monotheism |
+| **Christianity** | Roman/Levantine world | Theology |
+| **Islam** | Arabia | Monarchy |
+| **Confucianism** | Ancient China | Code of Laws |
 
 Religion monuments derive luxury points.
 Culture is spread easily within the same religion boundaries.

@@ -361,6 +361,15 @@ void handleKeypress(unsigned char key, int x, int y) {
             }
         }
         break;
+        case 'J':
+        {
+            CommandOrder co;
+            co.command = Command::JoinCityOrder;
+            co.parameters.spawnid = coordinator.a_u_id;
+            co.parameters.factionid = coordinator.a_f_id;
+            coordinator.push(co);
+        }
+        break;
         case 'D':
         {
             CommandOrder co;

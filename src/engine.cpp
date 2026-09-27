@@ -1937,6 +1937,38 @@ void processCommandOrders()
 
         coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);  //@FIXME: There could be the case that there are no more units.
     }
+    else if (co.command == Command::JoinCityOrder)
+    {
+        Unit *unit = units[co.parameters.spawnid];
+        City *city = findCityAt(unit->latitude, unit->longitude);
+
+        if (unit->faction != co.parameters.factionid)
+        {
+            printf("Faction %d cannot order unit %d, which belongs to faction %d.\n",
+                   co.parameters.factionid, unit->id, unit->faction);
+        }
+        else if (!city || city->faction != unit->faction)
+        {
+            message(year, co.parameters.factionid, "%s can only join a city of its own.", unit->name);
+        }
+        else
+        {
+            // @FIXME: This is a loophole to grow population out of nothing. reduceHeadCount()
+            // never takes a pop 1 city under CITY_BASE_HEADCOUNT, so such a city can build a
+            // Settler (500) for free, join it back here and gain 500 people. Lift that floor
+            // condition (adjusting the constants) so a city cannot go beyond the 500 limit this way.
+            city->increaseHeadCount(unit->getHeadCount());
+
+            message(year, co.parameters.factionid, "%s has joined %s.", unit->name, city->name);
+
+            // Disbanded the same way a Settler is when it founds a city (BuildCityOrder).
+            map.set(unit->latitude,unit->longitude).releaseOwner();
+            units.erase(co.parameters.spawnid);
+            delete unit;
+
+            coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);
+        }
+    }
     else if (co.command == Command::SetUnitDestinationOrder)
     {
         // The unit-existence guard above already ran; ownership is the part still to check,

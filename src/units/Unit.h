@@ -173,6 +173,7 @@ class Unit : public Buildable
     const char* getName();
 
     int getSize();
+    int getHeadCount();
 
 };
 

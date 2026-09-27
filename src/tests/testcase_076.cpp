@@ -1,7 +1,7 @@
 //  TestCase_076.cpp
 //  bunmei
 //
-//  Created by Claude on 27/09/2026
+//  Created by faturita on 27/09/2026
 //
 
 #include <iostream>

@@ -62,6 +62,8 @@ public:
     int  getHeadCount();
     // Takes `amount` people out of the city (e.g. the crew of a unit it just built), see City.cpp.
     void reduceHeadCount(int amount);
+    // Brings `amount` people into the city (e.g. a unit joining it back), see City.cpp.
+    void increaseHeadCount(int amount);
 
     void setName(const char* name);
     void virtual draw();

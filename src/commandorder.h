@@ -151,7 +151,12 @@ enum class Command {
     // AI or a remote player, which is the point -- TechTree::setResearchTarget() already
     // refuses a technology outside that faction's Frontier, but nothing could reach it except
     // the dialog's own callback.
-    SetResearchTargetOrder=38
+    SetResearchTargetOrder=38,
+    // A unit (parameters.spawnid) joins the city it stands on and is disbanded, the way a
+    // Settler is when it founds one: its headcount goes into the city's food storage
+    // (City::increaseHeadCount), growing the city's pop when that fills a thresshold. The
+    // handler checks the unit belongs to parameters.factionid and that the city is theirs.
+    JoinCityOrder=39
 };
 
 // parameters.scope for RegisterDependencyOrder. Deliberately NOT the dee.h context ids: those
