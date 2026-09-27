@@ -142,7 +142,7 @@ int TestCase_070::check(int year)
         for (int lon=-3;lon<=3;lon++)
             if (!(lat==0 && lon==0) && city->workingOn(lat,lon))
                 city->deAssignTile(coordinate(lat,lon));
-    city->pop = 4;                          // allowance 5, centre already takes 1
+    city->setCityPop(4);                          // allowance 5, centre already takes 1
 
     if (city->numberOfWorkingTiles() != 1 || !city->workingOn(0,0))
     { fail("Setup: the city should start working only its centre tile."); return 0; }
@@ -242,7 +242,7 @@ int TestCase_070::check(int year)
         if (map.peek(city->latitude+0, city->longitude+3).f_id_owner != rival->faction)
         { fail("Setup: the rival's centre is not where this test thinks it is."); return 0; }
 
-        city->pop = 8;                      // make sure allowance is NOT what refuses it
+        city->setCityPop(8);                      // make sure allowance is NOT what refuses it
 
         order(Command::AssignTileOrder, 0, 3);
         if (city->workingOn(0,3))

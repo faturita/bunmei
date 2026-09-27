@@ -35,7 +35,7 @@
 // to increase population"). cityscreenui.cpp's drawCityScreen() now draws this line, gated
 // on dee.verifyDep(cityContext(city->id), HALF_POPULATION_CODE) -- the same check
 // bunmei.cpp's endOfYear() already uses to halve the food lost on a population drop -- at
-// the row corresponding to half of getPopulationThresshold(city->pop), in the SAME icon
+// the row corresponding to half of getPopulationThresshold(city->getCityPop()), in the SAME icon
 // grid (itemsPerRow/colsepar from getFoodStorageLayout) the food icons above it are drawn
 // in.
 //
@@ -122,8 +122,8 @@ void TestCase_035::init()
     cities[city->id] = city;
     cityid = city->id;
 
-    city->pop = 5;
-    city->resources[0] = getPopulationThresshold(city->pop)/2;
+    city->setCityPop(5);
+    city->resources[0] = getPopulationThresshold(city->getCityPop())/2;
 
     citynames[0] = std::queue<std::string>();
 
@@ -244,29 +244,29 @@ int TestCase_035::check(int year)
     // @Issue follow-up (issue4.png): right after a real growth tick, all the stored food
     // appeared ABOVE the line instead of the reserve lining up WITH it -- caused by
     // endOfYear() computing the kept reserve off the OLD (pre-growth) pop's thresshold,
-    // while the UI line (drawn against city->pop, already incremented by the time the
+    // while the UI line (drawn against city->getCityPop(), already incremented by the time the
     // screen renders) used the NEW pop's (larger) thresshold instead. Fixed by growing pop
     // BEFORE computing the kept reserve, so both use the same (new) thresshold. The
     // assertion below checks this explicitly: the reserve must equal half of
     // getPopulationThresshold() for the city's CURRENT (post-growth) pop -- exactly what
     // the line renders -- not just half of the pre-growth thresshold.
     {
-        int pop = city->pop;
+        int pop = city->getCityPop();
         int thresshold = getPopulationThresshold(pop);
         city->resources[0] = thresshold + 37; // deliberate overshoot past the thresshold
         endOfYear();
 
-        if (city->pop != pop+1)
+        if (city->getCityPop() != pop+1)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
-            sprintf(buf,"endOfYear() did not grow the city's population (pop stayed %d).", city->pop);
+            sprintf(buf,"endOfYear() did not grow the city's population (pop stayed %d).", city->getCityPop());
             message = std::string(buf);
             return 0;
         }
 
-        int expected = (int)(0.5f * (float)getPopulationThresshold(city->pop));  // NEW (post-growth) pop's thresshold -- what the UI line also uses.
+        int expected = (int)(0.5f * (float)getPopulationThresshold(city->getCityPop()));  // NEW (post-growth) pop's thresshold -- what the UI line also uses.
         if (city->resources[0] != expected)
         {
             isdone = true;

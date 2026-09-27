@@ -535,9 +535,11 @@ void drawCityScreen(int cla, int clo, City *city)
         }
     }
 
-    placeWord(clo + (-10),cla + (-10),4,8,city->name);
+    char citytitle[300];
+    snprintf(citytitle, sizeof(citytitle), "%s(Pop: %d)", city->name, city->getHeadCount());
+    placeWord(clo + (-10),cla + (-10),4,8,citytitle);
 
-    for(int i=0;i<city->pop;i++)
+    for(int i=0;i<city->getCityPop();i++)
     {
         if (i%2==0)
             place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,"assets/assets/city/people_content_m.png");
@@ -671,7 +673,7 @@ void drawCityScreen(int cla, int clo, City *city)
     // population -- colsepar is a float applied per-icon with round() below (not truncated
     // once for the whole row), so the row's last icon lands exactly on the box's edge.
     int foodItemsPerRow; float foodColsepar;
-    getFoodStorageLayout(city->pop, foodItemsPerRow, foodColsepar);
+    getFoodStorageLayout(city->getCityPop(), foodItemsPerRow, foodColsepar);
 
     for(int i=0;i<city->resources[FOOD];i++)
         place((clo+(-10))*16-4+(int)round(foodColsepar*(i%foodItemsPerRow))  ,(cla+(-2))*16-4+7*(i/foodItemsPerRow)  ,7,7,"assets/assets/city/food.png");
@@ -680,14 +682,14 @@ void drawCityScreen(int cla, int clo, City *city)
     // active for this city (a Granary has been built, see Granary.cpp/bunmei.cpp endOfYear),
     // half of the food thresshold needed to grow (City.cpp getPopulationThresshold) is kept
     // instead of lost (bunmei.cpp endOfYear applies this same half, against the SAME --
-    // already post-growth -- city->pop this line reads, so right after a growth tick the
+    // already post-growth -- city->getCityPop() this line reads, so right after a growth tick the
     // kept reserve lines up exactly with this row). The line sits at that half-way point in
     // the same icon grid the food above is drawn in (icons fill top-down as resources[0]
     // grows), so it splits the box into the kept reserve (above the line) and any food
     // accumulated since the last growth (below it).
     if (dee.verifyDep(cityContext(city->id), HALF_POPULATION_CODE))
     {
-        int halfThresshold = getPopulationThresshold(city->pop)/2;
+        int halfThresshold = getPopulationThresshold(city->getCityPop())/2;
         int row = halfThresshold/foodItemsPerRow;
         // x is measured the same way place() measures icon x: the CENTER of the shape, not
         // its left edge. The icon ROW's own visual footprint runs from icon 0's center minus

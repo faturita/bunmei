@@ -29,7 +29,7 @@
 #include "testcase_031.h"
 
 // Food Storage box (@Task: pack food icons more tightly, per City.cpp getPopulationThresshold()).
-// City::resources[0] can climb all the way up to getPopulationThresshold(city->pop) (100*pop,
+// City::resources[0] can climb all the way up to getPopulationThresshold(city->getCityPop()) (100*pop,
 // bunmei.cpp endOfYear) right before the city grows, but the previous layout picked its
 // items-per-row from the CURRENT stock and clamped it to whatever fit the box's fixed 7px
 // spacing -- so once the stock got close to a large thresshold (a city with several
@@ -140,8 +140,8 @@ void TestCase_031::init()
     // A big population, so getPopulationThresshold(pop)=100*pop is large enough that the old
     // fixed-10-items-per-row (and later the items-per-row-clamped-to-the-box) layout would
     // need far more than the box's ~13 rows.
-    city->pop = 25;
-    city->resources[0] = getPopulationThresshold(city->pop); // right at the growth threshold
+    city->setCityPop(25);
+    city->resources[0] = getPopulationThresshold(city->getCityPop()); // right at the growth threshold
 
     citynames[0] = std::queue<std::string>();
 

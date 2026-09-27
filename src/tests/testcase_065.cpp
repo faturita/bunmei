@@ -110,7 +110,7 @@ void TestCase_065::init()
     // Roomy on purpose: assignWorkingTile() refuses past pop+1 worked tiles (and TOGGLES,
     // releasing instead of assigning, when it is full), so the checks below need headroom
     // over whatever the constructor and reSetCities() have already claimed.
-    city->pop = 12;
+    city->setCityPop(12);
     city->buildings.push_back(new Palace());
 
     // Work a ring of tiles. Each worked RIVER tile is TRADE 1 off the tables, and the

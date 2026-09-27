@@ -472,7 +472,8 @@ void savegame(const char* filename)
         out.write(reinterpret_cast<const char*>(&c->faction), sizeof(c->faction));
         out.write(reinterpret_cast<const char*>(&c->latitude), sizeof(c->latitude));
         out.write(reinterpret_cast<const char*>(&c->longitude), sizeof(c->longitude));
-        out.write(reinterpret_cast<const char*>(&c->pop), sizeof(c->pop));
+        int pop = c->getCityPop();
+        out.write(reinterpret_cast<const char*>(&pop), sizeof(pop));
         out.write(reinterpret_cast<const char*>(&c->shields), sizeof(c->shields));
         out.write(reinterpret_cast<const char*>(&c->food), sizeof(c->food));
         out.write(reinterpret_cast<const char*>(&c->foundedyear), sizeof(c->foundedyear));
@@ -626,7 +627,9 @@ void loadCities(std::istream& in)
         in.read(reinterpret_cast<char*>(&c->faction), sizeof(c->faction));
         in.read(reinterpret_cast<char*>(&c->latitude), sizeof(c->latitude));
         in.read(reinterpret_cast<char*>(&c->longitude), sizeof(c->longitude));
-        in.read(reinterpret_cast<char*>(&c->pop), sizeof(c->pop));
+        int pop;
+        in.read(reinterpret_cast<char*>(&pop), sizeof(pop));
+        c->setCityPop(pop);
         in.read(reinterpret_cast<char*>(&c->shields), sizeof(c->shields));
         in.read(reinterpret_cast<char*>(&c->food), sizeof(c->food));
         in.read(reinterpret_cast<char*>(&c->foundedyear), sizeof(c->foundedyear));
@@ -638,7 +641,7 @@ void loadCities(std::istream& in)
         c->name[name_len] = '\0'; // Null-terminate the string
 
         printf("Loaded city: %s (ID: %d, Faction: %d, Location: (%d, %d), Pop: %d)\n",
-               c->name, c->id, c->faction, c->latitude, c->longitude, c->pop);
+               c->name, c->id, c->faction, c->latitude, c->longitude, c->getCityPop());
 
         cities[c->id] = c;
         citynames[c->faction].pop(); // Remove the used name

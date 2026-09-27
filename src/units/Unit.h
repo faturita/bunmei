@@ -42,7 +42,8 @@ class Unit : public Buildable
 {
     protected:
         int moves;
-        int hc;             // Headcount, number of individuals in the unit.  Legion 6k, Marine 10k, Workers 200k.
+        int size;           // Unit nominal headcount. Legion 6k, Marine 10k, Workers 200k.
+        int hc;             // Variable Headcount, number of individuals in the unit. Always hc <= size.
 
         int visionRange;
 
@@ -170,6 +171,8 @@ class Unit : public Buildable
 
     int getId();
     const char* getName();
+
+    int getSize();
 
 };
 

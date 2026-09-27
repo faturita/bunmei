@@ -206,7 +206,7 @@ void endOfYear()
 
         // @FIXME: verify that there is only one city with a palace and that city reset it as the capital.
 
-        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->pop,c->resources[FOOD]);
+        printf("City %s\t\t\thas %02d pop and %03d food\n",c->name,c->getCityPop(),c->resources[FOOD]);
         // Go through all the map locations and gather all the resources.
         for(int r_id : ALL_CORE_RESOURCES)
         {
@@ -306,6 +306,8 @@ void endOfYear()
                     }
 
                     units[unit->id] = unit;
+
+                    c->reduceHeadCount(unit->getSize());
                 }
                 else
                 {
@@ -332,22 +334,22 @@ void endOfYear()
         {
             popFactor = 0.5f;
         }
-        if (c->resources[FOOD]>= getPopulationThresshold(c->pop))
+        if (c->resources[FOOD]>= getPopulationThresshold(c->getCityPop()))
         {
-            c->pop++;
+            c->increaseCityPop();
 
-            c->resources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->pop));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
+            c->resources[FOOD] = (int)(popFactor * (float)getPopulationThresshold(c->getCityPop()));  // Keep half of the food required for the NEXT growth (the new pop's thresshold, matching the Food Storage UI's line -- which is always drawn against the CURRENT pop) if the granary is present, otherwise it is a full loss.
 
             c->assignWorkingTile();
         } else
         if (c->resources[FOOD]<0)  // Out of food, reduce population accordingly.
         {
             c->resources[FOOD] = 0;
-            if (c->pop>1)
+            if (c->getCityPop()>1)
             {
-                c->pop--;
+                c->decreaseCityPop();
                 c->deAssignWorkingTile();
-            } else if (c->pop == 1)
+            } else if (c->getCityPop() == 1)
             {
                 // The city is abandoned.
                 todelete.push_back(c->id);
@@ -365,7 +367,7 @@ void endOfYear()
         // The city is abandoned.
         message(year, c->faction, "%s has been abandoned.",c->name);
 
-        c->pop = 0;
+        c->setCityPop(0);
         c->deAssignWorkingTile();
         map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
         cities.erase(c->id);
@@ -884,7 +886,7 @@ void reSetCities()
     // Update all the time if the city is or not defended...
     for(auto& [cid,c]:cities)
     {
-        factions[c->faction]->pop += c->pop;
+        factions[c->faction]->pop += c->getCityPop();
         c->noDefense(); // Set the city as defenseless, and then check if there are units defending it.
 
         for(auto& [k, u] : units)

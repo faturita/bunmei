@@ -10,36 +10,38 @@ extern std::unordered_map<int,int> commodityxresource;
 extern ImprovementResources improvementresources;
 
 
-// 1-100 (the accumulated amount of food required for the next population point)
-// 2-200 (so now the population is 100 and it requires 200 food for the next point)
-// 3-300 (so now the population is 300 and it requires 300 food for the next point)
-// 4-400 (so now the population is 600 and it requires 400 food for the next point)
-// 5-500 (so now the population is 1000 and it requires 500 food for the next point)
-// 6-600 (so now the population is 1500 and it requires 600 food for the next point)
-// 7-700 (so now the population is 2100 and it requires 700 food for the next point)
-// 8-800 (so now the population is 2800 and it requires 800 food for the next point)
-// 9-900 (so now the population is 3600 and it requires 900 food for the next point)
-// 10-1000 (so now the population is 4500 and it requires 1000 food for the next point)
-// 11-1100 (so now the population is 5500 and it requires 1100 food for the next point)
-// 12-1200 (so now the population is 6600 and it requires 1200 food for the next point)
-// 13-1300 (so now the population is 7800 and it requires 1300 food for the next point)
-// 14-1400 (so now the population is 9100 and it requires 1400 food for the next point)
-// 15-1500 (so now the population is 10500 and it requires 1500 food for the next point)
-// 16-1600 (so now the population is 12000 and it requires 1600 food for the next point)
-// 17-1700 (so now the population is 13600 and it requires 1700 food for the next point)
-// 18-1800 (so now the population is 15300 and it requires 1800 food for the next point)
-// 19-1900 (so now the population is 17100 and it requires 1900 food for the next point)
-// 20-2000 (so now the population is 19000 and it requires 2000 food for the next point)
-// 21-2100 (so now the population is 21000 and it requires 2100 food for the next point)
-// 22-2200 (so now the population is 23100 and it requires 2200 food for the next point)
-// 23-2300 (so now the population is 25300 and it requires 2300 food for the next point)
-// 24-2400 (so now the population is 27600 and it requires 2400 food for the next point)
-// 25-2500 (so now the population is 30000 and it requires 2500 food for the next point)
-// 26-2600 (so now the population is 32500 and it requires 2600 food for the next point)
-// 27-2700 (so now the population is 35100 and it requires 2700 food for the next point)
-// 28-2800 (so now the population is 37800 and it requires 2800 food for the next point)
-// 29-2900 (so now the population is 40600 and it requires 2900 food for the next point)
-// 30-3000 (so now the population is 43500 and it requires 3000 food for the next point)
+// Each line is pop-thresshold. A city is founded with CITY_BASE_HEADCOUNT (500) people, which
+// is also the least it can ever have; every population point adds the food it took to reach it.
+// 1-100 (so now the population is 500 and it requires 100 food for the next point)
+// 2-200 (so now the population is 600 and it requires 200 food for the next point)
+// 3-300 (so now the population is 800 and it requires 300 food for the next point)
+// 4-400 (so now the population is 1100 and it requires 400 food for the next point)
+// 5-500 (so now the population is 1500 and it requires 500 food for the next point)
+// 6-600 (so now the population is 2000 and it requires 600 food for the next point)
+// 7-700 (so now the population is 2600 and it requires 700 food for the next point)
+// 8-800 (so now the population is 3300 and it requires 800 food for the next point)
+// 9-900 (so now the population is 4100 and it requires 900 food for the next point)
+// 10-1000 (so now the population is 5000 and it requires 1000 food for the next point)
+// 11-1100 (so now the population is 6000 and it requires 1100 food for the next point)
+// 12-1200 (so now the population is 7100 and it requires 1200 food for the next point)
+// 13-1300 (so now the population is 8300 and it requires 1300 food for the next point)
+// 14-1400 (so now the population is 9600 and it requires 1400 food for the next point)
+// 15-1500 (so now the population is 11000 and it requires 1500 food for the next point)
+// 16-1600 (so now the population is 12500 and it requires 1600 food for the next point)
+// 17-1700 (so now the population is 14100 and it requires 1700 food for the next point)
+// 18-1800 (so now the population is 15800 and it requires 1800 food for the next point)
+// 19-1900 (so now the population is 17600 and it requires 1900 food for the next point)
+// 20-2000 (so now the population is 19500 and it requires 2000 food for the next point)
+// 21-2100 (so now the population is 21500 and it requires 2100 food for the next point)
+// 22-2200 (so now the population is 23600 and it requires 2200 food for the next point)
+// 23-2300 (so now the population is 25800 and it requires 2300 food for the next point)
+// 24-2400 (so now the population is 28100 and it requires 2400 food for the next point)
+// 25-2500 (so now the population is 30500 and it requires 2500 food for the next point)
+// 26-2600 (so now the population is 33000 and it requires 2600 food for the next point)
+// 27-2700 (so now the population is 35600 and it requires 2700 food for the next point)
+// 28-2800 (so now the population is 38300 and it requires 2800 food for the next point)
+// 29-2900 (so now the population is 41100 and it requires 2900 food for the next point)
+// 30-3000 (so now the population is 44000 and it requires 3000 food for the next point)
 int getPopulationThresshold(int pop)
 {
     return 100*pop;
@@ -71,6 +73,7 @@ City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
 
     isCapital = false;
     pop = 1;
+    hc = CITY_BASE_HEADCOUNT;
 
     id = pid;
     faction = pfaction;
@@ -82,6 +85,63 @@ City::City(Map *mn, int pfaction, int pid, int platitude, int plongitude)
     map->peek(latitude+0, longitude+0).setCityOwnership(faction, id);
     assignWorkingTile();
 
+}
+
+int City::getCityPop()
+{
+    return pop;
+}
+
+void City::increaseCityPop()
+{
+    pop++;
+}
+
+void City::decreaseCityPop()
+{
+    pop--;
+}
+
+void City::setCityPop(int p)
+{
+    pop = p;
+}
+
+// Headcount follows the table above getPopulationThresshold(): CITY_BASE_HEADCOUNT, plus the
+// people who reached the current pop (the sum of every thresshold below it), plus the food
+// stored towards the next point, so it climbs linearly with food between two population
+// points. A Granary needs nothing here: it leaves the food at half the thresshold after
+// growing, so hc starts 50% up, and it drops below that line with the food when there is a
+// shortage.
+int City::getHeadCount()
+{
+    hc = CITY_BASE_HEADCOUNT;
+    for (int p=1;p<pop;p++)
+        hc += getPopulationThresshold(p);
+
+    hc += std::max(0, std::min(resources[FOOD], getPopulationThresshold(pop)));
+    hc = std::max(CITY_BASE_HEADCOUNT, hc);                     // Never under the founding headcount.
+    return hc;
+}
+
+// The people come out of the food stored towards the next population point. When that is not
+// enough, the city loses a population point and the food is refilled with that point's
+// thresshold, as many times as needed -- so the headcount drops by exactly `amount`. A pop 1
+// city cannot go under CITY_BASE_HEADCOUNT: the food stops at 0 and whatever is missing is
+// simply not taken (a Settler built at pop 1 leaves the city at its founding headcount).
+void City::reduceHeadCount(int amount)
+{
+    resources[FOOD] -= amount;
+
+    while (resources[FOOD] < 0 && pop > 1)
+    {
+        decreaseCityPop();
+        deAssignWorkingTile();
+        resources[FOOD] += getPopulationThresshold(pop);
+    }
+
+    if (resources[FOOD] < 0)
+        resources[FOOD] = 0;
 }
 
 void City::setName(const char* name)

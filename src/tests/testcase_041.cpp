@@ -118,7 +118,7 @@ void TestCase_041::init()
 
     City *city = new City(&map, 0, getNextCityId(), 0, 0);
     city->setName("Kattegate");
-    city->pop = 3;
+    city->setCityPop(3);
 
     // Centre (0,0) is already working from the constructor. Explicitly assign 3 more,
     // deterministic and collision-free, to reach pop+1=4 total.
@@ -128,7 +128,7 @@ void TestCase_041::init()
 
     cities[city->id] = city;
     cityId = city->id;
-    expectedWorkingTiles = city->pop + 1;
+    expectedWorkingTiles = city->getCityPop() + 1;
 
     if (city->numberOfWorkingTiles() != expectedWorkingTiles)
     {

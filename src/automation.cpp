@@ -541,7 +541,7 @@ void autoPlayerCities()
         {
             if (c->productionQueue.size()==0)
             {
-                if (c->pop>1)
+                if (c->getCityPop()>1)
                 {
                     // Populate the world first: as long as there is room for a new city
                     // on this city's landmass, keep building settlers.

@@ -12,6 +12,8 @@ Unit::Unit()
     moves = 1;
     visionRange = 1;      // one tile around itself, which is what every unit saw before
     target = coordinate(0,0);
+    size = 100;   // Basic size of a Warrior unit.
+    hc = size;
 }
 
 void Unit::draw()
@@ -423,5 +425,10 @@ int Unit::getConsumptionRate(int r_id)
     if (r_id == COINS)
         return 1;
     return 0; // Base Unit has no consumption rate for other resources
+}
+
+int Unit::getSize()
+{
+    return size;
 }
 

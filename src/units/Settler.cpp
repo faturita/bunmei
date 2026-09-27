@@ -1,6 +1,7 @@
 #include "../openglutils.h"
 #include "../map.h"
 #include "../Faction.h"
+#include "../City.h"
 #include "Settler.h"
 
 
@@ -13,6 +14,8 @@ Settler::Settler()
     moves = 1;
     dw = 0;
     aw = 0;
+    size = CITY_BASE_HEADCOUNT;
+    hc = size;
 }
 
 int Settler::getSubType()

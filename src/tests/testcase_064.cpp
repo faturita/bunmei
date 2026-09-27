@@ -115,7 +115,7 @@ void TestCase_064::init()
         City *city = new City(&map, EXPECTED[i].faction, getNextCityId(),
                               EXPECTED[i].lat, EXPECTED[i].lon);
         city->setName(EXPECTED[i].name);
-        city->pop = 2;
+        city->setCityPop(2);
         if (EXPECTED[i].capital)
             city->setCapitalCity();
         cities[city->id] = city;

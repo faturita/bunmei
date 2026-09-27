@@ -126,9 +126,9 @@ int TestCase_069::check(int year)
     // reSetCities()/the constructor leave the city working its entitled tiles, so the order
     // must be a no-op here. This is the half that catches an over-eager implementation.
     {
-        city->pop = 4;
+        city->setCityPop(4);
         const int before = city->numberOfWorkingTiles();
-        if (before > city->pop + 1)
+        if (before > city->getCityPop() + 1)
         { fail("Setup: the city already works more tiles than its population allows."); return 0; }
 
         pushDeAssign();
@@ -157,7 +157,7 @@ int TestCase_069::check(int year)
         if (worked < 4)
         { fail("Setup: could not get the city working enough tiles to be over its allowance."); return 0; }
 
-        city->pop = 1;                        // allowance is now pop+1 = 2, well below `worked`
+        city->setCityPop(1);                        // allowance is now pop+1 = 2, well below `worked`
 
         pushDeAssign();
         processCommandOrders();
@@ -180,11 +180,11 @@ int TestCase_069::check(int year)
         }
 
         const int settled = city->numberOfWorkingTiles();
-        if (settled > city->pop + 1)
+        if (settled > city->getCityPop() + 1)
         {
             char buf[200];
             snprintf(buf,sizeof(buf),"After repeated orders the city still works %d tiles, more than its pop+1 = %d.",
-                     settled, city->pop + 1);
+                     settled, city->getCityPop() + 1);
             fail(buf); return 0;
         }
         if (settled == 0)
@@ -227,7 +227,7 @@ int TestCase_069::check(int year)
                 if (!(lat==0 && lon==0) && city->workingOn(lat,lon))
                     city->deAssignTile(coordinate(lat,lon));
 
-        city->pop = 6;                        // room to assign the ring below
+        city->setCityPop(6);                        // room to assign the ring below
         const int axis[][2] = { {1,0}, {0,1}, {2,0}, {0,-1}, {-1,0} };
         for (const auto& t : axis)
             city->assignTile(coordinate(t[0], t[1]));
@@ -240,7 +240,7 @@ int TestCase_069::check(int year)
                 if (city->workingOn(lat,lon) && lat != 0 && lon != 0)
                 { fail("Setup: an off-axis tile is worked, which the old guard COULD release -- the case would not be proven."); return 0; }
 
-        city->pop = 1;                        // allowance 2, well under `worked`
+        city->setCityPop(1);                        // allowance 2, well under `worked`
 
         pushDeAssign();
         processCommandOrders();

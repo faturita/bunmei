@@ -157,7 +157,7 @@ int TestCase_053::check(int year)
         fail("getConsumptionRate(COINS) is non-zero -- building upkeep must NOT be folded into it.");
         return 0;
     }
-    if (city->getConsumptionRate(FOOD) != city->pop * 2)
+    if (city->getConsumptionRate(FOOD) != city->getCityPop() * 2)
     {
         fail("getConsumptionRate(FOOD) changed -- should still be pop*2.");
         return 0;

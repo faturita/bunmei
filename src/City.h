@@ -10,6 +10,9 @@
 #include "mapmodel.h"
 #include "Faction.h"
 
+// People in a newly founded city, and the least a city can ever hold (see getHeadCount).
+#define CITY_BASE_HEADCOUNT 500
+
 int getPopulationThresshold(int pop);
 
 class City
@@ -19,6 +22,9 @@ protected:
 
     bool isCapital;
     bool isDefended=false;
+
+    int pop;
+    int hc;                                                     // Headcount, see getHeadCount().
 
     Map *map;
 
@@ -41,12 +47,21 @@ public:
     int longitude;
     int faction;
     int id;
-    int pop;
     char name[256];
     int foundedyear;
 
     int shields;
     int food;
+
+    int  getCityPop();
+    void increaseCityPop();
+    void decreaseCityPop();
+    void setCityPop(int p);                                     // Restoring a saved city, or a testcase scenario.
+    // The people actually living in the city: every food point stored towards the next
+    // population point is one more inhabitant (see getPopulationThresshold).
+    int  getHeadCount();
+    // Takes `amount` people out of the city (e.g. the crew of a unit it just built), see City.cpp.
+    void reduceHeadCount(int amount);
 
     void setName(const char* name);
     void virtual draw();

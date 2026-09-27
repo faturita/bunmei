@@ -242,7 +242,7 @@ int TestCase_075::check(int year)
 
         // Room to work it: assignTile() refuses past the pop+1 allowance, and a fresh city
         // starts already at it (centre + the one the constructor picks).
-        city->pop = 6;
+        city->setCityPop(6);
 
         if (!city->workingOn(1,0)) city->assignTile(coordinate(1,0));
         if (!city->workingOn(1,0))

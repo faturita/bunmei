@@ -307,6 +307,14 @@ Resources are accumulated in each city, including coins.  Coins are used to main
 
 Population represents humans, so they are handled like human population.  So the basic rule is to increase population when food storage is completed,but there is a logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  Slakes can join a city and work without consuming food.
 
+* Settlers have a size of 500 which represent the amount of people in the Settler.  
+* When a city is founded those 500 are the "backbone" of the city and they will represent the initial 500 that populate the city.
+* When a unit is spawned from a city, like a Warrior, it takes Warrior.size amount of
+headcount from the city, represented in food that is taken from city storage (the city will
+require Warrior.size more food to increase population). 
+* Pop=1 cities are allowed to spawn units as long as unit.size >= city.hc. And that will not reduce city.hc beyond the 500 cap
+* Starvation in endOfYear(): reduce the population in 1 and set the food in zero.  This is the expected behaviour.
+
 From here the current value of city->pop is derived only by discretizing this.
 
 * City->hc represent the real value of population and this will appear just after the city name on the cityscreeUI (POP: 39432).  city->pop will show icons as it is right now.
