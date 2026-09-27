@@ -305,7 +305,23 @@ Resources are accumulated in each city, including coins.  Coins are used to main
 
 ## Population
 
-Population represents humans, so they are handled like human population.  So the basic rule of increase population when food storage is completed, there is a logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  This also opens the possibility of indentured servants, slaves and so on.
+Population represents humans, so they are handled like human population.  So the basic rule is to increase population when food storage is completed,but there is a logistic growth equation that is proportional to current population, according to food availability.  Settlers are moving population, the same as workers.  Workers work faster according to their size.  Slakes can join a city and work without consuming food.
+
+From here the current value of city->pop is derived only by discretizing this.
+
+* City->hc represent the real value of population and this will appear just after the city name on the cityscreeUI (POP: 39432).  city->pop will show icons as it is right now.
+* City->pop is a discretization of this value.  The growing of city, tile working and so on, stays the same.
+* The numbers city->hc should depend on the amount of food that is stored in the city.  So when it has more food it has a bigger population.  So the amount of food represents the population that the city has from the base give by current city->pop + the extra amount of 'hc' that gives the current population value.
+* If people die, the amount of food is reduced.  If there is no enough food and food starts to dissapear that means people is dying.
+* By doing this the current mechanics will stays the same, with the extra consideration that now there is 'hc' value that is present.  And that each time a new unit is created, it will consume hc (will consume food).
+
+Eventually, the desired spec for the future (not current spec):
+
+So population will grow eventually with a logistic equation
+
+```
+(d(hc)/dt = r (hc) (1 - (hc)/K)):
+```
 
 ## Science
 

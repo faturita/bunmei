@@ -45,6 +45,7 @@ enum BuildableId {
     BUILDABLE_GALLEY       = 16,
     BUILDABLE_GALLEON      = 17,
     BUILDABLE_SPY          = 18,
+    BUILDABLE_SLAKE        = 19,
 
     // Buildings
     BUILDABLE_PALACE       = 40,

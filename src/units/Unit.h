@@ -42,10 +42,8 @@ class Unit : public Buildable
 {
     protected:
         int moves;
+        int hc;             // Headcount, number of individuals in the unit.  Legion 6k, Marine 10k, Workers 200k.
 
-        // How far this unit sees: the radius, in tiles, of the square it clears from the fog
-        // of war for its own faction (engine.cpp:revealAround). 1 is the ordinary unit's
-        // one-tile ring; a Scout sees further. Set in each unit's constructor, same as moves.
         int visionRange;
 
         bool autoMode = false;
