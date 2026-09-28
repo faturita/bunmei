@@ -408,6 +408,8 @@ So these government type affect economy, society, production and so on.
 
 There is a unit called 'Sklave' (in german) which represents slaves captured from capturing enemy units.  They can be added into a city and put to work on tiles without consuming food (free labor).
 
+Regardless of the unit headcount, when a Sklave population join a city, it adds cit->pop (so the population increases accordingly to that) and a new type of population is added to the city pop, a Sklave citizen which works a tile without consuming food.
+
 ### Religion
 
 Religion is an amazing aspect of society.
@@ -434,9 +436,12 @@ that will determine the tile natural ownership.
 
 So if normalized temperature[faction] > 0.5, then tile.f_id = faction.  The faction owns the tile even if there is no army there.   Armies naturally override that.
 
+
+
+**Outcomes**
 ```
 If a city->temperature[faction] > 0.5 and city->unhappy > 0.5 the city flips to the faction.
-If a city->poverty > 0.3 -> Depete storages
+If a city->poverty > 0.3 -> Deplete storages
     city->poverty > 0.5 -> Buildings destroyed randomly
     city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
 ```
@@ -555,7 +560,7 @@ Terrain and city have additional weights that depend on the terrain itself and o
 So, the model looks like this:
 
 **Unit Variables**
-- Headcount (hc \in [300,10000]) clamped at 300.
+- Headcount (hc \in [100,10000]) clamped at 100.
 - Experience (xp \in [0,100]) 
 - Morale (m \in [0,1])
 - Fortification level ff \in [0,1]

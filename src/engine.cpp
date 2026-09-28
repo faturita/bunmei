@@ -984,6 +984,10 @@ void completePendingMove(Unit* unit)
     if (entry == LandEntry::ENTER_AND_CLAIM)
         map.set(unit->latitude, unit->longitude).setOwnedBy(unit->faction);
 
+    // endOfYear() runs updateFogOfWar() BEFORE completing pending moves, so a unit arriving
+    // here has to reveal for itself or it stays blind until the following year.
+    revealAround(unit);
+
     printf("Pending move completed: unit %d arrived at (%d,%d)\n", unit->id, t.lat, t.lon);
 }
 
