@@ -430,17 +430,73 @@ Diplomacy is easier and follow the path of religion
 
 ### Culture
 
-Culture is generated on each city and works like the heat diffusion.  So cities are heat sources and the tiles work spreading 
-the culture and getting cold.  But the model allows several different types of heat to spread and depending on the heat type
-that will determine the tile natural ownership.
+Culture is generated in each city and spreads over the land like the light of a lamp: strong near the
+city, weaker the farther away, and the terrain between them matters.  Every year each city's CULTURE
+becomes the strength of its source, and every land tile feels the sum of all the cities of each
+faction, falling with the square of the distance.  The distance is the one units use to move, so
+mountains, forests and lakes slow culture down, and roads and railroads carry it further: building
+infrastructure spreads soft power.
 
-So if normalized temperature[faction] > 0.5, then tile.f_id = faction.  The faction owns the tile even if there is no army there.   Armies naturally override that.
+**Constants**
+* CULTURE_K: how strongly culture weakens with distance.  > 0.
+* CULTURE_THRESHOLD: least temperature a faction needs on a tile before culture considers the tile.  > 0.
+* CULTURE_ALLEGIANCE: 0.5.  A faction must have allegiance strictly above it to own a tile by culture.
 
+**Variables**
+* Qc = city->resources[CULTURE]: the CULTURE city c produced this year.  CULTURE is no longer a stockpile:
+  it is spent every year on spreading culture and reset to 0.
+* d(c,t): the cheapest path from city c to tile t, with the same step costs units pay (travelCost():
+  terrain, roads, railroads), over the 8 neighbours, on LAND tiles only.  Only the land counts: foreign
+  ownership, closed borders (diplomacy) and units, of any faction, do not block or lengthen the path.
+* tile.temperature[f]: float >= 0, per LAND tile and per faction.  Recalculated every year, never stored.
+* tile.allegiance[f]: float in [0,1], per LAND tile and per faction.  Recalculated every year, never stored.
+* tile.f_id_owner, tile.c_id_owner, tile.owners: the EXISTING land ownership.  Unchanged in structure and rules.
+
+**Each year, in endOfYear(), after every city has converted TRADE into CULTURE**
+
+1. Temperature.  Start every LAND tile at temperature[f] = 0 for every faction.  For each city c of faction f with Qc > 0:
+   * Reach: Rc = sqrt(Qc / (CULTURE_K * CULTURE_THRESHOLD)) - 1.  Past Rc the city can no longer lift a tile over
+     the threshold by itself, so the path search stops there.
+   * For every LAND tile t with d(c,t) <= Rc:
+       temperature[t][f] += Qc / (CULTURE_K * (d(c,t) + 1)^2)
+     (+1 so the city's own tile is Qc / CULTURE_K instead of infinite.)
+   * Then city->resources[CULTURE] = 0.
+   Tiles reached by several cities of the same faction feel all of them (the contributions add up).
+   The order in which cities are processed does not matter.
+2. Allegiance, per LAND tile:
+   * if temperature[t][f] <= CULTURE_THRESHOLD for every faction f: allegiance[t][f] = 0 for all f (free land).
+   * else: allegiance[t][f] = temperature[t][f] / SUM over g of temperature[t][g].
+   At most one faction can have allegiance above 0.5.
+3. Culture moves, per LAND tile, like an army.  Skip the tile if a city stands on it or any unit is on it.
+   * Culture moves in: if a faction f has allegiance[t][f] > CULTURE_ALLEGIANCE and f_id_owner != f,
+     do exactly what an army moving into the tile does: setOwnedBy(f).
+   * Culture moves out: if no faction has allegiance > CULTURE_ALLEGIANCE, the tile is not worked by a city
+     (c_id_owner == UNASSIGNED_LAND) and f_id_owner != FREE_LAND, do exactly what an army leaving the tile
+     does: releaseOwner().
+
+**Consequences worth knowing**
+* The area a city covers grows in proportion to its CULTURE (reach grows with its square root).
+* Borders between factions sit where d_B / d_A = sqrt(Q_B / Q_A): a weaker neighbour keeps its home ground.
+* Lakes, seas and mountains shelter land from foreign culture; a railroad carries culture far along it.
+* Culture spreads into foreign land and past armies: only the terrain decides how far it reaches.
+* There is no creeping wave: culture reacts in the same year.  A new city's area appears in full the year
+  after it is founded, and a city that gains or loses CULTURE changes its area at once.
+
+**Everything else stays as it is**
+* Land ownership, movement (evaluateLandEntry()), diplomacy, cities working tiles and the 'l' view keep their
+  current code and rules.  Culture only touches ownership through setOwnedBy()/releaseOwner() in step 3.
+* A unit leaving a tile releases it as today.  If culture still has allegiance there, culture moves back in
+  at the next yearly step.
+* Savegames store nothing new: temperature and allegiance are recalculated from the cities, and land
+  ownership is already saved in the map file.
+* City tiles never change hands through culture.  A city flips only when allegiance[city tile][f] > 0.5 AND
+  city->Indigent > 0.5, which is inactive until Prosperity exists.
+* Factions are the current fixed list.
 
 
 **Outcomes**
 ```
-If a city->temperature[faction] > 0.5 and city->unhappy > 0.5 the city flips to the faction.
+If a city->allegiance[faction] > 0.5 and city->Indigent > 0.5 the city flips to the faction.
 If a city->poverty > 0.3 -> Deplete storages
     city->poverty > 0.5 -> Buildings destroyed randomly
     city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
@@ -457,7 +513,7 @@ Luxury points 'heat' the city 'prosperity' bar which has two values, the 'Subsis
 If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
 
 
-**Remaining Questions** 
+**Remaining Open Questions without resolution (will be resolved in the future)** 
 
 * How to avoid settling a lot of cities, penalizing a high number of cities >> I can use culture to merge two cities into one.
 * How to handle population growth, happiness, culture, population education >> Luxuries will represent pop economic development
