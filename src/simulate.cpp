@@ -78,6 +78,8 @@ bool preloadmap;
 
 bool loadgame;
 char filegame[256];
+// Where every processed CommandOrder is recorded (engine.cpp:recordCommandOrder).
+char matchlog[256] = "saves/match.log";
 
 bool autoEndOfTurn = true;
 bool switchVisibleFaction = false;

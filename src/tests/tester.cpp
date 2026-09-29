@@ -61,8 +61,13 @@ void loadWorldModelling()
 
 }
 
+extern char matchlog[256];
+
 void initWorldModelling()
 {
+    // Testcases record their commands under tmp/, not in the project root.
+    strcpy(matchlog, "tmp/match.log");
+
     t = pickTestCase(0);
 
     t->init();

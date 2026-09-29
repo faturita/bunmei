@@ -46,8 +46,13 @@ using boost::phoenix::arg_names::arg1;
 #include "engine.h"
 #include "tiles.h"
 #include "diplomacy.h"
+#include "dee.h"
+#include "buildable.h"
+#include "coordinator.h"
 
 extern DiplomacyTable diplomacy;
+extern DependencyEvaluationEngine dee;
+extern Coordinator coordinator;
 
 struct CoordinateVertex {
     int lat;
@@ -403,7 +408,16 @@ bool goToNearest(Unit* unit, const std::vector<coordinate> &candidates)
     if (bestdist == std::numeric_limits<double>::max())
         return false;
 
-    unit->goTo(best.lat, best.lon);
+    // Through the command queue, like every other change to the model. The destination is set
+    // when the queue is processed, later this same frame -- so unit->isAuto() is still false
+    // for the rest of this call; callers use the return value, not isAuto(), to know.
+    CommandOrder co;
+    co.command = Command::SetUnitDestinationOrder;
+    co.parameters.spawnid = unit->id;
+    co.parameters.factionid = unit->faction;
+    co.parameters.latitude = best.lat;
+    co.parameters.longitude = best.lon;
+    coordinator.push(co);
     return true;
 }
 
@@ -545,31 +559,47 @@ void autoPlayerCities()
                 {
                     // Populate the world first: as long as there is room for a new city
                     // on this city's landmass, keep building settlers.
+                    // Only what this faction can build: the same DEE rule populateCityBuildables()
+                    // applies, which is what ChangeProductionOrder checks against.
+                    auto canBuild = [&](int id)
+                    {
+                        BuildableFactory* bf = buildableFactoryById(id);
+                        return bf != nullptr && dee.verifyDepAll(factionContext(c->faction), bf->getDependencyCodes());
+                    };
+
                     bool found = false;
                     findCitySpot(c->getCoordinate(), c->faction, found);
 
-                    if (found && getNumberOfCities(c->faction)<50)
+                    int choice = BUILDABLE_NONE;
+                    if (found && getNumberOfCities(c->faction)<50 && canBuild(BUILDABLE_SETTLER))
                     {
-                        c->productionQueue.push(new SettlerFactory());
+                        choice = BUILDABLE_SETTLER;
                     }
                     else
                     {
-                        int rand = getRandomInteger(0,3);
-                        switch (rand)
-                        {
-                            case 0:
-                                c->productionQueue.push(new WarriorFactory());
-                                break;
-                            case 1:
-                                c->productionQueue.push(new HorsemanFactory());
-                                break;
-                            case 2:
-                                c->productionQueue.push(new SwordmanFactory());
-                                break;
-                            default:
-                                c->productionQueue.push(new ArcherFactory());
-                                break;
-                        }
+                        std::vector<int> military;
+                        for (int id : { BUILDABLE_WARRIOR, BUILDABLE_HORSEMAN, BUILDABLE_SWORDMAN, BUILDABLE_ARCHER })
+                            if (canBuild(id))
+                                military.push_back(id);
+                        if (!military.empty())
+                            choice = military[getRandomInteger(0, (int)military.size() - 1)];
+                    }
+
+                    if (choice != BUILDABLE_NONE)
+                    {
+                        // Through the command queue: the city's buildable list is filled first,
+                        // then the choice is checked against it (both handled in order, later
+                        // this frame).
+                        CommandOrder populate;
+                        populate.command = Command::PopulateBuildableOrder;
+                        populate.parameters.cityid = c->id;
+                        coordinator.push(populate);
+
+                        CommandOrder change;
+                        change.command = Command::ChangeProductionOrder;
+                        change.parameters.cityid = c->id;
+                        change.parameters.selectedbuildableid = choice;
+                        coordinator.push(change);
                     }
                 }
             }
@@ -610,7 +640,13 @@ void autoPlayerMoveUnits()
 
                     if (found)
                     {
-                        s->goTo(spot.lat, spot.lon);
+                        CommandOrder co;
+                        co.command = Command::SetUnitDestinationOrder;
+                        co.parameters.spawnid = s->id;
+                        co.parameters.factionid = s->faction;
+                        co.parameters.latitude = spot.lat;
+                        co.parameters.longitude = spot.lon;
+                        coordinator.push(co);
                     }
                     else
                     {
@@ -667,6 +703,10 @@ void autoPlayerMoveUnits()
             // and pick the CLOSEST reachable enemy with a single Dijkstra run:
             // one goTo per enemy unit on every tick froze the game (sub-1 FPS) as
             // soon as a military unit was active with many units alive.
+            // goToNearest() only QUEUES the destination (isAuto() stays false until the queue
+            // is processed), so this remembers that one was already given this call.
+            bool targeted = false;
+
             if (Swordman* w = dynamic_cast<Swordman*>(units[coordinator.a_u_id]))
             if (!unit->isAuto())
             {
@@ -677,7 +717,7 @@ void autoPlayerMoveUnits()
                     if (u->faction != unit->faction && !u->isDying())
                         enemies.push_back(u->getCoordinate());
 
-                goToNearest(unit, enemies);
+                targeted = goToNearest(unit, enemies);
             }
 
             if (Horseman* w = dynamic_cast<Horseman*>(units[coordinator.a_u_id]))
@@ -690,10 +730,10 @@ void autoPlayerMoveUnits()
                     if (u->faction != unit->faction && !u->isDying())
                         enemies.push_back(u->getCoordinate());
 
-                goToNearest(unit, enemies);
+                targeted = goToNearest(unit, enemies);
             }
 
-            if (nc == nullptr && !unit->isAuto())
+            if (nc == nullptr && !unit->isAuto() && !targeted)
             {
                 // If there is a defenseless enemy city, capture the closest one (single Dijkstra).
                 std::vector<coordinate> opencities;

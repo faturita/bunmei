@@ -1,6 +1,8 @@
 #ifndef COMMANDORDER_H
 #define COMMANDORDER_H
 
+#include <string>
+
 #include "resources.h"    // FUNDAMENTAL_RATES
 
 enum class Command {
@@ -182,57 +184,72 @@ struct commandparameters
     // the order (coordinator.a_u_id for the human player, the AI's own unit pointer, etc.) so
     // processCommandOrders() reads the unit id from here instead of coordinator.a_u_id --
     // the command carries everything it needs to run on its own.
-    int spawnid;
+    int spawnid = 0;
 
     // Faction id -- same reasoning as spawnid above, for commands that need to know which
     // faction issued them (BuildCityOrder's capital/city-naming logic, and the
     // nextMovableUnitId() call every unit-order handler makes once it's done). Set from the
     // acting unit's own ->faction field (or coordinator.a_f_id where no unit is involved yet),
     // NOT read from coordinator.a_f_id at process time.
-    int factionid;
+    int factionid = 0;
 
     // City id -- for any command that addresses a city (e.g. AssignWorkTileOrder). Kept
     // separate from spawnid (units), so reusing one for the other doesn't risk colliding if
     // a future command ever needs both.
-    int cityid;
+    int cityid = 0;
 
-    int latitude;
-    int longitude;
+    int latitude = 0;
+    int longitude = 0;
 
     // The BuildableId (buildable.h) a ChangeProductionOrder wants queued, looked up in the
     // city's own buildable list. (Replaces a dead `char buf[20]` that nothing read.)
-    int selectedbuildableid;
+    int selectedbuildableid = 0;
 
     // Commodity/MfgGood id (resources.h) -- for LoadCargoOrder/UnloadCargoOrder. Kept
     // separate from latitude/longitude, which those two commands don't use.
-    int resourceid;
+    int resourceid = 0;
 
     // The four TRADE conversion shares (COINS, SCIENCE, CULTURE, LUXURY) -- for
     // SetFundamentalRatesOrder only. Same order and meaning as Faction::rates.
-    float rates[FUNDAMENTAL_RATES];
+    float rates[FUNDAMENTAL_RATES] = {};
 
     // The OTHER faction -- for a command addressing a PAIR of them (SetDiplomacyOrder), where
     // factionid is the one issuing it.
-    int targetfactionid;
+    int targetfactionid = 0;
 
     // A DiplomaticStatus (diplomacy.h) -- SetDiplomacyOrder.
-    int status;
+    int status = 0;
 
     // A codes.h TECH_* technology -- SetResearchTargetOrder.
-    int techid;
+    int techid = 0;
 
     // On/off -- SetAutoPlayerOrder.
-    bool enabled;
+    bool enabled = false;
 
     // DEP_SCOPE_* above, and the codes.h code to register -- RegisterDependencyOrder.
-    int scope;
-    int codeid;
+    int scope = 0;
+    int codeid = 0;
 };
 
+// Every field defaults to zero: serialize() leaves zero fields out, so a zero default is what
+// makes a decoded command identical to the one that was encoded.
 struct CommandOrder
 {
-    Command command;
+    // Incremental, given by Coordinator::push() (0 = not issued yet). With `year`, what lets a
+    // match be replayed from its log, or a command be named across the network.
+    int id = 0;
+    // The game year the command was issued in (Coordinator::push()).
+    int year = 0;
+
+    Command command = Command::None;
     commandparameters parameters;
+
+    // One line, no newline: "<id> <year> <command> key=value ..." with the command as its
+    // enum number and only the parameters that are not zero (commandorder.cpp has the keys).
+    std::string serialize() const;
+    // Parses a serialize() line into `co`. False, leaving `co` untouched, for anything it does
+    // not recognise: a malformed number, an unknown key, a missing field.
+    static bool deserialize(const std::string& line, CommandOrder& co);
 };
 
 struct controlregister
