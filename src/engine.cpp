@@ -4,6 +4,7 @@
 #include <set>
 #include <queue>
 #include <cmath>
+#include <filesystem>
 #include <strings.h>
 #include "Faction.h"
 #include "gamekernel.h"
@@ -81,7 +82,7 @@ extern std::unordered_map<int, int> prices;
 extern int year;
 extern char matchlog[256];
 
-// Appends a processed command to the match log (`matchlog`, "match.log" by default), one
+// Appends a processed command to the match log (`matchlog`, "saves/match.log" by default), one
 // CommandOrder::serialize() line each. The file is started over by the first command of the
 // run and flushed on every line, so a crash keeps everything up to it. An empty name, or a
 // file that cannot be opened, turns recording off.
@@ -94,6 +95,10 @@ static void recordCommandOrder(const CommandOrder& co)
         return;
     if (log == nullptr)
     {
+        // Like savegame(): the directory is created if it is not there yet.
+        std::filesystem::path p(matchlog);
+        if (p.has_parent_path())
+            std::filesystem::create_directories(p.parent_path());
         log = fopen(matchlog, "w");
         if (log == nullptr)
         {
