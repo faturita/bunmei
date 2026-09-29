@@ -1,5 +1,9 @@
 #include <unordered_map>
 #include <algorithm>
+#include <map>
+#include <set>
+#include <queue>
+#include <cmath>
 #include "Faction.h"
 #include "gamekernel.h"
 #include "usercontrols.h"
@@ -376,6 +380,11 @@ void endOfYear()
         // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
     }
 
+    // ---- Culture -----------------------------------------------------------------------
+    // After every city has converted its TRADE (and after abandoned cities are gone, so they
+    // do not radiate): spend each city's CULTURE heating the land around it.
+    spreadCulture();
+
     // ---- Research ----------------------------------------------------------------------
     // Every city's SCIENCE for the year is pooled per faction, poured into whatever that
     // faction currently has selected, and the city's counter cleared -- SCIENCE is spent on
@@ -454,6 +463,96 @@ void updateFogOfWar()
 {
     for (auto& [k, u] : units)
         revealAround(u);
+}
+
+// README.md Culture section, steps 1-3. Temperature and allegiance live only inside this call:
+// they are recalculated from the cities every year and never stored or saved.
+void spreadCulture()
+{
+    // 1. Temperature: every city heats the LAND tiles within its reach, falling with the square of
+    // the cheapest unit-movement path to them. Only the terrain counts -- ownership, diplomacy and
+    // units never block the path. Contributions of cities of the same faction add up.
+    std::map<std::pair<int,int>, std::unordered_map<int,float>> temperature;
+
+    for (auto& [k, c] : cities)
+    {
+        float q = (float)c->resources[CULTURE];
+        c->resources[CULTURE] = 0;                  // CULTURE is spent every year, not stockpiled.
+        if (q <= 0) continue;
+
+        // Past this path length the city can no longer lift a tile over the threshold by itself.
+        float reach = sqrtf(q / (CULTURE_K * CULTURE_THRESHOLD)) - 1.0f;
+
+        std::map<std::pair<int,int>, float> dist;
+        std::priority_queue<std::pair<float, std::pair<int,int>>,
+                            std::vector<std::pair<float, std::pair<int,int>>>,
+                            std::greater<std::pair<float, std::pair<int,int>>>> open;
+        std::pair<int,int> start(c->latitude, c->longitude);
+        dist[start] = 0.0f;
+        open.push({0.0f, start});
+
+        while (!open.empty())
+        {
+            auto [d, t] = open.top();
+            open.pop();
+            if (d > dist[t] || d > reach) continue;
+
+            temperature[t][c->faction] += q / (CULTURE_K * (d + 1.0f) * (d + 1.0f));
+
+            for (int dlat=-1; dlat<=1; dlat++)
+                for (int dlon=-1; dlon<=1; dlon++)
+                {
+                    if (dlat == 0 && dlon == 0) continue;
+                    coordinate n = map.adjust(t.first, t.second, dlat, dlon);
+                    std::pair<int,int> nt(n.lat, n.lon);
+                    if (nt == t || map.peek(n.lat, n.lon).code != LAND) continue;
+
+                    float nd = d + travelCost(t.first, t.second, n.lat, n.lon);
+                    if (nd <= reach && (dist.find(nt) == dist.end() || nd < dist[nt]))
+                    {
+                        dist[nt] = nd;
+                        open.push({nd, nt});
+                    }
+                }
+        }
+    }
+
+    // Cities and units keep their tiles: culture only moves where no army or city stands.
+    std::set<std::pair<int,int>> occupied;
+    for (auto& [k, c] : cities) occupied.insert({c->latitude, c->longitude});
+    for (auto& [k, u] : units)  occupied.insert({u->latitude, u->longitude});
+
+    for (int lat=map.minlat; lat<map.maxlat; lat++)
+        for (int lon=map.minlon; lon<map.maxlon; lon++)
+        {
+            mapcell &cell = map.peek(lat, lon);
+            if (cell.code != LAND || occupied.count({lat, lon})) continue;
+
+            // 2. Allegiance: nobody's heat above the threshold means free land; otherwise each
+            // faction's share of the tile's heat. At most one share can pass 0.5.
+            int owner = FREE_LAND;
+            auto it = temperature.find({lat, lon});
+            if (it != temperature.end())
+            {
+                float hottest = 0.0f, total = 0.0f;
+                for (auto& [f, temp] : it->second) { hottest = std::max(hottest, temp); total += temp; }
+
+                if (hottest > CULTURE_THRESHOLD)
+                    for (auto& [f, temp] : it->second)
+                        if (temp / total > CULTURE_ALLEGIANCE) owner = f;
+            }
+
+            // 3. Culture moves like an army: in with setOwnedBy(), out with releaseOwner().
+            if (owner != FREE_LAND)
+            {
+                if (cell.getOwnedBy() != owner)
+                    cell.setOwnedBy(owner);
+            }
+            else if (cell.isUnassignedLand() && !cell.isFreeLand())
+            {
+                cell.releaseOwner();
+            }
+        }
 }
 
 int getNextCityId()

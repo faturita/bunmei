@@ -37,6 +37,15 @@ void assignProductionRates(Map &mmp);
 void revealAround(Unit* unit);
 void updateFogOfWar();
 
+// Culture (README.md Culture section): every year each city's CULTURE heats the land around it,
+// Q / (CULTURE_K * (d+1)^2) with d the unit-movement path over land, and a faction whose share
+// of a tile's heat passes CULTURE_ALLEGIANCE takes the tile the way an army would. Spends every
+// city's CULTURE. Called from endOfYear(). The two tuning constants are a first guess.
+#define CULTURE_K           1.0f
+#define CULTURE_THRESHOLD   0.25f
+#define CULTURE_ALLEGIANCE  0.5f
+void spreadCulture();
+
 int getNextCityId();
 int getNextUnitId();
 int nextUnitId(int faction);
