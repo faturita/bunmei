@@ -79,6 +79,32 @@ extern Controller controller;
 extern std::unordered_map<int, int> prices;
 
 extern int year;
+extern char matchlog[256];
+
+// Appends a processed command to the match log (`matchlog`, "match.log" by default), one
+// CommandOrder::serialize() line each. The file is started over by the first command of the
+// run and flushed on every line, so a crash keeps everything up to it. An empty name, or a
+// file that cannot be opened, turns recording off.
+static void recordCommandOrder(const CommandOrder& co)
+{
+    static FILE* log = nullptr;
+    static bool failed = false;
+
+    if (failed || matchlog[0] == '\0')
+        return;
+    if (log == nullptr)
+    {
+        log = fopen(matchlog, "w");
+        if (log == nullptr)
+        {
+            printf("Cannot open match log %s; commands are not recorded.\n", matchlog);
+            failed = true;
+            return;
+        }
+    }
+    fprintf(log, "%s\n", co.serialize().c_str());
+    fflush(log);
+}
 
 // The civilizations a faction can be made from. A faction's id is NOT its row here: ids are
 // given by factions.push_back() in the order factions arise. The starting factions are the
@@ -1833,6 +1859,7 @@ void processCommandOrders()
   while (!coordinator.empty())
   {
     CommandOrder co = coordinator.pop();
+    recordCommandOrder(co);
 
     // Finalize commands apply to a TILE (carried in co.parameters), not the active unit:
     // by the time processWork() pushes one, the working unit's moves are already zeroed

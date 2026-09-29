@@ -5,6 +5,8 @@
 
 #include "commandorder.h"
 
+extern int year;
+
 struct Coordinator
 {
     private:
@@ -22,8 +24,18 @@ struct Coordinator
 
     bool endofturn = false;
 
+    // The id the next issued command gets (CommandOrder::id).
+    int nextorderid = 1;
+
+    // Issues a command: stamps it with the next id and the current year. A command that
+    // already has an id (read back from a match log, or sent by another player) keeps it.
     void push(CommandOrder co)
     {
+        if (co.id == 0)
+        {
+            co.id = nextorderid++;
+            co.year = year;
+        }
         corder.push(co);
     }
 
