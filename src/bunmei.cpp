@@ -155,12 +155,6 @@ void setupWorldModelling()
     else
         initWorldModelling();
 
-    // Whatever the starting units can see, revealed BEFORE the first frame: the world now
-    // exists and its units are placed. This has to happen here and not in switchFaction() --
-    // that only runs when the turn passes to a faction, so year -4000 rendered completely
-    // black until the player pressed space, which is exactly what happened when the fog rule
-    // moved out of the renderer (the renderer used to reveal on the first frame as a side
-    // effect of drawing).
     updateFogOfWar();
 
     if (nofog)

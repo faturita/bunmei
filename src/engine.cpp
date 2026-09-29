@@ -205,6 +205,13 @@ void placeFactionUnits(Faction* f, coordinate c)
     map.set(c.lat,c.lon).setOwnedBy(f->id);
 }
 
+void welcomeFaction(Faction* f)
+{
+    message(year, f->id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
+
+    if (!f->autoPlayer && f->song) f->song();
+}
+
 bool factionIsLost(int f_id)
 {
     for (auto& [k, c] : cities)
@@ -2035,6 +2042,7 @@ void processCommandOrders()
 
         for (auto& g : factions)
             message(year, g->id, "Travellers report of a new nation under the sun: the %s.", f->name);
+        welcomeFaction(f);
         continue;
     }
 

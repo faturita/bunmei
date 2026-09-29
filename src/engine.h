@@ -65,6 +65,9 @@ int findFactionDefinition(const char* name);
 std::vector<int> pickStartingCivilizations(int count, int selected);
 // A faction's starting units (Settler, Warrior, Settler) on tile c, REAL coordinates.
 void placeFactionUnits(Faction* f, coordinate c);
+// The welcome every faction gets when it starts the game or arises later: the message, and
+// its song when a human plays it.
+void welcomeFaction(Faction* f);
 // True when faction f_id has no cities and no units left.
 bool factionIsLost(int f_id);
 // Pushes a RemoveFactionOrder when f_id has just lost its last city and unit. Called wherever

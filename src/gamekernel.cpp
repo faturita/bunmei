@@ -732,14 +732,9 @@ void initWorldModelling()
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = true;
 
+    // Welcome message for all the factions.
     for (auto& f: factions)
-    {
-        // Welcome message for all the factions.
-        message(year, f->id, "Sir, our destiny is to build a great empire.  We must start by building our first city.");
-
-        if (!f->autoPlayer && f->song) f->song();
-
-    }
+        welcomeFaction(f);
 
     // @NOTE: Allow to finish the turn automatically when all units have moved, so the player does not have to click "End Turn" every time.
     autoEndOfTurn = true;

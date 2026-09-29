@@ -195,6 +195,15 @@ int TestCase_080::check(int year)
         message = std::string("no 'new nation under the sun' message.");
         return 0;
     }
+    bool welcomed = false;
+    for (auto& m : messages)
+        if (m.faction == 3 && m.msg.find("our destiny is to build a great empire") != std::string::npos)
+            welcomed = true;
+    if (!welcomed)
+    {
+        message = std::string("the new civilization did not get the welcome message.");
+        return 0;
+    }
 
     int newunits = 0;
     coordinate start(0,0);
