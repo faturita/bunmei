@@ -185,12 +185,6 @@ void drawScene()
     glLoadIdentity();
 
 
-    //Vec3f up,pos,forward;
-    //Camera.lookAtFrom(up, pos, forward);
-
-    // Sets the camera and that changes the floor position.
-    //Camera.setPos(pos);
-
     switch (controller.view)
     {
     case 1:case 2:case 4:
