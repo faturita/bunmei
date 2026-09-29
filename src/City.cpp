@@ -431,8 +431,9 @@ int City::getCommodityProductionRate(int commodity_id)
             if (cell.resource == 0)
                 continue;
 
-            // Gather resources for this city only if it is free land or if it belongs to this city.
-            if (!cell.isFreeLand() && (cell.c_id_owner != id || cell.f_id_owner != faction))
+            // Gather resources for this city only if it is free land, or its own faction's land that
+            // is claimed by this city or by no city (culture land, or a tile its own unit stands on).
+            if (!cell.isFreeLand() && !(cell.f_id_owner == faction && (cell.c_id_owner == id || cell.isUnassignedLand())))
                 continue;
 
             auto it = commodityxresource.find(cell.resource);

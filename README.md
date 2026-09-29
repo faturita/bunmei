@@ -479,6 +479,7 @@ infrastructure spreads soft power.
 * Borders between factions sit where d_B / d_A = sqrt(Q_B / Q_A): a weaker neighbour keeps its home ground.
 * Lakes, seas and mountains shelter land from foreign culture; a railroad carries culture far along it.
 * Culture spreads into foreign land and past armies: only the terrain decides how far it reaches.
+* A city gathers commodities from its own faction's land that no city claims (culture land, or a tile one of its own units stands on), not only from free land and the tiles it works.
 * There is no creeping wave: culture reacts in the same year.  A new city's area appears in full the year
   after it is founded, and a city that gains or loses CULTURE changes its area at once.
 
