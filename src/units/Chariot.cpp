@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Chariot.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Chariot::Chariot()
 {

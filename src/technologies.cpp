@@ -55,17 +55,6 @@ int TechGraph::getRoot() const
     return root;
 }
 
-// depth(root) = 0; depth(t) = 1 + max(depth(parents)) -- the LONGEST path, so a technology
-// sitting behind a long chain counts as late-game even if it also has one shallow parent
-// (Military Tradition depends on Literature, three hops out, but really arrives at hop 15).
-// Then bias = TECH_BIAS_BASE ^ depth, which at the current base of 1.0 is FLAT: depth is
-// computed and reported but prices nothing, because difficulty now comes from how many
-// dependencies a technology shares its fan-in with (normalizeWeights()). Raising the base
-// above 1.0 brings exponential depth-pricing back on top of that.
-//
-// `order` is insertion order and buildDefaultTechGraph adds every technology before any edge,
-// so it is not a topological order -- hence the repeat-until-stable pass rather than a single
-// sweep. The graph is a DAG, so it settles in at most `size()` rounds.
 void TechGraph::computeBiases()
 {
     for (int id : order)
@@ -391,6 +380,15 @@ void TechTree::reset(int factionCount, const TechGraph& prototype)
     pending.assign(factionCount, 0);
 }
 
+void TechTree::addFaction(const TechGraph& prototype)
+{
+    TechGraph g = prototype;
+    g.start();
+    graphs.push_back(g);
+    targets.push_back(0);
+    pending.push_back(0);
+}
+
 int TechTree::getPendingScience(int factionId) const
 {
     if (factionId < 0 || factionId >= (int)pending.size())
@@ -679,4 +677,18 @@ void initTechnologies(TechTree& tree, int factionCount, DependencyEvaluationEngi
         if (rootTech != nullptr && rootTech->depCode != TECH_NO_DEP_CODE)
             dee.regDep(factionContext(f), rootTech->depCode);
     }
+}
+
+void addFactionTechnologies(TechTree& tree, int factionId, DependencyEvaluationEngine& dee)
+{
+    if (factionId != tree.factionCount())
+    {
+        printf("addFactionTechnologies: faction %d is not the next one (%d).\n", factionId, tree.factionCount());
+        return;
+    }
+    tree.addFaction(buildDefaultTechGraph());
+
+    const Tech* rootTech = tree.graph(factionId).getTech(TECH_ROOT);
+    if (rootTech != nullptr && rootTech->depCode != TECH_NO_DEP_CODE)
+        dee.regDep(factionContext(factionId), rootTech->depCode);
 }

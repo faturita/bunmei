@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Spearman.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Spearman::Spearman()
 {

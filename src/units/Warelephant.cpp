@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Warelephant.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Warelephant::Warelephant()
 {

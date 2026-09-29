@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Galley.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Galley::Galley()
 {

@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Pretorian.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Pretorian::Pretorian()
 {

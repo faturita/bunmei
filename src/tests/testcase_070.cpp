@@ -45,7 +45,7 @@
 extern std::unordered_map<int, std::string> tiles;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Map map;
 extern float mapzoom;
 

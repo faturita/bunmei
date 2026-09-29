@@ -203,9 +203,9 @@ void update(int value)
 
         printf("Faction %d - %s has finished its turn.\n", coordinator.a_f_id, factions[coordinator.a_f_id]->name);
 
-        if (coordinator.a_f_id<factions.size()-1) 
+        if (factions.next(coordinator.a_f_id) != -1)
         {
-            coordinator.a_f_id++;
+            coordinator.a_f_id = factions.next(coordinator.a_f_id);
 
             if (switchVisibleFaction)
                 coordinator.v_f_id = coordinator.a_f_id;
@@ -226,7 +226,7 @@ void update(int value)
         printf ("All factions have finished their turn, end of year %d.\n", year);
         // Everybody played their turn, end of year, and start it over.....
         endOfYear();
-        coordinator.a_f_id = 0;     // Restart the turn from the first faction.
+        coordinator.a_f_id = factions.first();     // Restart the turn from the first faction.
         setUpFaction();
 
         // Autoplayer

@@ -39,7 +39,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Tiles tiles;
 
 extern float mapzoom;
@@ -112,6 +112,7 @@ void TestCase_020::init()
 
     Faction *faction = new Faction();
     faction->id = 3;
+    faction->definition = 3;       // City names belong to the civilization (table row 3).
     strcpy(faction->name,"Chinnese");
     faction->red = 0;
     faction->green = 255;

@@ -4,6 +4,7 @@
 #include <set>
 #include <queue>
 #include <cmath>
+#include <strings.h>
 #include "Faction.h"
 #include "gamekernel.h"
 #include "usercontrols.h"
@@ -56,11 +57,12 @@
 #include "technologies.h"
 #include "messages.h"
 #include "sounds/sounds.h"
+#include "automation.h"
 #include "engine.h"
 
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Coordinator coordinator;
 extern DependencyEvaluationEngine dee;
 extern TechTree techtree;
@@ -77,6 +79,153 @@ extern Controller controller;
 extern std::unordered_map<int, int> prices;
 
 extern int year;
+
+// The civilizations a faction can be made from. A faction's id is NOT its row here: ids are
+// given by factions.push_back() in the order factions arise. The starting factions are the
+// first rows in order, so at the start of a game the two happen to coincide.
+struct FactionDefinition
+{
+    const char* name;
+    int red, green, blue;
+    float rates[FUNDAMENTAL_RATES];
+    bool autoPlayer;
+    void (*song)();
+};
+
+static const FactionDefinition FACTION_DEFINITIONS[] = {
+    { "Vikings",     255, 0,   0,   {0.5, 0, 0, 0.5}, true, vikings     },
+    { "Romans",      255, 255, 255, {0.5, 0.5, 0, 0}, true, romans      },
+    { "Greeks",      0,   0,   255, {0.5, 0.5, 0, 0}, true, greeks      },
+    { "Chinese",     0,   255, 255, {0.5, 0.5, 0, 0}, true, chinese     },
+    { "Egyptians",   255, 255, 0,   {0.5, 0.5, 0, 0}, true, egyptians   },
+    { "Babylonians", 0,   255, 0,   {0.5, 0.5, 0, 0}, true, babylonians },
+    { "English",     100, 33,  100, {0.5, 0.5, 0, 0}, true, english     },
+    { "Mongols",     128, 128, 128, {0.5, 0.5, 0, 0}, true, mongols     },
+    { "Russians",    160, 20,  40,  {0.5, 0.5, 0, 0}, true, russians    },
+    { "Zulus",       20,  130, 40,  {0.5, 0.5, 0, 0}, true, zulus       },
+    { "Germans",     40,  70,  130, {0.5, 0.5, 0, 0}, true, germans     },
+    { "French",      90,  140, 230, {0.5, 0.5, 0, 0}, true, french      },
+    { "Aztec",       235, 175, 30,  {0.5, 0.5, 0, 0}, true, aztec       },
+    { "Americans",   40,  170, 160, {0.5, 0.5, 0, 0}, true, americans   },
+    { "Indians",     190, 190, 190, {0.5, 0.5, 0, 0}, true, indians     },
+    { "Incan",       200, 130, 20,  {0.5, 0.5, 0, 0}, true, incan       },
+    { "Japanese",    245, 225, 230, {0.5, 0.5, 0, 0}, true, japanese    },
+    { "Spanish",     200, 50,  20,  {0.5, 0.5, 0, 0}, true, spanish     },
+};
+
+int numberOfFactionDefinitions()
+{
+    return (int)(sizeof(FACTION_DEFINITIONS)/sizeof(FACTION_DEFINITIONS[0]));
+}
+
+const char* factionDefinitionName(int definition)
+{
+    return FACTION_DEFINITIONS[definition].name;
+}
+
+int findFactionDefinition(const char* name)
+{
+    if (name == nullptr)
+        return -1;
+    for (int d = 0; d < numberOfFactionDefinitions(); d++)
+        if (strcasecmp(FACTION_DEFINITIONS[d].name, name) == 0)
+            return d;
+    return -1;
+}
+
+std::vector<int> pickStartingCivilizations(int count, int selected)
+{
+    std::vector<int> rows(numberOfFactionDefinitions());
+    for (int d = 0; d < (int)rows.size(); d++)
+        rows[d] = d;
+
+    for (int i = (int)rows.size() - 1; i > 0; i--)
+        std::swap(rows[i], rows[getRandomInteger(0, i)]);
+
+    count = std::max(0, std::min(count, (int)rows.size()));
+
+    // The player's civilization always plays: swapped into the loaded set when it fell out.
+    auto it = std::find(rows.begin(), rows.end(), selected);
+    if (count > 0 && it != rows.end() && it - rows.begin() >= count)
+        std::swap(*it, rows[getRandomInteger(0, count - 1)]);
+
+    rows.resize(count);
+    return rows;
+}
+
+Faction* createFaction(int definition)
+{
+    const FactionDefinition &def = FACTION_DEFINITIONS[definition];
+    Faction *faction = new Faction();
+    faction->definition = definition;
+    strcpy(faction->name, def.name);
+    faction->red = def.red;
+    faction->green = def.green;
+    faction->blue = def.blue;
+    for (int i = 0; i < FUNDAMENTAL_RATES; i++)
+        faction->rates[i] = def.rates[i];
+    faction->autoPlayer = def.autoPlayer;
+    faction->song = def.song;
+    return faction;
+}
+
+void placeFactionUnits(Faction* f, coordinate c)
+{
+    Settler *settler = new Settler();
+    settler->longitude = c.lon;
+    settler->latitude = c.lat;
+    settler->id = getNextUnitId();
+    settler->faction = f->id;
+    settler->availablemoves = settler->getUnitMoves();
+
+    units[settler->id] = settler;
+    map.set(c.lat,c.lon).setOwnedBy(f->id);
+
+
+    Warrior *warrior = new Warrior();
+    warrior->longitude = c.lon;
+    warrior->latitude = c.lat;
+    warrior->id = getNextUnitId();
+    warrior->faction = f->id;
+    warrior->availablemoves = warrior->getUnitMoves();
+
+
+    units[warrior->id] = warrior;
+    map.set(c.lat,c.lon).setOwnedBy(f->id);
+
+    Settler *settler2 = new Settler();
+    settler2->longitude = c.lon;
+    settler2->latitude = c.lat;
+    settler2->id = getNextUnitId();
+    settler2->faction = f->id;
+    settler2->availablemoves = settler2->getUnitMoves();
+
+
+    units[settler2->id] = settler2;
+    map.set(c.lat,c.lon).setOwnedBy(f->id);
+}
+
+bool factionIsLost(int f_id)
+{
+    for (auto& [k, c] : cities)
+        if (c->faction == f_id)
+            return false;
+    for (auto& [k, u] : units)
+        if (u->faction == f_id)
+            return false;
+    return true;
+}
+
+void checkFactionLost(int f_id)
+{
+    if (!factions.has(f_id) || !factionIsLost(f_id))
+        return;
+
+    CommandOrder co;
+    co.command = Command::RemoveFactionOrder;
+    co.parameters.factionid = f_id;
+    coordinator.push(co);
+}
 
 // Cost in movement points of moving from a tile onto an adjacent one (real coordinates):
 // the bioma of the DESTINATION tile decides (initMovementCosts), unless the two tiles are
@@ -374,8 +523,11 @@ void endOfYear()
         c->setCityPop(0);
         c->deAssignWorkingTile();
         map.set(c->latitude, c->longitude).releaseCityOwnership();  // The removing of the 0,0 tile.
+        int f_id = c->faction;
         cities.erase(c->id);
         delete c;
+
+        checkFactionLost(f_id);
 
         // @FIXME: Check the consistency of the map regarding that no deleted city should be still marked there
     }
@@ -1105,11 +1257,14 @@ void cleanUnits()
     for(auto& uid:unitstodelete)
     {
         Unit* u = units[uid];
+        int f_id = u->faction;
 
         map.set(u->latitude, u->longitude).releaseOwner();
 
         units.erase(u->id);
         delete u;
+
+        checkFactionLost(f_id);
 
         // The active unit can be a dying unit (killed in battle, erased here once its
         // animation completes): the id in the coordinator would go stale and any
@@ -1302,6 +1457,7 @@ bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
 
                 // Perhaps we should do some form of cleaning first, and a reassignment.
                 city->reAssignWorkingTiles(invader->faction);
+                std::set<int> losers = { city->faction };
                 city->faction = invader->faction;
                 city->setDefense();
 
@@ -1311,6 +1467,7 @@ bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
                 {
                     if (u->latitude == lat && u->longitude == lon && u->faction != invader->faction)
                     {
+                        losers.insert(u->faction);
                         u->faction = invader->faction;
                         u->availablemoves = 0;
                         message(year, invader->faction, "A %s in %s has been captured by %s.", u->name, city->name, factions[invader->faction]->name);
@@ -1319,6 +1476,9 @@ bool captureCity(Unit* invader, int lat, int lon, bool &forceBreak)
 
                 march();
                 message(year, invader->faction, "City %s has been conquered by %s. %d pieces plundered.",city->name, factions[invader->faction]->name, city->resources[COINS]);  
+
+                for (int f_id : losers)
+                    checkFactionLost(f_id);
 
                 // @FIXME: We may loose some coins here.  I am just capturing everything.
                 printf("Capture City Condition\n");
@@ -1551,7 +1711,7 @@ void moveUnit(Unit* unit, int lat, int lon)
                 // must not keep re-issuing the exact same blocked step every tick (the game
                 // then looks frozen). Drop its moves and clear any GoTo so switchUnitIfNoMovesLeft()
                 // advances to the next unit and the AI re-plans from scratch next turn.
-                if (unit->faction >= 0 && unit->faction < (int)factions.size() &&
+                if (factions.has(unit->faction) &&
                     factions[unit->faction]->autoPlayer)
                 {
                     unit->resetGoTo();
@@ -1820,6 +1980,115 @@ void processCommandOrders()
         continue;
     }
 
+    if (co.command == Command::NewFactionOrder)
+    {
+        // Addresses no unit -- before the unit guard below. A civilization that is not in
+        // play right now (a lost one may return this way, under a new id).
+        std::vector<int> candidates;
+        for (int d = 0; d < numberOfFactionDefinitions(); d++)
+        {
+            bool inplay = false;
+            for (auto& f : factions)
+                if (f->definition == d)
+                    inplay = true;
+            if (!inplay)
+                candidates.push_back(d);
+        }
+        int definition = candidates.empty()
+                            ? getRandomInteger(0, numberOfFactionDefinitions() - 1)
+                            : candidates[getRandomInteger(0, (int)candidates.size() - 1)];
+
+        // A land tile nobody holds and nothing stands on.
+        bool found = false;
+        coordinate start(0,0);
+        for (coordinate c : pickFactionStartTiles(100))
+        {
+            if (!map.peek(c.lat, c.lon).isFreeLand() || findCityAt(c.lat, c.lon) != nullptr)
+                continue;
+            bool occupied = false;
+            for (auto& [k, u] : units)
+                if (u->latitude == c.lat && u->longitude == c.lon)
+                    occupied = true;
+            if (occupied)
+                continue;
+            start = c;
+            found = true;
+            break;
+        }
+        if (!found)
+        {
+            printf("NewFactionOrder: no free land for a new civilization.\n");
+            continue;
+        }
+
+        Faction* f = createFaction(definition);
+        int id = factions.push_back(f);
+
+        // The per-id tables follow the new id: ids are continuous, so each one grows by a row.
+        growDiplomacy(diplomacy, factions.nextId());
+        addFactionTechnologies(techtree, id, dee);
+
+        placeFactionUnits(f, start);
+        for (auto& [k, u] : units)
+            if (u->faction == id)
+                revealAround(u);
+
+        for (auto& g : factions)
+            message(year, g->id, "Travellers report of a new nation under the sun: the %s.", f->name);
+        continue;
+    }
+
+    if (co.command == Command::RemoveFactionOrder)
+    {
+        // Addresses a FACTION -- before the unit guard below.
+        const int id = co.parameters.factionid;
+        if (!factions.has(id) || !factionIsLost(id))
+        {
+            printf("RemoveFactionOrder: faction %d does not exist or is not lost.\n", id);
+            continue;
+        }
+        if (factions.size() == 1)
+        {
+            printf("RemoveFactionOrder: faction %d is the last one, it stays.\n", id);
+            continue;
+        }
+
+        Faction* f = factions[id];
+
+        // Land it still holds goes free: nobody is left to hold it, or to draw it.
+        for (int lat = map.minlat; lat < map.maxlat; lat++)
+            for (int lon = map.minlon; lon < map.maxlon; lon++)
+            {
+                mapcell &cell = map.set(lat, lon);
+                if (cell.isOwnedBy(id))
+                {
+                    cell.f_id_owner = FREE_LAND;
+                    cell.owners = 0;
+                    cell.c_id_owner = UNASSIGNED_LAND;
+                }
+            }
+
+        for (auto& g : factions)
+            message(year, g->id, "%s civilization has been lost, but his leader may return.", f->name);
+
+        // If it was its turn, the turn passes on as switchFaction() would pass it. When it was
+        // the last in the turn order everybody else is already done, and the year closes.
+        int nextid = factions.next(id);
+        factions.erase(id);
+        delete f;
+
+        if (coordinator.a_f_id == id)
+        {
+            coordinator.a_f_id = (nextid != -1) ? nextid : factions.first();
+            setUpFaction();
+            if (factions[coordinator.a_f_id]->autoPlayer)
+                autoPlayerCities();
+        }
+        if (coordinator.v_f_id == id)
+            coordinator.v_f_id = coordinator.a_f_id;
+        continue;
+    }
+
     if (co.command == Command::SetFundamentalRatesOrder)
     {
         // Addresses a FACTION (parameters.factionid), not the active unit -- so, like the tile
@@ -1827,7 +2096,7 @@ void processCommandOrders()
         // /fundamental teletype command has no unit behind it, so spawnid is meaningless).
         // Sets how much of a city's TRADE turns into COINS / SCIENCE / CULTURE / LUXURY each
         // year (bunmei.cpp:endOfYear).
-        if (co.parameters.factionid >= 0 && co.parameters.factionid < (int)factions.size())
+        if (factions.has(co.parameters.factionid))
         {
             Faction* f = factions[co.parameters.factionid];
             for (int i=0;i<FUNDAMENTAL_RATES;i++)
@@ -1843,7 +2112,7 @@ void processCommandOrders()
     // A faction id is only usable once it is known to be one. Every faction-addressed
     // handler below re-checks its own inputs even when the pusher already did: the pusher is
     // the local UI today and a remote client tomorrow, and only this side is the authority.
-    auto knownFaction = [&](int f) { return f >= 0 && f < (int)factions.size(); };
+    auto knownFaction = [&](int f) { return factions.has(f); };
 
     if (co.command == Command::SetAutoPlayerOrder)
     {
@@ -1987,8 +2256,21 @@ void processCommandOrders()
 
 
         City *city = new City(&map, units[co.parameters.spawnid]->faction,getNextCityId(),units[co.parameters.spawnid]->latitude,units[co.parameters.spawnid]->longitude);
-        city->setName(citynames[co.parameters.factionid].front().c_str());
-        citynames[co.parameters.factionid].pop();
+        // City names belong to the civilization (table row), not to the faction id.
+        // A pool can run out (CITY_NAMES_PER_CIVILIZATION), and a faction made by hand has none:
+        // front() on an empty queue is undefined, so such a city is named after its faction.
+        int civ = factions[co.parameters.factionid]->definition;
+        if (!citynames[civ].empty())
+        {
+            city->setName(citynames[civ].front().c_str());
+            citynames[civ].pop();
+        }
+        else
+        {
+            char name[300];
+            snprintf(name, sizeof(name), "%s %d", factions[co.parameters.factionid]->name, city->id);
+            city->setName(name);
+        }
 
         // @NOTE: When the population is zero, the first city is the capital city.
         if (factions[co.parameters.factionid]->pop==0)
@@ -2035,8 +2317,11 @@ void processCommandOrders()
     {
         Unit *unit = units[co.parameters.spawnid];
         map.set(unit->latitude,unit->longitude).releaseOwner();
+        int f_id = unit->faction;
         units.erase(co.parameters.spawnid);
         delete unit;
+
+        checkFactionLost(f_id);
 
         coordinator.a_u_id = nextMovableUnitId(co.parameters.factionid);  //@FIXME: There could be the case that there are no more units.
     }

@@ -36,7 +36,7 @@ std::unordered_map<int, std::vector<int>> resourcesxbioma;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 extern int year;
 

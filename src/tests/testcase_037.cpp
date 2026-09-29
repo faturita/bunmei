@@ -47,7 +47,7 @@ extern int year;
 extern Tiles tiles;
 extern std::unordered_map<int, Improvement*> improvements;
 extern float mapzoom;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 #define TEST_MAPSIZE 1
 #define TESTMAP_NAME "testcase037map"

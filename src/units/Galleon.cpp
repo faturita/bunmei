@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Galleon.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Galleon::Galleon()
 {

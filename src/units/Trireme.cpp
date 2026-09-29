@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Trireme.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Trireme::Trireme()
 {

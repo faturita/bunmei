@@ -27,7 +27,7 @@ extern Map map;
 extern Tiles tiles;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Controller controller;
 extern Coordinator coordinator;
 extern DependencyEvaluationEngine dee;

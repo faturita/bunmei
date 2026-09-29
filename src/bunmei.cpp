@@ -110,7 +110,7 @@ std::unordered_map<int,std::queue<std::string>> citynames;
 
 std::unordered_map<int, Unit*> units;
 std::unordered_map<int, City*> cities;
-std::vector<Faction*> factions;
+Factions factions;
 DiplomacyTable diplomacy;
 std::vector<Message> messages;
 
@@ -167,8 +167,8 @@ void setupWorldModelling()
         for(int lat=map.minlat;lat<map.maxlat;lat++)
             for (int lon=map.minlon;lon<map.maxlon;lon++)
             {
-                for (int f_id=0;f_id<(int)factions.size();f_id++)
-                    map.set(lat,lon).setVisible(f_id);
+                for (auto& f : factions)
+                    map.set(lat,lon).setVisible(f->id);
             }   
 }
 
@@ -345,9 +345,9 @@ void update(int value)
         coordinator.endofturn=false;
         factions[coordinator.a_f_id]->done();
 
-        if (coordinator.a_f_id<factions.size()-1)
+        if (factions.next(coordinator.a_f_id) != -1)
         {
-            coordinator.a_f_id++;
+            coordinator.a_f_id = factions.next(coordinator.a_f_id);
 
             if (switchVisibleFaction)
                 coordinator.v_f_id = coordinator.a_f_id;
@@ -362,7 +362,7 @@ void update(int value)
     {
         // Everybody played their turn, end of year, and start it over.....
         endOfYear();
-        coordinator.a_f_id = 0;     // Restart the turn from the first faction.
+        coordinator.a_f_id = factions.first();     // Restart the turn from the first faction.
         
         switchFaction();
     }
@@ -459,7 +459,20 @@ int main(int argc, char** argv) {
 
     nofog = isPresentCommandLineParameter(argc,argv,"-nofog");
 
-    selectedFaction = getDefaultedIntCommandLineParameter(argc,argv,"-faction",-1);
+    // -faction <name>: the civilization the human plays (the name in engine.cpp's table).
+    selectedFaction = -1;
+    if (isPresentCommandLineParameter(argc,argv,"-faction"))
+    {
+        selectedFaction = findFactionDefinition(getCommandLineParameter(argc,argv,"-faction"));
+        if (selectedFaction < 0)
+        {
+            printf("Unknown -faction. Choose one of:");
+            for (int d = 0; d < numberOfFactionDefinitions(); d++)
+                printf(" %s", factionDefinitionName(d));
+            printf("\n");
+            exit(1);
+        }
+    }
 
     numCivs = getDefaultedIntCommandLineParameter(argc,argv,"-civs",-1);
 

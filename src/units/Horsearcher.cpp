@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Horsearcher.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Horsearcher::Horsearcher()
 {

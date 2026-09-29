@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Slake.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Slake::Slake()
 {

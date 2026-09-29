@@ -3,7 +3,7 @@
 #include "../Faction.h"
 #include "Worker.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Worker::Worker()
 {

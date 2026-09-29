@@ -3,7 +3,7 @@
 #include "../Faction.h"
 #include "Spy.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Spy::Spy()
 {

@@ -26,10 +26,10 @@
 
 #include "testcase_077.h"
 
-// Command::JoinCityOrder ('j'): a unit joins back the city it stands on and is disbanded the
+// Command::JoinCityOrder ('J'): a unit joins back the city it stands on and is disbanded the
 // same way a Settler is when it founds one. Its headcount goes into the city's food storage
 // (City::increaseHeadCount) and every thresshold it fills becomes a population point, so the
-// city's headcount grows by exactly the unit's. Driven through the real key, handleKeypress('j'),
+// city's headcount grows by exactly the unit's. Driven through the real key, handleKeypress('J'),
 // and processCommandOrders(). Refused: a unit on no city, a unit in another faction's city, and
 // an order from a faction that does not own the unit.
 
@@ -37,7 +37,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Tiles tiles;
 
 extern float mapzoom;
@@ -156,7 +156,7 @@ int TestCase_077::check(int year)
     {
         coordinator.a_f_id = 0;
         coordinator.a_u_id = unitid;
-        handleKeypress('j', 0, 0);
+        handleKeypress('J', 0, 0);
         processCommandOrders();
     };
 
@@ -175,7 +175,7 @@ int TestCase_077::check(int year)
         pressJoin(warriorid);
         if (units.find(warriorid) != units.end())
         {
-            message = std::string("'j' on a Warrior in its own city did not disband it.");
+            message = std::string("'J' on a Warrior in its own city did not disband it.");
             return 0;
         }
         if (city->getCityPop() != 3 || city->resources[FOOD] != 50 || city->getHeadCount() != hcBefore + 100)
@@ -227,7 +227,7 @@ int TestCase_077::check(int year)
     pressJoin(strayid);
     if (units.find(strayid) == units.end())
     {
-        message = std::string("a Warrior standing on no city was disbanded by 'j'.");
+        message = std::string("a Warrior standing on no city was disbanded by 'J'.");
         return 0;
     }
 
@@ -259,7 +259,7 @@ int TestCase_077::check(int year)
 }
 std::string TestCase_077::title()
 {
-    return std::string("JoinCityOrder ('j'): a unit joins its own city, its headcount becomes food and pop, and it is disbanded.");
+    return std::string("JoinCityOrder ('J'): a unit joins its own city, its headcount becomes food and pop, and it is disbanded.");
 
 }
 

@@ -48,7 +48,7 @@
 
 #include "savegame.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
 
@@ -62,6 +62,35 @@ extern TechTree techtree;
 
 extern Tiles tiles;                          // resource id -> icon path, for rebuilt cargo
 extern ImprovementEffort improvementeffort;  // how long an improvement takes, per bioma
+
+// ---------------------------------------------------------------------------------------
+// Factions.
+//
+// The live list at the time of the save, in turn order, each with the id it had: every other
+// block (cities, units, the tech graph, the DEE's faction contexts) names factions by id, and
+// ids are neither contiguous (lost factions leave gaps) nor tied to a civilization (new games
+// are shuffled). Also nextId(), so a lost faction's id is not handed out again after a load.
+// Name and colour are stored as they are, not re-derived from the civilization table: a
+// faction is what it was when saved, even if the table changes.
+static void saveFactions(std::ostream& out)
+{
+    int nextid = factions.nextId();
+    out.write(reinterpret_cast<const char*>(&nextid), sizeof(nextid));
+
+    size_t faction_count = factions.size();
+    out.write(reinterpret_cast<const char*>(&faction_count), sizeof(faction_count));
+    for (auto& f : factions)
+    {
+        out.write(reinterpret_cast<const char*>(&f->id), sizeof(f->id));
+        out.write(reinterpret_cast<const char*>(&f->definition), sizeof(f->definition));
+        out.write(reinterpret_cast<const char*>(f->name), sizeof(f->name));
+        out.write(reinterpret_cast<const char*>(&f->red), sizeof(f->red));
+        out.write(reinterpret_cast<const char*>(&f->green), sizeof(f->green));
+        out.write(reinterpret_cast<const char*>(&f->blue), sizeof(f->blue));
+        out.write(reinterpret_cast<const char*>(f->rates), sizeof(f->rates));
+        out.write(reinterpret_cast<const char*>(&f->autoPlayer), sizeof(f->autoPlayer));
+    }
+}
 
 // ---------------------------------------------------------------------------------------
 // Dependency Evaluation Engine and tech graph.
@@ -275,7 +304,7 @@ static void saveUnitStatus(std::ostream& out)
 
 #define SAVEGAME_MAGIC          "BUNMEISV"
 #define SAVEGAME_MAGIC_SIZE     8
-#define SAVEGAME_FORMAT_VERSION 1u
+#define SAVEGAME_FORMAT_VERSION 2u   // 2: the faction list follows the year
 
 // magic + headerSize + payloadSize + digest
 #define SAVEGAME_HEADER_SIZE (SAVEGAME_MAGIC_SIZE + 4 + 8 + MD5_DIGEST_SIZE)
@@ -447,18 +476,8 @@ void savegame(const char* filename)
     // Save year
     out.write(reinterpret_cast<const char*>(&year), sizeof(year));
 
-    // Save factions
-    //size_t faction_count = factions.size();
-    //out.write(reinterpret_cast<const char*>(&faction_count), sizeof(faction_count));
-    //for (auto& f : factions) {
-    //    out.write(reinterpret_cast<const char*>(&f->id), sizeof(f->id));
-    //    out.write(reinterpret_cast<const char*>(f->name), sizeof(f->name));
-    //    out.write(reinterpret_cast<const char*>(&f->red), sizeof(f->red));
-    //    out.write(reinterpret_cast<const char*>(&f->green), sizeof(f->green));
-    //    out.write(reinterpret_cast<const char*>(&f->blue), sizeof(f->blue));
-    //    out.write(reinterpret_cast<const char*>(f->rates), sizeof(f->rates));
-    //    out.write(reinterpret_cast<const char*>(&f->autoPlayer), sizeof(f->autoPlayer));
-    // }
+    // Save factions: the live list in turn order, and where the ids go on from.
+    saveFactions(out);
 
 
     // Save cities
@@ -644,7 +663,10 @@ void loadCities(std::istream& in)
                c->name, c->id, c->faction, c->latitude, c->longitude, c->getCityPop());
 
         cities[c->id] = c;
-        citynames[c->faction].pop(); // Remove the used name
+        // Remove the used name from its civilization's pool (a faction made by hand, or a
+        // pool already used up, has none to remove -- pop() on an empty queue is undefined).
+        if (factions.has(c->faction) && !citynames[factions[c->faction]->definition].empty())
+            citynames[factions[c->faction]->definition].pop();
 
         // Load resources
         size_t resource_count = 0;
@@ -831,6 +853,48 @@ void loadgame()
 }
 
 
+
+// Replaces the faction list with the saved one, ids and turn order included. The song comes
+// back from the civilization table (a function pointer is not saved).
+void loadFactions(std::istream& in)
+{
+    int nextid = 0;
+    size_t faction_count = 0;
+    in.read(reinterpret_cast<char*>(&nextid), sizeof(nextid));
+    in.read(reinterpret_cast<char*>(&faction_count), sizeof(faction_count));
+    if (!in) return;
+
+    factions.clear();
+
+    for (size_t i = 0; i < faction_count; ++i)
+    {
+        int id = 0, definition = -1;
+        in.read(reinterpret_cast<char*>(&id), sizeof(id));
+        in.read(reinterpret_cast<char*>(&definition), sizeof(definition));
+        if (!in) return;
+
+        Faction* f = (definition >= 0 && definition < numberOfFactionDefinitions())
+                        ? createFaction(definition) : new Faction();
+        f->id = id;
+        f->definition = definition;
+        in.read(reinterpret_cast<char*>(f->name), sizeof(f->name));
+        in.read(reinterpret_cast<char*>(&f->red), sizeof(f->red));
+        in.read(reinterpret_cast<char*>(&f->green), sizeof(f->green));
+        in.read(reinterpret_cast<char*>(&f->blue), sizeof(f->blue));
+        in.read(reinterpret_cast<char*>(f->rates), sizeof(f->rates));
+        in.read(reinterpret_cast<char*>(&f->autoPlayer), sizeof(f->autoPlayer));
+        if (!in) { delete f; return; }
+
+        if (!factions.restore(f))
+        {
+            printf("Savegame lists faction %d twice; the second one is dropped.\n", id);
+            delete f;
+        }
+    }
+    factions.setNextId(nextid);
+
+    printf("Loaded %zu factions (next id %d).\n", faction_count, factions.nextId());
+}
 
 // Replaces the whole registry with the saved one -- authoritative, so anything registered
 // during setup (initTechnologies' root code) or while loading is superseded. This is also what

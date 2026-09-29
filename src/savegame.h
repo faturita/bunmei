@@ -20,6 +20,9 @@ struct SaveGameInfo
 // Returns false on ANY of those failures, having printed the reason. A caller that gets false
 // must load nothing at all -- the point of the check is to avoid a half-applied world.
 bool readSaveGame(const char* filename, std::string& data, SaveGameInfo& info);
+// Replaces `factions` with the saved list (ids, turn order, next id). Right after the year,
+// before anything that names a faction.
+void loadFactions(std::istream& in);
 void loadCities(std::istream& in);
 void loadUnits(std::istream& in);
 

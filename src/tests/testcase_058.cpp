@@ -48,7 +48,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Tiles tiles;
 
 extern float mapzoom;
@@ -337,9 +337,8 @@ int TestCase_058::check(int year)
         if (readme.getDepth(TECH_INDUSTRIALIZATION) != 16)
         { fail("Industrialization is the deepest technology in README.md, 16 hops out."); return 0; }
         // Depth is still the LONGEST path, not the shortest: Military Tradition has Literature
-        // (3 hops) among its parents but sits at 15. It no longer PRICES the technology (see
-        // the flat bias below), it is what computeBiases() would scale by if TECH_BIAS_BASE
-        // were ever raised above 1.0 again.
+        // (3 hops) among its parents but sits at 15. It is what computeBiases() scales the bias
+        // by (TECH_BIAS_BASE ^ depth), so it prices the technology.
         if (readme.getDepth(TECH_MILITARY_TRADITION) != 15)
         { fail("Military Tradition's depth is its LONGEST path (15), not its shortest (4)."); return 0; }
         for (int code = TECH_FIRST; code <= TECH_LAST; code++)
@@ -354,11 +353,18 @@ int TestCase_058::check(int year)
                 fail(buf); return 0;
             }
         }
-        // At TECH_BIAS_BASE 1.0 that makes the threshold FLAT -- a depth-16 technology is no
-        // harder to fire than a depth-1 one, which is the whole point of the convex weights:
-        // difficulty comes from how many dependencies a technology has, not how far out it is.
-        if (fabs(readme.getBias(TECH_INDUSTRIALIZATION) - readme.getBias(TECH_HUNTING)) > 0.0001f)
-        { fail("With TECH_BIAS_BASE at 1.0 every technology must carry the same bias, whatever its depth."); return 0; }
+        // So the threshold climbs with depth by exactly TECH_BIAS_BASE per hop: the deepest
+        // technology (Industrialization, 16) against a depth-1 one (Hunting).
+        {
+            float ratio = readme.getBias(TECH_INDUSTRIALIZATION) / readme.getBias(TECH_HUNTING);
+            float expected = powf(TECH_BIAS_BASE, (float)(readme.getDepth(TECH_INDUSTRIALIZATION) - readme.getDepth(TECH_HUNTING)));
+            if (fabs(ratio - expected) > 0.001f * expected)
+            {
+                char buf[160];
+                snprintf(buf,sizeof(buf),"Industrialization's bias is %.3fx Hunting's, expected TECH_BIAS_BASE^15 = %.3fx.", ratio, expected);
+                fail(buf); return 0;
+            }
+        }
 
         // Two factions, each with its own copy of the graph (same weights -- they are data now;
         // what diverges is what each faction invests in).

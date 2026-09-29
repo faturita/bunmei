@@ -156,7 +156,14 @@ enum class Command {
     // Settler is when it founds one: its headcount goes into the city's food storage
     // (City::increaseHeadCount), growing the city's pop when that fills a thresshold. The
     // handler checks the unit belongs to parameters.factionid and that the city is theirs.
-    JoinCityOrder=39
+    JoinCityOrder=39,
+    // A new civilization arises: made from a civilization-table row no live faction uses (any
+    // row once all are in play), added at the END of `factions` with the next id, and given
+    // its starting units on a free land tile. Pushed by the /newciv teletype command.
+    NewFactionOrder=40,
+    // Faction parameters.factionid is lost: it has no cities and no units left. Pushed by
+    // checkFactionLost(); the handler checks it again, and never removes the last faction.
+    RemoveFactionOrder=41
 };
 
 // parameters.scope for RegisterDependencyOrder. Deliberately NOT the dee.h context ids: those

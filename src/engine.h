@@ -48,6 +48,28 @@ void spreadCulture();
 
 int getNextCityId();
 int getNextUnitId();
+
+// ---- Civilizations: the table factions are made from, and how they arise and are lost ----
+// How many civilizations the table defines.
+int numberOfFactionDefinitions();
+// A new faction from table row `definition` (name, colour, rates, song). Not added to
+// `factions`: factions.push_back() is what gives it its id.
+Faction* createFaction(int definition);
+// The civilization's name in table row `definition`.
+const char* factionDefinitionName(int definition);
+// The table row of the civilization called `name` (case-insensitive: -faction romans works),
+// -1 when there is none.
+int findFactionDefinition(const char* name);
+// The table rows a new game starts with, in turn order: `count` distinct civilizations, a
+// random set in a random order. Row `selected` (the player's, -1 for none) is always among them.
+std::vector<int> pickStartingCivilizations(int count, int selected);
+// A faction's starting units (Settler, Warrior, Settler) on tile c, REAL coordinates.
+void placeFactionUnits(Faction* f, coordinate c);
+// True when faction f_id has no cities and no units left.
+bool factionIsLost(int f_id);
+// Pushes a RemoveFactionOrder when f_id has just lost its last city and unit. Called wherever
+// a unit is deleted or a city is abandoned or changes hands.
+void checkFactionLost(int f_id);
 int nextUnitId(int faction);
 int nextMovableUnitId(int f_id);
 

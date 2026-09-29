@@ -29,8 +29,8 @@
 
 // @Task: README.md's per-dependency factors are RELATIVE, not absolute. A technology's
 // incoming weights are now a CONVEX combination -- they keep the table's proportions but are
-// rescaled to sum to TECH_DEFAULT_WEIGHT (TechGraph::normalizeWeights()) -- and
-// TECH_BIAS_BASE drops to 1.0, so the bias is flat and depth prices nothing.
+// rescaled to sum to TECH_DEFAULT_WEIGHT (TechGraph::normalizeWeights()). The bias is
+// TECH_BIAS_BASE ^ depth (1.1 in the code), so depth adds a price on top of the fan-in.
 //
 // The design consequence, and what this test pins down: what makes a technology hard is how
 // many dependencies it has to SHARE its fan-in with, not how far from the root it sits.
@@ -45,7 +45,7 @@
 
 extern std::unordered_map<int, std::string> tiles;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Map map;
 extern float mapzoom;
 
@@ -291,12 +291,20 @@ int TestCase_063::check(int year)
         if (readme.getWeight(TECH_SHIP_BUILDING, TECH_ASTRONOMY) >= readme.getWeight(TECH_LANGUAGE, TECH_HUNTING))
         { fail("Astronomy shares its fan-in six ways -- no single parent may weigh as much as a sole dependency."); return 0; }
 
-        // The flat bias, stated as the design intent rather than as BASE^depth: the deepest
-        // technology in the table is no harder to fire than the shallowest.
+        // The bias on top of the weights: the deepest technology in the table is harder to fire
+        // than the shallowest by exactly TECH_BIAS_BASE per hop of depth.
         if (readme.getDepth(TECH_INDUSTRIALIZATION) <= readme.getDepth(TECH_HUNTING))
         { fail("Setup: Industrialization should still be far deeper than Hunting."); return 0; }
-        if (fabs(readme.getBias(TECH_INDUSTRIALIZATION) - readme.getBias(TECH_HUNTING)) > 0.0001f)
-        { fail("At TECH_BIAS_BASE 1.0 the bias must be flat: depth prices nothing any more."); return 0; }
+        {
+            float ratio = readme.getBias(TECH_INDUSTRIALIZATION) / readme.getBias(TECH_HUNTING);
+            float expected = powf(TECH_BIAS_BASE, (float)(readme.getDepth(TECH_INDUSTRIALIZATION) - readme.getDepth(TECH_HUNTING)));
+            if (fabs(ratio - expected) > 0.001f * expected)
+            {
+                char buf[160];
+                snprintf(buf,sizeof(buf),"Industrialization's bias is %.3fx Hunting's, expected TECH_BIAS_BASE^depth-difference = %.3fx.", ratio, expected);
+                fail(buf); return 0;
+            }
+        }
     }
 
     isdone = true;
@@ -306,7 +314,7 @@ int TestCase_063::check(int year)
 
 std::string TestCase_063::title()
 {
-    return std::string("Convex tech weights (TechGraph::normalizeWeights) + flat bias: README.md's per-dependency factors are each dependency's SHARE of its technology's fan-in, summing to TECH_DEFAULT_WEIGHT, so difficulty comes from how many dependencies a technology has rather than from its depth.");
+    return std::string("Convex tech weights (TechGraph::normalizeWeights) + depth bias: README.md's per-dependency factors are each dependency's SHARE of its technology's fan-in, summing to TECH_DEFAULT_WEIGHT; on top, the bias grows by TECH_BIAS_BASE per hop of depth.");
 }
 
 bool TestCase_063::done()   { return isdone; }

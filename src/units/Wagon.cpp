@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Wagon.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Wagon::Wagon()
 {

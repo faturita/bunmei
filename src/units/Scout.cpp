@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Scout.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Scout::Scout()
 {

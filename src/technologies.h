@@ -198,6 +198,10 @@ public:
     // Gives every faction its own copy of `prototype`, reset to "only the root is known".
     void reset(int factionCount, const TechGraph& prototype);
 
+    // One more faction (a new civilization arose): its graph is `prototype`, reset to "only
+    // the root is known". Ids are continuous, so it becomes faction factionCount().
+    void addFaction(const TechGraph& prototype);
+
     int  factionCount() const;
     TechGraph&       graph(int factionId);
     const TechGraph& graph(int factionId) const;
@@ -251,5 +255,10 @@ TechGraph buildDefaultTechGraph();
 // (every faction starts knowing Language). gamekernel.cpp and simulate.cpp both call this --
 // it lives here because gamekernel.cpp is not linked into the simulator.
 void initTechnologies(TechTree& tree, int factionCount, DependencyEvaluationEngine& dee);
+
+// A faction that arose during the game: gives it the default graph (knowing only the root,
+// registered in the DEE too) exactly as initTechnologies() does for the starting ones.
+// Faction ids are continuous, so factionId must be tree.factionCount().
+void addFactionTechnologies(TechTree& tree, int factionId, DependencyEvaluationEngine& dee);
 
 #endif // TECHNOLOGIES_H

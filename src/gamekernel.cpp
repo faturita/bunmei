@@ -45,7 +45,7 @@ extern std::unordered_map<int, int> prices;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern std::unordered_map<int, Improvement*> improvements;
 extern DiplomacyTable diplomacy;
 extern DependencyEvaluationEngine dee;
@@ -637,52 +637,17 @@ void initMap()
 
 
 
-// Static definition of the game's civilizations.  id must match the row's position (it is
-// also the index used into the diplomacy table).
-struct FactionDefinition
-{
-    int id;
-    const char* name;
-    int red, green, blue;
-    float rates[FUNDAMENTAL_RATES];
-    bool autoPlayer;
-    void (*song)();
-};
-
-static const FactionDefinition FACTION_DEFINITIONS[] = {
-    { 0,  "Vikings",     255, 0,   0,   {0.5, 0, 0, 0.5}, true, vikings     },
-    { 1,  "Romans",      255, 255, 255, {0.5, 0.5, 0, 0}, true, romans      },
-    { 2,  "Greeks",      0,   0,   255, {0.5, 0.5, 0, 0}, true, greeks      },
-    { 3,  "Chinese",     0,   255, 255, {0.5, 0.5, 0, 0}, true, chinese     },
-    { 4,  "Egyptians",   255, 255, 0,   {0.5, 0.5, 0, 0}, true, egyptians   },
-    { 5,  "Babylonians", 0,   255, 0,   {0.5, 0.5, 0, 0}, true, babylonians },
-    { 6,  "English",     100, 33,  100, {0.5, 0.5, 0, 0}, true, english     },
-    { 7,  "Mongols",     128, 128, 128, {0.5, 0.5, 0, 0}, true, mongols     },
-    { 8,  "Russians",    160, 20,  40,  {0.5, 0.5, 0, 0}, true, russians    },
-    { 9,  "Zulus",       20,  130, 40,  {0.5, 0.5, 0, 0}, true, zulus       },
-    { 10, "Germans",     40,  70,  130, {0.5, 0.5, 0, 0}, true, germans     },
-    { 11, "French",      90,  140, 230, {0.5, 0.5, 0, 0}, true, french      },
-    { 12, "Aztec",       235, 175, 30,  {0.5, 0.5, 0, 0}, true, aztec       },
-    { 13, "Americans",   40,  170, 160, {0.5, 0.5, 0, 0}, true, americans   },
-    { 14, "Indians",     190, 190, 190, {0.5, 0.5, 0, 0}, true, indians     },
-    { 15, "Incan",       200, 130, 20,  {0.5, 0.5, 0, 0}, true, incan       },
-    { 16, "Japanese",    245, 225, 230, {0.5, 0.5, 0, 0}, true, japanese    },
-    { 17, "Spanish",     200, 50,  20,  {0.5, 0.5, 0, 0}, true, spanish     },
-};
-
-#define NUMBER_OF_FACTION_DEFINITIONS ((int)(sizeof(FACTION_DEFINITIONS)/sizeof(FACTION_DEFINITIONS[0])))
-
 // -civs N (bunmei.cpp numCivs): how many of the defined civilizations actually get loaded.
 #define MIN_CIVS 2
-#define MAX_CIVS NUMBER_OF_FACTION_DEFINITIONS
+#define MAX_CIVS numberOfFactionDefinitions()
 
 void initFactions()
 {
     // numCivs<0 (unset, the default) means "no cap": load every defined civilization, same
     // as before -civs existed. An explicit value is clamped into [MIN_CIVS, MAX_CIVS] --
-    // MAX_CIVS tracks NUMBER_OF_FACTION_DEFINITIONS so "-civs 8" and omitting -civs load the
+    // MAX_CIVS tracks numberOfFactionDefinitions() so "-civs 8" and omitting -civs load the
     // same full set.
-    int civsToLoad = NUMBER_OF_FACTION_DEFINITIONS;
+    int civsToLoad = numberOfFactionDefinitions();
     if (numCivs >= 0)
     {
         civsToLoad = numCivs;
@@ -698,25 +663,15 @@ void initFactions()
         }
     }
 
-    int civIndex = 0;
-    for (auto &def : FACTION_DEFINITIONS)
+    // A new game shuffles which civilizations play and their turn order (a loaded game does
+    // not come through here: loadFactions() restores the saved list).
+    // selectedFaction is a table row (-faction <name>); ids come from factions.push_back.
+    for (int def : pickStartingCivilizations(civsToLoad, selectedFaction))
     {
-        if (civIndex++ >= civsToLoad)
-            break;
-        Faction *faction = new Faction();
-        faction->id = def.id;
-        strcpy(faction->name, def.name);
-        faction->red = def.red;
-        faction->green = def.green;
-        faction->blue = def.blue;
-        for (int i = 0; i < FUNDAMENTAL_RATES; i++)
-            faction->rates[i] = def.rates[i];
-        faction->autoPlayer = def.autoPlayer;
-        printf ("selected faaction: %d, def.id: %d, autoPlayer: %d\n", selectedFaction, def.id, (selectedFaction != def.id));
+        Faction *faction = createFaction(def);
+        printf ("selected faaction: %d, def: %d, autoPlayer: %d\n", selectedFaction, def, (selectedFaction != def));
         if (selectedFaction >=0)
-            faction->autoPlayer = (selectedFaction != def.id);
-
-        faction->song = def.song;
+            faction->autoPlayer = (selectedFaction != def);
 
         factions.push_back(faction);
     }
@@ -743,38 +698,7 @@ void initUnits()
         coordinate c = fi < (int)starts.size() ? starts[fi] : coordinate(0,0);
         fi++;
 
-        Settler *settler = new Settler();
-        settler->longitude = c.lon;
-        settler->latitude = c.lat;
-        settler->id = getNextUnitId();
-        settler->faction = f->id;
-        settler->availablemoves = settler->getUnitMoves();
-
-        units[settler->id] = settler;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
-
-
-        Warrior *warrior = new Warrior();
-        warrior->longitude = c.lon;
-        warrior->latitude = c.lat;
-        warrior->id = getNextUnitId();
-        warrior->faction = f->id;
-        warrior->availablemoves = warrior->getUnitMoves();
-
-
-        units[warrior->id] = warrior;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
-
-        Settler *settler2 = new Settler();
-        settler2->longitude = c.lon;
-        settler2->latitude = c.lat;
-        settler2->id = getNextUnitId();
-        settler2->faction = f->id;
-        settler2->availablemoves = settler2->getUnitMoves();
-
-
-        units[settler2->id] = settler2;
-        map.set(c.lat,c.lon).setOwnedBy(f->id);
+        placeFactionUnits(f, c);
     }    
 }
 
@@ -799,14 +723,11 @@ void initWorldModelling()
     // faction (v_f_id, whose map/vision the human sees) should follow -faction.
     coordinator.a_f_id = factions[0]->id;
 
-    if (selectedFaction >= 0)
-    {
-        coordinator.v_f_id = factions[selectedFaction]->id;
-    }
-    else
-    {
-        coordinator.v_f_id = factions[0]->id;
-    }
+    // The player watches its own civilization (-faction), wherever it landed in the turn order.
+    coordinator.v_f_id = factions[0]->id;
+    for (auto& f : factions)
+        if (f->definition == selectedFaction)
+            coordinator.v_f_id = f->id;
 
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = true;
@@ -855,13 +776,35 @@ void loadWorldModelling()
     // Load year, this is the first thing saved in the savegame file.
     in.read(reinterpret_cast<char*>(&year), sizeof(year));
 
-    initFactions();
-    initDiplomacy(diplomacy, factions.size());
+    // The factions as they were saved: ids, turn order and players. -civs does not apply.
+    loadFactions(in);
+    if (numCivs >= 0)
+        printf("-civs is ignored when loading: the savegame has %zu factions.\n", factions.size());
+
+    // -faction on a load picks which of the SAVED civilizations the human plays.
+    if (selectedFaction >= 0)
+    {
+        bool present = false;
+        for (auto& f : factions)
+            if (f->definition == selectedFaction)
+                present = true;
+        if (present)
+            for (auto& f : factions)
+                f->autoPlayer = (f->definition != selectedFaction);
+        else
+            printf("-faction %s is not in this savegame; keeping its players.\n", factionDefinitionName(selectedFaction));
+    }
+
+    initNaming(citynames);
+
+    // The per-id tables cover every id ever given, lost factions included: that is how the
+    // tech block was saved (one record per id).
+    initDiplomacy(diplomacy, factions.nextId());
 
     // One tech graph per faction, everybody starting at the root (Language, registered in
     // the DEE too). initTechnologies() lives in technologies.cpp so the simulator -- which
     // does not link gamekernel.cpp -- sets this up exactly the same way.
-    initTechnologies(techtree, factions.size(), dee);
+    initTechnologies(techtree, factions.nextId(), dee);
 
 
     loadCities(in);
@@ -879,16 +822,16 @@ void loadWorldModelling()
 
     //initUnits();
 
-    coordinator.a_f_id = factions[0]->id;
+    coordinator.a_f_id = factions.first();
 
-    if (selectedFaction >= 0)
-    {
-        coordinator.v_f_id = factions[selectedFaction]->id;
-    }
-    else
-    {
-        coordinator.v_f_id = factions[0]->id;
-    }
+    // The player watches its own civilization: the first human one in the save.
+    coordinator.v_f_id = factions.first();
+    for (auto& f : factions)
+        if (!f->autoPlayer)
+        {
+            coordinator.v_f_id = f->id;
+            break;
+        }
 
     coordinator.a_u_id = nextUnitId(coordinator.a_f_id);
     //factions[0]->autoPlayer = false;
@@ -900,6 +843,9 @@ void loadWorldModelling()
     autoEndOfTurn = true;
     switchVisibleFaction = false;
 
-    centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
+    // The faction whose turn it is may have no unit to center on (only cities): units[] would
+    // insert a null for the missing id.
+    if (units.find(coordinator.a_u_id) != units.end())
+        centermapinmap(units[coordinator.a_u_id]->latitude,units[coordinator.a_u_id]->longitude);
     zoommapin();
 }

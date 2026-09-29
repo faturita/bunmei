@@ -84,6 +84,20 @@ public:
         entries.assign(n * (n + 1) / 2, Diplomacy());
     }
 
+    // Room for n factions, keeping every relation already in the table.
+    void grow(int n)
+    {
+        if (n <= numberoffactions)
+            return;
+        DiplomacyTable old = *this;
+        resize(n);
+        for (int i = 0; i < old.numberoffactions; i++)
+            for (int j = i; j < old.numberoffactions; j++)
+                at(i, j) = old.at(i, j);
+    }
+
+    int size() const { return numberoffactions; }
+
     Diplomacy& at(int f1, int f2)
     {
         int i = std::min(f1, f2);
@@ -108,5 +122,9 @@ private:
 // Fills diplomacy for numberoffactions factions, one entry per UNORDERED (faction,faction)
 // pair, all starting at NO_CONTACT (landSeizure=true, openBorders=true per the DefCon table).
 void initDiplomacy(DiplomacyTable &diplomacy, int numberoffactions);
+
+// A new faction arose (ids are continuous, so it is the table's last row): grows the table to
+// numberoffactions, keeping every existing relation, and the new pairs start at NO_CONTACT.
+void growDiplomacy(DiplomacyTable &diplomacy, int numberoffactions);
 
 #endif // DIPLOMACY_H

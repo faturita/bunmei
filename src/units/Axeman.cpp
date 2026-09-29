@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Axeman.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Axeman::Axeman()
 {

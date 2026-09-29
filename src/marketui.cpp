@@ -13,7 +13,7 @@
 #include "marketui.h"
 
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Coordinator coordinator;
 extern Map map;
 extern Tiles tiles;

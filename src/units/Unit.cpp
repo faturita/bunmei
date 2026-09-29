@@ -4,7 +4,7 @@
 #include "Unit.h"
 
 extern Map map;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Unit::Unit()
 {

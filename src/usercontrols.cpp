@@ -22,7 +22,7 @@
 
 
 extern Coordinator coordinator;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern std::unordered_map<int, City*> cities;
 extern std::unordered_map<int, Unit*> units;
 extern Map map;
@@ -81,6 +81,15 @@ void handleKeypress(unsigned char key, int x, int y) {
 
                 savegame(savegamefilename.c_str());
             } else
+            if (controller.str.find("/newciv")!=std::string::npos)
+            {
+                // /newciv -- a new civilization arises somewhere on free land (handy for
+                // debugging). Goes through a CommandOrder like every other action.
+                CommandOrder co;
+                co.command = Command::NewFactionOrder;
+                co.parameters.factionid = coordinator.a_f_id;
+                coordinator.push(co);
+            } else
             if (controller.str.find("/fundamental")!=std::string::npos)
             {
                 // /fundamental r1,r2,r3,r4  -> the share of each city's TRADE that endOfYear()
@@ -121,7 +130,7 @@ void handleKeypress(unsigned char key, int x, int y) {
                 iss >> cmd >> token;
 
                 if ((token == "on" || token == "off") &&
-                    coordinator.a_f_id >= 0 && coordinator.a_f_id < (int)factions.size())
+                    factions.has(coordinator.a_f_id))
                 {
                     CommandOrder co;
                     co.command = Command::SetAutoPlayerOrder;
@@ -284,8 +293,8 @@ void handleKeypress(unsigned char key, int x, int y) {
             // Guardrail before anything is offered: the same three things the handler will
             // re-check. Cheaper to refuse here than to raise a dialog whose answer gets
             // thrown away on the other side.
-            if (activeFactionId < 0 || activeFactionId >= (int)factions.size() ||
-                targetFactionId  < 0 || targetFactionId  >= (int)factions.size() ||
+            if (!factions.has(activeFactionId) ||
+                !factions.has(targetFactionId) ||
                 activeFactionId == targetFactionId)
             {
                 printf("Cannot negotiate with faction %d.\n", targetFactionId);

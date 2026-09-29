@@ -23,7 +23,7 @@ extern int year;
 extern Coordinator coordinator;
 extern Controller controller;
 extern std::unordered_map<int, Unit*> units;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 extern std::vector<Message> messages;
 extern TechTree techtree;

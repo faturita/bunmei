@@ -80,7 +80,7 @@ make
  # Running
 
 ```bash
-./bunmei [-nointro] [-seed seed] [-mapsize size] [-nofog] [-civs N] [-faction n]
+./bunmei [-nointro] [-seed seed] [-mapsize size] [-nofog] [-civs N] [-faction Name]
 ```
 
 That's all folks.
@@ -105,6 +105,13 @@ The standard map size is 72x48.
 | 5 | 1152x768 | 0.0625 |
 
 Latitud determines the relation to the equator, increasing towards south. Longitud are the meridians, increasing towards east.  (Zero, Zero) is the center of the scren.  But, the map can be shifted sideways on the screen, moving the zero,zero position. The northern and sourthern part of the map work like in a Oblate Spheroid, so going north from longitud L at the top, means coming from the north at longitud -L, symmetric in relation to the zero meridian.  Of course as long as is possible to make the movement according to the unit.  This can change sea warfare.  The map generation system depends on the size map and currently the generation procedure is very rough.
+
+## Civilizations and Factions
+
+There are several factions in the game.  Citynames are hardcoded as well as faction names.  They are setup when the game starts.  New civilizations can appear out of nowhere, and also as a split or schism from an existing civilization.
+
+When a faction lost all their cities AND their units, that faction is lost (and its AI/user looses).
+
 
 ## Units
 
@@ -492,7 +499,6 @@ infrastructure spreads soft power.
   ownership is already saved in the map file.
 * City tiles never change hands through culture.  A city flips only when allegiance[city tile][f] > 0.5 AND
   city->Indigent > 0.5, which is inactive until Prosperity exists.
-* Factions are the current fixed list.
 
 
 **Outcomes**
@@ -512,17 +518,6 @@ Indigent → Content → Wealthy
 Luxury points 'heat' the city 'prosperity' bar which has two values, the 'Subsistant' and 'Affluence'.  Subsistant is always lower than affluence.   These thresholds determine how many pop elements belong to each class.
 
 If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
-
-
-**Remaining Open Questions without resolution (will be resolved in the future)** 
-
-* How to avoid settling a lot of cities, penalizing a high number of cities >> I can use culture to merge two cities into one.
-* How to handle population growth, happiness, culture, population education >> Luxuries will represent pop economic development
-* How to handle Religion and slaves >> Slaves are free labor that can join cities without consuming food.
-* How to handle poverty, wealth and government style >> Indigent - Content - Wealthy
-* This will allow to make sense to buy luxury products (I have defined many) >> Luxury products on tiles will now produce luxury resources (and/or culture).
-* Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
-* The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
 
 **Tribalism**
 * Slavery allowed
@@ -679,15 +674,23 @@ winner.hc -= winner.hc * (0.03 + 0.2 * (1 - D))
 winner.xp += 40 * (0.03 + 0.2 * (1 - D)).  (force xp ∈ [0,100])
 ```
 
-# Working issues
+# Remaining Open Questions without resolution (will be resolved in the future)
+
+* How to avoid settling a lot of cities, penalizing a high number of cities >> I can use culture to merge two cities into one.
+* How to handle population growth, happiness, culture, population education >> Luxuries will represent pop economic development
+* How to handle Religion and slaves >> Slaves are free labor that can join cities without consuming food.
+* How to handle poverty, wealth and government style >> Indigent - Content - Wealthy
+* This will allow to make sense to buy luxury products (I have defined many) >> Luxury products on tiles will now produce luxury resources (and/or culture).
+* Culture spread alliance on the city which depends on the land owenership of the tile where the city is located.   So cities can revolt very easily.  
+* The system also applies to city ownership of the tiles.  If a city is a cultural powerhouse  it can put all the tiles on its side and eventually it will absorb the neighboring city when the tile where the city is located flips. 
+
+
+# Desired Feature List
 
 * Iterate on improving the AI: focus more on production on cities and build defensive units.
 * Units can be stacked together and named.
 * Allow ships to be shown last:  perhaps it is better to add a number, like a Z-value that will help to determine what is shown first and what is shown last.
 * Add a world edit testcase to create customized maps.
-
-# Feature
-
 * Market: duplicates the amount of TRADE
 * Spheroid: Arriving to the south and north pole (0,-24) (0,23).
 * Allow to circumvent the world using the spheroid and the relative position of the center.

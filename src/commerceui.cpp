@@ -22,7 +22,7 @@ extern Controller controller;
 extern Coordinator coordinator;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 // Own scroll offset for the "For sale" box (the commerce-screen counterpart of
 // cityscreenui.cpp's commoditiesStorageOffset).
@@ -62,7 +62,7 @@ void drawCommerceScreen(int cla, int clo, City *city)
     placeWord(clo + (-10), cla + (-10), 4, 8, city->name);
 
     char buf[128];
-    int youcoins = (u != nullptr && u->faction >= 0 && u->faction < (int)factions.size())
+    int youcoins = (u != nullptr && factions.has(u->faction))
                    ? factions[u->faction]->coins : 0;
     snprintf(buf, sizeof(buf), "COMMERCE   you %d coins   %s %d coins",
              youcoins, city->name, city->resources[COINS]);

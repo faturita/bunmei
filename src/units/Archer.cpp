@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Archer.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Archer::Archer()
 {

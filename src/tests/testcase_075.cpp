@@ -57,7 +57,7 @@ extern std::unordered_map<int, std::string> tiles;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Map map;
 extern float mapzoom;
 
@@ -341,6 +341,7 @@ int TestCase_075::check(int year)
         std::istringstream in(savedata, std::ios::binary);
         int loadedYear = 0;
         in.read(reinterpret_cast<char*>(&loadedYear), sizeof(loadedYear));
+        loadFactions(in);          // the faction list follows the year (savegame format 2)
         loadCities(in);
 
         auto it = cities.find(cityid);

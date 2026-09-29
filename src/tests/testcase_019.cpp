@@ -43,7 +43,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern DiplomacyTable diplomacy;
 extern Tiles tiles;
 extern MovementCost movementcosts;

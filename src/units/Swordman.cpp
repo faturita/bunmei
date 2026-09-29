@@ -4,7 +4,7 @@
 #include "../codes.h"
 #include "Swordman.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Swordman::Swordman()
 {

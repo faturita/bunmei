@@ -50,7 +50,7 @@ extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern DiplomacyTable diplomacy;
 extern Tiles tiles;
 
@@ -100,6 +100,7 @@ void TestCase_009::init()
 
     Faction *faction = new Faction();
     faction->id = 0;
+    faction->definition = 0;   // city names come from the civilization's pool
     strcpy(faction->name,"Vikings");
     faction->red = 255;
     faction->green = 0;
@@ -110,6 +111,7 @@ void TestCase_009::init()
 
     faction = new Faction();
     faction->id = 1;
+    faction->definition = 1;   // city names come from the civilization's pool
     strcpy(faction->name,"Romans");
     faction->red = 255;
     faction->green = 255;

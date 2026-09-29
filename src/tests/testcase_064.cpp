@@ -51,7 +51,7 @@ extern std::unordered_map<int, std::string> tiles;
 extern std::unordered_map<int, Improvement*> improvements;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern Map map;
 extern float mapzoom;
 
@@ -102,6 +102,7 @@ void TestCase_064::init()
     {
         Faction *faction = new Faction();
         faction->id = f;
+        faction->definition = f;   // loadCities() pops this civilization's name pool.
         strcpy(faction->name, f == 0 ? "Vikings" : "Romans");
         faction->red = 255; faction->green = 0; faction->blue = 0;
         faction->autoPlayer = false;
@@ -171,6 +172,7 @@ int TestCase_064::check(int year)
 
     int loadedYear = 0;
     in.read(reinterpret_cast<char*>(&loadedYear), sizeof(loadedYear));
+    loadFactions(in);          // the faction list follows the year (savegame format 2)
     loadCities(in);
 
     if ((int)cities.size() != EXPECTED_COUNT)

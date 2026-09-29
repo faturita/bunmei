@@ -5,7 +5,7 @@
 #include "tiles.h"
 #include "City.h"
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern std::unordered_map<int,int> commodityxresource;
 extern ImprovementResources improvementresources;
 

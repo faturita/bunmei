@@ -5,7 +5,7 @@
 #include "Settler.h"
 
 
-extern std::vector<Faction*> factions;
+extern Factions factions;
 
 Settler::Settler()
 {

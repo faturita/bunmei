@@ -59,7 +59,7 @@ extern std::unordered_map<int, Improvement*> improvements;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
 extern std::unordered_map<int, Unit*> units;
 extern std::unordered_map<int, City*> cities;
-extern std::vector<Faction*> factions;
+extern Factions factions;
 extern ImprovementEffort improvementeffort;
 extern float mapzoom;
 
@@ -210,6 +210,7 @@ int TestCase_067::check(int year)
 
     int loadedYear = 0;
     in.read(reinterpret_cast<char*>(&loadedYear), sizeof(loadedYear));
+    loadFactions(in);          // the faction list follows the year (savegame format 2)
     loadCities(in);
     loadUnits(in);
     loadDependencies(in);
