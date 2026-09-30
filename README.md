@@ -504,20 +504,38 @@ infrastructure spreads soft power.
 **Outcomes**
 ```
 If a city->allegiance[faction] > 0.5 and city->Indigent > 0.5 the city flips to the faction.
-If a city->poverty > 0.3 -> Deplete storages
-    city->poverty > 0.5 -> Buildings destroyed randomly
-    city->poverty > 0.8 in 2 cities within a radius of 10 -> create a new faction.
+
 ```
 
 ### Prosperity
 
-Three type of population on each city
+Three type of population on each city:
 
-Indigent → Content → Wealthy
+ Indigent → Content → Wealthy
 
 Luxury points 'heat' the city 'prosperity' bar which has two values, the 'Subsistant' and 'Affluence'.  Subsistant is always lower than affluence.   These thresholds determine how many pop elements belong to each class.
 
+Subsistant: city->st Subsistant threshold determines the limit between indient and content
+Affluence: city->at Affluence threshold determines the limit between content and wealthy.
+
+```
+at -= (city->coreresources[LUXURY] * FACTOR);
+at += (city->coreresources[LUXURY] * FACTOR);
+
+deficit = | min(city->coreresources[COINS],0) |
+
+st += (deficit * FACTOR);
+at += (city->pop * FACTOR);
+```
+
 If indigent is higher, cities can revolt (create a new faction) or they can flip to a different faction.
+```
+If a city->Indigent > 0.3 -> Deplete storages randomly
+    city->Indigent > 0.5 -> Buildings destroyed randomly
+    city->Indigent > 0.8 in 2 cities within a radius of 10 -> create a new faction.
+```
+
+### Breakdown of government types vs game actions
 
 **Tribalism**
 * Slavery allowed

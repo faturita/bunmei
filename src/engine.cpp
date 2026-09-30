@@ -575,6 +575,36 @@ void endOfYear()
     // do not radiate): spend each city's CULTURE heating the land around it.
     spreadCulture();
 
+    // --- Prosperity ----------------------------------------------------------------------
+     for (auto& [k, c] : cities)
+    {
+        const float FACTOR = 0.01f;
+
+        int deficit = std::abs( std::min(0, c->resources[COINS]) );
+
+        c->st -= (c->resources[LUXURY] * FACTOR);
+        c->at -= (c->resources[LUXURY] * FACTOR);
+
+        c->st += (deficit * FACTOR);
+        c->at += (c->getCityPop() * FACTOR);
+
+        // Clamp the subsistence and affluence levels to the range [0.0, 1.0].
+        c->st = std::max(0.0f, c->st);
+        c->at = std::max(0.0f, c->at);
+
+        c->st = std::min(1.0f, c->st);
+        c->at = std::min(1.0f, c->at);
+
+        // @NOTE: Ensure that the subsistence level does not exceed the affluence level.
+        c->st = std::min( c->st, c->at);  
+
+        printf("City %s\t\t\tst=%.2f, at=%.2f (luxury spent=%d) for faction %d.\n", c->name, c->st, c->at, c->resources[LUXURY], c->faction);
+
+
+        // City gathered luxury from this year is consumed.
+        c->resources[LUXURY] = 0;
+    }   
+
     // ---- Research ----------------------------------------------------------------------
     // Every city's SCIENCE for the year is pooled per faction, poured into whatever that
     // faction currently has selected, and the city's counter cleared -- SCIENCE is spent on

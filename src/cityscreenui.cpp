@@ -539,12 +539,22 @@ void drawCityScreen(int cla, int clo, City *city)
     snprintf(citytitle, sizeof(citytitle), "%s(Pop: %d)", city->name, city->getHeadCount());
     placeWord(clo + (-10),cla + (-10),4,8,citytitle);
 
+    // @NOTE Eventually I can play with the icons here following the religious composition of the city.
+    // Place the population icons for the city following the prosperity rule (gender is always alternating)
     for(int i=0;i<city->getCityPop();i++)
     {
-        if (i%2==0)
-            place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,"assets/assets/city/people_content_m.png");
-        else
-            place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,"assets/assets/city/people_content_f.png");
+        std::string prosperity = "content";
+
+        if (i < city->getCityPop() * city->st)
+            prosperity = "indigent";
+        else if (i > city->getCityPop() * city->at)
+            prosperity = "wealthy";
+
+        std::string gender = (i%2==0) ? "m" : "f";
+
+        std::string asset = "assets/assets/city/people_"+prosperity+"_" + gender + ".png";
+        
+        place((clo + (-10))*16+4*i,(cla + (-9))*16,8,16,(asset).c_str());
     }
     
     

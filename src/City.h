@@ -26,6 +26,7 @@ protected:
     int pop;
     int hc;                                                     // Headcount, see getHeadCount().
 
+
     Map *map;
 
 public:
@@ -41,6 +42,9 @@ public:
     // ALL_COMMODITIES / ALL_MFG_GOODS / ALL_COMMODITIES_AND_MFGGOODS to pick a class.
     std::unordered_map<int, int> resources;
 
+    // @NOTE: default people is just content, middle class.  No poverty, no wealthy.
+    float st=0.0f;                                                   // Subsistence level, determines the threshold for Indigent > Content
+    float at=1.0f;                                                   // Affluence threshold, determines the threshold for Content > Wealthy       
 
     City(Map *map, int faction, int id, int latitude, int longitude);
     int latitude;
