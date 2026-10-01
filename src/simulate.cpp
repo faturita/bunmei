@@ -31,6 +31,7 @@
 #include "coordinator.h"
 #include "dee.h"
 #include "technologies.h"
+#include "savegame.h"
 #include "improvements.h"
 #include "diplomacy.h"
 #include "automation.h"
@@ -324,6 +325,10 @@ int main(int argc, char *argv[]) {
     // Whatever the starting units can see. Here, where the world has just been built -- not
     // in the per-turn path, where endOfYear() already does it.
     updateFogOfWar();
+
+    // @NOTE: The world as this run starts it, before any command: saves/initmatch.sav plus the
+    // commands in saves/match.log (also started over every run) replay the whole match.
+    savegame("initmatch.sav");
 
     // At this point everything is set up.
 

@@ -66,6 +66,7 @@
 #include "automation.h"
 #include "dee.h"
 #include "technologies.h"
+#include "savegame.h"
 
 #include "buildable.h"
 
@@ -165,7 +166,11 @@ void setupWorldModelling()
             {
                 for (auto& f : factions)
                     map.set(lat,lon).setVisible(f->id);
-            }   
+            }
+
+    // @NOTE: The world as this run starts it, before any command: saves/initmatch.sav plus the
+    // commands in saves/match.log (also started over every run) replay the whole match.
+    savegame("initmatch.sav");
 }
 
 void initRendering()

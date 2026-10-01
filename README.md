@@ -137,7 +137,7 @@ When a faction lost all their cities AND their units, that faction is lost (and 
 | Musketman       | Gunpowder | Guns | - |
 | Granadier       | Chemestry | Guns + Spices | - |
 | Cavalry         | Military Tradition | Horses + Guns | - |
-| Cannon          | Metallurgy | Iron |
+| Cannon          | Metallurgy | Iron | - |
 
 Units should strip population from their city, and they could rejoin the city back.  Fortify them help them to recover their headcounts (soldiers) from a nearby city with LoS.  So all the units have a headcount field which determines the amount of soldiers or the amount of population that the unit has. So every unit can join back a city and increase city population according to the growth rate rule of population.
 
@@ -503,7 +503,7 @@ infrastructure spreads soft power.
 
 **Outcomes**
 ```
-If a city->allegiance[faction] > 0.5 and city->Indigent > 0.5 the city flips to the faction.
+If a city tile's->allegiance[faction] > 0.5 and city->Indigent > 0.5 the city flips to the faction.
 
 ```
 
@@ -520,7 +520,7 @@ Affluence: city->at Affluence threshold determines the limit between content and
 
 ```
 at -= (city->coreresources[LUXURY] * FACTOR);
-at += (city->coreresources[LUXURY] * FACTOR);
+st -= (city->coreresources[LUXURY] * FACTOR);
 
 deficit = | min(city->coreresources[COINS],0) |
 

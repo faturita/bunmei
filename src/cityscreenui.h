@@ -45,6 +45,11 @@ void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar);
 // round() at the call site.
 void getProductionStorageLayout(int requiredShields, int &itemsPerRow, float &colsepar);
 
+// Treasure box layout (right column, between the buildings and the Change box): one coin icon
+// per coin in city->resources[COINS]. Rows are filled at the natural 7 px spacing while they
+// fit, then squeezed down to 1 px; `shown` is how many icons fit (the rest are not drawn).
+void getTreasureLayout(int coins, int &shown, int &itemsPerRow, float &colsepar);
+
 // How much of `resourceId` a buildable's recipe consumes, independent of what the city has
 // in stock: hands fullfillment() an abundance of every id getRequiredResources() lists and
 // reads the deduction back. 0 if the recipe never consumes that id.

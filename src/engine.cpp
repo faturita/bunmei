@@ -582,9 +582,11 @@ void endOfYear()
 
         int deficit = std::abs( std::min(0, c->resources[COINS]) );
 
+        // What makes people happy
         c->st -= (c->resources[LUXURY] * FACTOR);
         c->at -= (c->resources[LUXURY] * FACTOR);
 
+        // What makes people poor and sad.
         c->st += (deficit * FACTOR);
         c->at += (c->getCityPop() * FACTOR);
 

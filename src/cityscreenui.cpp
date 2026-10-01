@@ -360,6 +360,25 @@ void getProductionStorageLayout(int requiredShields, int &itemsPerRow, float &co
         colsepar = (float)(prodStorageWidth-7)/(float)(itemsPerRow-1);
 }
 
+void getTreasureLayout(int coins, int &shown, int &itemsPerRow, float &colsepar)
+{
+    // The Treasure box: cols 4..9, the label on row 0 and the icons on rows 1..3.
+    const int treasureWidth = ((9)-(4))*16;             // 80 px
+    const int treasureRows  = ((3)-(0))*16/7;           // 6 rows of 7 px icons
+    const int naturalPerRow = (treasureWidth-7)/7 + 1;  // 11 icons at 7 px
+    const int maxPerRow     = (treasureWidth-7)/1 + 1;  // 74 icons at 1 px
+
+    shown = std::abs(coins);
+    if (shown > maxPerRow*treasureRows) shown = maxPerRow*treasureRows;
+
+    // Natural spacing while everything fits; otherwise the tightest fit that uses every row.
+    itemsPerRow = (int)ceil((float)shown/(float)treasureRows);
+    if (itemsPerRow < naturalPerRow) itemsPerRow = naturalPerRow;
+
+    colsepar = (float)(treasureWidth-7)/(float)(itemsPerRow-1);
+    if (colsepar > 7.0f) colsepar = 7.0f;
+}
+
 // One "Units" box row: faction-tinted unit icon, status overlays, name, and (for a
 // Transport) one box.png cargo slot per capacity() slot. Row `loc` -> lat cla+(5+loc).
 // Factored out of drawCityScreen's Units box so the commerce screen's "port" box can draw
@@ -581,7 +600,12 @@ void drawCityScreen(int cla, int clo, City *city)
             int netproduction   = production - consumptionrate;
             if (netproduction < 0) netproduction = 0;   // a shortfall shows no "added" icons
 
-            // @TODO: Pick an icon to highlight the situation where resources are not enough to cover the consumption rate.  This is a very important situation and should be highlighted.
+            // A shortage of food or coins: the consumed units this turn's production does not
+            // cover are drawn with nofood/nogold instead of the regular icon.
+            const char* shortageicon = nullptr;
+            if (r == FOOD)  shortageicon = "assets/assets/city/nofood.png";
+            if (r == COINS) shortageicon = "assets/assets/city/nogold.png";
+
             // @TODO: Allow clicking on the resources to see the number of resources (when there are a lot is going to be hard to count)
             int total = consumptionrate + netproduction;
             if (total < 1) total = 1;
@@ -590,7 +614,8 @@ void drawCityScreen(int cla, int clo, City *city)
 
             for(j=0;j<consumptionrate;j++)
             {
-                place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,coreresources[r].c_str());
+                const char* icon = (shortageicon != nullptr && j >= production) ? shortageicon : coreresources[r].c_str();
+                place((clo + (-10))*16-4+colsepar*j  ,(cla + (-7))*16-4+7*(i)  ,7,7,icon);
             }
 
             for(;j<consumptionrate+netproduction;j++)
@@ -743,6 +768,23 @@ void drawCityScreen(int cla, int clo, City *city)
             if (b->getConsumptionRate(r) > 0) { place(iconX,rowY,6,6,tiles[r].c_str());         iconX += 6; }
     }
     drawBoundingBox(clo,cla,4,-10,9,-1);
+
+    // Treasure: the coins stored in THIS city (city->resources[COINS]), one icon per coin;
+    // a debt (negative coins) is drawn with nogold.png. The number is shown next to the label.
+    {
+        int coins = city->resources[COINS];
+        char treasure[32];
+        snprintf(treasure, sizeof(treasure), "%d", coins);
+        placeWord(clo + (4),cla + (0),4,8,"Treasure");
+        placeWord(clo + (7),cla + (0),4,8,treasure);
+
+        int shown, itemsPerRow; float colsepar;
+        getTreasureLayout(coins, shown, itemsPerRow, colsepar);
+        const char* icon = (coins < 0) ? "assets/assets/city/nogold.png" : coreresources[COINS].c_str();
+        for (int i=0;i<shown;i++)
+            place((clo+(4))*16+(int)round(colsepar*(i%itemsPerRow))  ,(cla+(1))*16-4+7*(i/itemsPerRow)  ,7,7,icon);
+    }
+    drawBoundingBox(clo,cla,4,0,9,3);
 
     placeWord(clo + (4),cla + (4),4,8,"Change");  // Row, Column
     if (city->productionQueue.size()>0)
