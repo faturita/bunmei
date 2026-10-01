@@ -31,18 +31,22 @@ void drawResourceStorageBox(int cla, int clo, City* city, int& scrollOffset,
 // fine-grid lon2 == s-4) lives in each screen's own click handler.
 void drawUnitsBoxRow(int cla, int clo, class Unit* u, int loc);
 
-// Food Storage box layout: itemsPerRow/colsepar picked so that getPopulationThresshold(pop)
-// food icons (the max City::resources[0] can reach before the city grows) fill EVERY row
-// the box has (itemsPerRow is the tightest fit across all rows) and colsepar -- a float,
-// meant to be applied per-icon with round(), not truncated once for the whole row -- spaces
-// them to reach exactly the box's right edge, using its full width too.
-void getFoodStorageLayout(int pop, int &itemsPerRow, float &colsepar);
+// Storage icons (food, shields) are drawn one after the other this many px apart.
+#define STORAGE_ICON_PITCH 8
+
+// Food Storage box layout for getPopulationThresshold(pop) food icons (the most
+// City::resources[FOOD] holds before the city grows): one after the other, STORAGE_ICON_PITCH
+// apart, squeezed (colsepar, a float applied per-icon with round()) only when they would not
+// fit. With a Granary the first half and the second half each start on their own row:
+// granaryRow is the row the second half starts on (0 without a Granary).
+void getFoodStorageLayout(int pop, bool granary, int &itemsPerRow, float &colsepar, int &granaryRow);
+
+// Grid position (column, row) of food icon i in that layout.
+void getFoodIconSlot(int i, int pop, int itemsPerRow, int granaryRow, int &col, int &row);
 
 // Same idea as getFoodStorageLayout but for the bottom-right "Change" box where produced
-// shields accumulate: size the grid to the amount of SHIELDS the queued buildable NEEDS
-// (requiredShields, from factoryRequirement()), spreading that many icons across every row
-// the box has so a full grid == ready to build. colsepar is a float, applied per-icon with
-// round() at the call site.
+// shields accumulate: the grid holds the SHIELDS the queued buildable NEEDS (requiredShields,
+// from factoryRequirement()), one after the other, squeezed only when they would not fit.
 void getProductionStorageLayout(int requiredShields, int &itemsPerRow, float &colsepar);
 
 // Treasure box layout (right column, between the buildings and the Change box): one coin icon

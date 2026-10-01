@@ -154,6 +154,11 @@ int TestCase_057::check(int year)
         getProductionStorageLayout(400, iprBig,   csBig);
         if (!(iprBig > iprSmall && csBig < csSmall))
         { fail("A larger shield requirement should give more icons/row at a tighter colsepar."); return 0; }
+
+        // A requirement that fits is drawn one shield after the other, at the natural pitch.
+        // (80 px wide: (80-7)/pitch + 1 icons fill a row before the next one starts.)
+        if (csSmall != (float)STORAGE_ICON_PITCH || iprSmall != (boxWidth-7)/STORAGE_ICON_PITCH + 1)
+        { fail("40 shields fit the box, but were not drawn one after the other, STORAGE_ICON_PITCH apart."); return 0; }
     }
 
     // ---- 3) drawCityScreen renders with a queued multi-ingredient buildable --------------

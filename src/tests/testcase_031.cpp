@@ -50,9 +50,12 @@
 // though the row (same width as City Resources/Commodities, whose own comment says "16
 // resources fit with a colsepar of 7") has room for double that -- verified with a real
 // screen capture (glReadPixels + lodepng, tmp/ dir, add/use/removed) showing the row's icons
-// stopping at half the box's width. getFoodStorageLayout now takes itemsPerRow as
-// max(16, ceil(thresshold/rows)), so this test also checks itemsPerRow>=16 whenever the
-// thresshold is small enough to allow it.
+// stopping at half the box's width.
+//
+// @Issue (2026-10-01, foodandshieldslayout.png): spreading the icons over the whole box looked
+// ugly. They now go one after the other, STORAGE_ICON_PITCH apart (like the original Civ), and
+// are squeezed only when the thresshold does not fit the box at that pitch -- so this test
+// checks the natural pitch when it fits and the tightest fit when it does not.
 
 extern Map map;
 extern std::unordered_map<int,std::queue<std::string>> citynames;
@@ -168,45 +171,37 @@ int TestCase_031::check(int year)
 
     // Check the layout math for a spread of population values, including the city's own
     // (25) and some much larger ones, so the fix is verified beyond a single case.
-    //
-    // @Issue follow-up (issue3.png): the old fixed "natural 16 items/row" floor left the
-    // box's LOWER rows empty whenever a small thresshold didn't need 16/row (e.g. only 7 of
-    // 13 rows used at pop=1) -- and separately, colsepar being a single int (floor()'d once
-    // for the whole row) lost up to itemsPerRow-2 units of width to rounding, visibly
-    // stopping short of the box's right edge. getFoodStorageLayout now always picks the
-    // TIGHTEST itemsPerRow that spreads the thresshold across every row the box has (no
-    // floor, so it always uses the full height), and returns colsepar as a float meant to be
-    // applied per-icon with round() (drawCityScreen does this) rather than truncated once --
-    // that lands the row's LAST icon exactly on the box's edge, using the full width too.
+    const int naturalPerRow = (FOOD_STORAGE_WIDTH_PX-FOOD_ICON_PX)/STORAGE_ICON_PITCH + 1;
     int testPops[] = {1, 2, 5, 10, 25, 50, 100};
     for (int p : testPops)
     {
-        int itemsPerRow; float colsepar;
-        getFoodStorageLayout(p, itemsPerRow, colsepar);
+        int itemsPerRow; float colsepar; int granaryRow;
+        getFoodStorageLayout(p, false, itemsPerRow, colsepar, granaryRow);
 
         int thresshold = getPopulationThresshold(p);
 
-        if ((long long)itemsPerRow * FOOD_STORAGE_ROWS < thresshold)
+        if ((long long)itemsPerRow * FOOD_STORAGE_ROWS < thresshold || granaryRow != 0)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
-            sprintf(buf,"pop=%d: itemsPerRow(%d)*rows(%d) does not cover thresshold(%d).",
-                    p, itemsPerRow, FOOD_STORAGE_ROWS, thresshold);
+            snprintf(buf,sizeof(buf),"pop=%d: itemsPerRow(%d)*rows(%d) does not cover thresshold(%d) (granaryRow %d without a Granary).",
+                    p, itemsPerRow, FOOD_STORAGE_ROWS, thresshold, granaryRow);
             message = std::string(buf);
             return 0;
         }
 
-        // itemsPerRow must be the TIGHTEST fit (one item fewer per row would no longer
-        // cover the thresshold across all the rows) -- otherwise the grid stops short of
-        // the box's bottom, wasting rows, exactly the bug this follow-up fixes.
-        if (itemsPerRow>1 && (long long)(itemsPerRow-1) * FOOD_STORAGE_ROWS >= thresshold)
+        // One after the other while it fits; squeezed only as much as needed when it does not.
+        bool fits = (long long)naturalPerRow * FOOD_STORAGE_ROWS >= thresshold;
+        bool ok = fits ? (itemsPerRow == naturalPerRow && colsepar == (float)STORAGE_ICON_PITCH)
+                       : ((long long)(itemsPerRow-1) * FOOD_STORAGE_ROWS < thresshold && colsepar < (float)STORAGE_ICON_PITCH);
+        if (!ok)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
-            sprintf(buf,"pop=%d: itemsPerRow(%d) is looser than necessary -- rows(%d) go unused.",
-                    p, itemsPerRow, FOOD_STORAGE_ROWS);
+            snprintf(buf,sizeof(buf),"pop=%d (thresshold %d): %d per row at %.2f px, expected %s.",
+                    p, thresshold, itemsPerRow, colsepar, fits ? "the natural pitch" : "the tightest fit that covers it");
             message = std::string(buf);
             return 0;
         }

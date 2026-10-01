@@ -39,6 +39,10 @@
 // grid (itemsPerRow/colsepar from getFoodStorageLayout) the food icons above it are drawn
 // in.
 //
+// @Issue (2026-10-01): with icons packed one after the other, the kept half fills from the
+// top, the line goes right below it (granaryRow) and the rest starts on the row after the
+// line (getFoodIconSlot).
+//
 // This test checks the MATH directly (no pixel capture needed, same approach as
 // testcase_031 for this same box): for a range of population values, the half-thresshold
 // row must fall inside the box's row count, and the line's pixel span must not exceed the
@@ -153,19 +157,36 @@ int TestCase_035::check(int year)
     int testPops[] = {1, 2, 5, 10, 25, 50, 100};
     for (int p : testPops)
     {
-        int itemsPerRow; float colsepar;
-        getFoodStorageLayout(p, itemsPerRow, colsepar);
+        int itemsPerRow; float colsepar; int row;
+        getFoodStorageLayout(p, true, itemsPerRow, colsepar, row);
 
-        int halfThresshold = getPopulationThresshold(p)/2;
-        int row = halfThresshold/itemsPerRow;
+        int thresshold = getPopulationThresshold(p);
+        int halfThresshold = thresshold/2;
 
-        if (row < 0 || row >= FOOD_STORAGE_ROWS)
+        if (row < 1 || row >= FOOD_STORAGE_ROWS)
         {
             isdone = true;
             haspassed = false;
             char buf[256];
             sprintf(buf,"pop=%d: granary line row(%d) falls outside the Food Storage box (%d rows).",
                     p, row, FOOD_STORAGE_ROWS);
+            message = std::string(buf);
+            return 0;
+        }
+
+        // The kept half fills the rows above the line, the rest starts right below it, and
+        // the last icon still lies inside the box.
+        int col0, rowBefore, colAfter, rowAfter, colLast, rowLast;
+        getFoodIconSlot(halfThresshold-1, p, itemsPerRow, row, col0, rowBefore);
+        getFoodIconSlot(halfThresshold,   p, itemsPerRow, row, colAfter, rowAfter);
+        getFoodIconSlot(thresshold-1,     p, itemsPerRow, row, colLast, rowLast);
+        if (rowBefore != row-1 || colAfter != 0 || rowAfter != row || rowLast >= FOOD_STORAGE_ROWS)
+        {
+            isdone = true;
+            haspassed = false;
+            char buf[256];
+            snprintf(buf,sizeof(buf),"pop=%d: line at row %d, but the half ends on row %d, the rest starts at (%d,%d) and ends on row %d (of %d).",
+                    p, row, rowBefore, colAfter, rowAfter, rowLast, FOOD_STORAGE_ROWS);
             message = std::string(buf);
             return 0;
         }
